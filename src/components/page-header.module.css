@@ -1,0 +1,7 @@
+.head{display:flex;flex-direction:column;gap:16px}
+.head[data-panel]{padding:20px 24px;border-radius:var(--ats-radius-lg,18px);background:var(--ats-bg,#fff)}
+.top{display:flex;flex-wrap:wrap;align-items:flex-start;gap:12px 16px}
+.titleBox{flex:1 1 320px;min-width:0}
+.title{margin:0;font-size:var(--ats-fs-screen,28px);font-weight:var(--ats-fw-screen,800);line-height:1.2}
+.sub{margin:6px 0 0;color:var(--ats-text-2,rgba(0,0,0,.65));font-size:14px}
+.actions{display:flex;flex-wrap:wrap;align-items:center;gap:8px}

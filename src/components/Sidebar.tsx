@@ -1,0 +1,140 @@
+"use client";
+
+import Link from "next/link";
+import { usePathname } from "next/navigation";
+import { useState } from "react";
+import s from "./sidebar.module.css";
+
+interface NavItem {
+  href: string;
+  label: string;
+  icon: React.ReactNode;
+}
+
+const ICONS = {
+  home: (
+    <svg width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M15 21v-8a1 1 0 0 0-1-1h-4a1 1 0 0 0-1 1v8" />
+      <path d="M3 10a2 2 0 0 1 .709-1.528l7-6a2 2 0 0 1 2.582 0l7 6A2 2 0 0 1 21 10v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
+    </svg>
+  ),
+  search: (
+    <svg width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="m21 21-4.34-4.34" />
+      <circle cx="11" cy="11" r="8" />
+    </svg>
+  ),
+  messages: (
+    <svg width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M7.9 20A9 9 0 1 0 4 16.1L2 22Z" />
+    </svg>
+  ),
+  chart: (
+    <svg width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M3 3v16a2 2 0 0 0 2 2h16" />
+      <path d="M18 17V9" />
+      <path d="M13 17V5" />
+      <path d="M8 17v-3" />
+    </svg>
+  ),
+  plug: (
+    <svg width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M12 22v-5" />
+      <path d="M9 8V2" />
+      <path d="M15 8V2" />
+      <path d="M18 8v5a4 4 0 0 1-4 4h-4a4 4 0 0 1-4-4V8Z" />
+    </svg>
+  ),
+  settings: (
+    <svg width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.08a2 2 0 0 1 1 1.73v.18a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.73v-.18a2 2 0 0 0-2-2z" />
+      <circle cx="12" cy="12" r="3" />
+    </svg>
+  ),
+  megaphone: (
+    <svg width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="m3 11 18-5v12L3 14v-3z" />
+      <path d="M11.6 16.8a3 3 0 1 1-5.8-1.6" />
+    </svg>
+  ),
+  bell: (
+    <svg width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M10.05 2.5a2 2 0 0 1 3.9 0" />
+      <path d="M6 6a6 6 0 0 1 12 0c0 5 3 6 3 6H3s3-1 3-6" />
+      <path d="M10.3 21a1.94 1.94 0 0 0 3.4 0" />
+    </svg>
+  ),
+};
+
+const NAV_ITEMS: NavItem[] = [
+  { href: "/home", label: "Главная", icon: ICONS.home },
+  { href: "/search", label: "Поиск", icon: ICONS.search },
+  { href: "/messages", label: "Сообщения", icon: ICONS.messages },
+  { href: "/analytics", label: "Аналитика", icon: ICONS.chart },
+  { href: "/settings/integrations", label: "Интеграции", icon: ICONS.plug },
+  { href: "/settings", label: "Настройки", icon: ICONS.settings },
+  { href: "/whats-new", label: "Что нового", icon: ICONS.megaphone },
+];
+
+export function Sidebar() {
+  const pathname = usePathname();
+  const [collapsed, setCollapsed] = useState(true);
+
+  return (
+    <aside
+      className={`${s.sidebar} ${collapsed ? s.collapsed : ""}`}
+      aria-label="Основная навигация"
+    >
+      <div className={s.brand}>
+        <Link aria-label="Собесо — главная" href="/home">
+          <img alt="Собесо" src="/images/ats-brand/logo-sobesso.png" />
+        </Link>
+        <button
+          type="button"
+          className={s.collapseBtn}
+          aria-label={collapsed ? "Развернуть меню" : "Свернуть меню"}
+          aria-expanded={!collapsed}
+          onClick={() => setCollapsed(!collapsed)}
+        >
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+            <rect x="2" y="3" width="12" height="10" rx="1.5" />
+            <path d="M10 3v10" />
+            <path d="M5.5 6.5 7.5 8l-2 1.5" />
+          </svg>
+        </button>
+      </div>
+      <div className={s.scroll}>
+        <nav className={s.nav}>
+          {NAV_ITEMS.map((item) => {
+            const isActive = pathname === item.href;
+            return (
+              <Link
+                key={item.href}
+                className={`${s.navItem} ${isActive ? s.active : ""}`}
+                href={item.href}
+              >
+                <span role="img" aria-hidden="true" className="anticon">
+                  {item.icon}
+                </span>
+                <span className={s.navLabel}>{item.label}</span>
+              </Link>
+            );
+          })}
+        </nav>
+      </div>
+      <div className={s.footer}>
+        <span className={s.footerBtn} role="img" aria-label="Лимиты: Вакансий: 1 из 20" tabIndex={0}>
+          <svg width="18" height="18" viewBox="0 0 18 18" className={s.ring} aria-hidden="true">
+            <circle cx="9" cy="9" r="7" className={s.ringTrack} />
+            <circle cx="9" cy="9" r="7" className={s.ringFill} strokeDasharray="43.98" strokeDashoffset="41.78" />
+          </svg>
+        </span>
+        <button aria-label="Уведомления" type="button" className={s.footerBtn}>
+          <span role="img" aria-hidden="true" className="anticon">
+            {ICONS.bell}
+          </span>
+        </button>
+      </div>
+    </aside>
+  );
+}

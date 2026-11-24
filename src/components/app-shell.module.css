@@ -1,0 +1,6 @@
+.shell{position:relative;display:grid;grid-template-columns:var(--ats-sider-width,276px) minmax(0,1fr);gap:var(--ats-space-block,16px);height:calc(var(--vh) * 100);padding:0 0 0 var(--ats-space-page,24px)}
+.sheetLayer,.sheet{grid-row:1;grid-column:2;min-height:0;overflow:auto}
+.sheet{padding:0 var(--ats-space-page,24px) var(--ats-space-page,24px) 0}
+.sheetLayer{pointer-events:none;position:relative;z-index:1}
+.sheetLayer>*{pointer-events:auto}
+.resizer{grid-row:1;grid-column:1;width:4px;margin-right:-2px;cursor:col-resize;z-index:2}

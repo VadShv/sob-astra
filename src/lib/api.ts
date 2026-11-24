@@ -12,8 +12,25 @@ export const apiClient: AxiosInstance = axios.create({
 export interface User {
   id: string;
   email: string;
-  role: string;
+  roles: string[];
   companyId?: string;
+  first_name?: string;
+  last_name?: string;
+  full_name?: string;
+}
+
+export interface UserDetails {
+  id: string;
+  email: string;
+  name: string;
+  isHrAdmin: boolean;
+  company: {
+    CompanyIntegration: { integrationType: string }[];
+    AvailableIntegration: { integrationType: string }[];
+    integrationType: string;
+    productMode: string;
+    multiVacancyAsOne: boolean;
+  };
 }
 
 export interface LoginResponse {
@@ -39,46 +56,129 @@ export interface ApiError {
   response?: { status?: number };
 }
 
+export interface Vacancy {
+  id: string;
+  title: string;
+  multiVacancy: unknown;
+  stageTypes: string[];
+  interviewsCount: number;
+  stageCounts: { stageId: string; count: number }[];
+  SourceIntegrationVacancy?: { integrationType: string };
+  TransportIntegrationVacancy?: { integrationType: string };
+  SinkIntegrationVacancy?: { integrationType: string };
+}
+
+export interface VacancyFacets {
+  total: number;
+  recruiters: { id: string; name: string }[];
+  departments: { id: string; name: string }[];
+  statuses: { value: string; label: string; count: number }[];
+}
+
+export interface HiringKpi {
+  timeToFill: { medianDays: number | null; positions: number; vacancies: number };
+  timeToOffer: { medianDays: number | null; offers: number };
+  offerAcceptance: { rate: number | null; accepted: number; declined: number };
+  hiringSpeed: { unit: string; points: { from: string; to: string }[] };
+}
+
+export interface Candidate {
+  candidateId: string;
+  firstName: string;
+  lastName: string;
+  fullName: string;
+  email: string;
+  phone: string;
+}
+
 export const authApi = {
-  async me(): Promise<User> {
-    const { data } = await apiClient.get<User>("/auth/me");
+  async me(): Promise<{ user: User | null }> {
+    const { data } = await apiClient.get("/auth/me");
     return data;
   },
-
-  async loginWithPassword(payload: {
-    email: string;
-    password: string;
-  }): Promise<LoginResponse> {
-    const { data } = await apiClient.post<LoginResponse>(
-      "/auth/login",
-      payload
-    );
+  async loginWithPassword(payload: { email: string; password: string }): Promise<LoginResponse> {
+    const { data } = await apiClient.post("/auth/login", payload);
     return data;
   },
-
-  async loginWithCode(payload: {
-    challengeId: string;
-    code: string;
-  }): Promise<User> {
-    const { data } = await apiClient.post<User>("/auth/login/code", payload);
+  async loginWithCode(payload: { challengeId: string; code: string }): Promise<User> {
+    const { data } = await apiClient.post("/auth/login/code", payload);
     return data;
   },
-
-  async resendLoginCode(payload: {
-    challengeId: string;
-  }): Promise<CodeResponse> {
-    const { data } = await apiClient.post<CodeResponse>(
-      "/auth/login/code/resend",
-      payload
-    );
+  async resendLoginCode(payload: { challengeId: string }): Promise<CodeResponse> {
+    const { data } = await apiClient.post("/auth/login/code/resend", payload);
     return data;
   },
-
   async sendMagicLink(payload: { email: string }): Promise<void> {
     await apiClient.post("/auth/magic-link", payload);
   },
-
   hhAuthUrl(): string {
     return `${API_BASE_URL}/auth/hh`;
+  },
+};
+
+export const appApi = {
+  async getCurrentTime(): Promise<{ currentTimeMs: number }> {
+    const { data } = await apiClient.get("/api/time/current");
+    return data;
+  },
+  async getUser(): Promise<UserDetails> {
+    const { data } = await apiClient.get("/api/user");
+    return data;
+  },
+  async getCompanyRoles(): Promise<unknown> {
+    const { data } = await apiClient.get("/api/company-roles/me");
+    return data;
+  },
+  async getUnreadCount(): Promise<{ count: number }> {
+    const { data } = await apiClient.get("/api/notifications/unread-count");
+    return data;
+  },
+  async getAwaitingCount(): Promise<{ count: number }> {
+    const { data } = await apiClient.get("/api/conversations/awaiting/count");
+    return data;
+  },
+  async getVacancies(params?: Record<string, string>): Promise<{ items: Vacancy[]; total?: number }> {
+    const { data } = await apiClient.get("/api/vacancy/all", { params });
+    return data;
+  },
+  async getVacancyFacets(params?: Record<string, string>): Promise<VacancyFacets> {
+    const { data } = await apiClient.get("/api/vacancy/all/facets", { params });
+    return data;
+  },
+  async getHiringKpi(params?: Record<string, string>): Promise<HiringKpi> {
+    const { data } = await apiClient.get("/api/analytics/hiring-kpi", { params });
+    return data;
+  },
+  async getCandidates(params?: Record<string, string>): Promise<{ items: Candidate[]; total?: number }> {
+    const { data } = await apiClient.get("/api/candidate", { params });
+    return data;
+  },
+  async getColdSearches(): Promise<unknown> {
+    const { data } = await apiClient.get("/api/cold-search/searches");
+    return data;
+  },
+  async getMessageTemplates(): Promise<unknown> {
+    const { data } = await apiClient.get("/api/message-templates/variables");
+    return data;
+  },
+  async getConversationsAwaiting(params?: Record<string, string>): Promise<unknown> {
+    const { data } = await apiClient.get("/api/conversations/awaiting", { params });
+    return data;
+  },
+  async getOrgUnits(): Promise<unknown> {
+    const { data } = await apiClient.get("/api/org-units");
+    return data;
+  },
+  async getDepartments(): Promise<unknown> {
+    const { data } = await apiClient.get("/api/org-units/departments");
+    return data;
+  },
+  async getReferenceDictionary(code: string): Promise<unknown> {
+    const { data } = await apiClient.get(`/api/reference-dictionary/${code}`);
+    return data;
+  },
+  async getViewSettings(key: string): Promise<unknown> {
+    const { data } = await apiClient.get(`/api/view-settings/${key}`);
+    return data;
   },
 };
