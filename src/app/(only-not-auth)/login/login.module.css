@@ -1,0 +1,30 @@
+.page{display:flex;justify-content:center;align-items:center;min-height:calc(var(--vh) * 100);min-height:100dvh;padding:48px 20px;color:#171717;font-family:var(--font-sans),-apple-system,"Segoe UI",Roboto,sans-serif;background:radial-gradient(920px 660px at -8% -12%,rgba(150,111,241,.34),transparent 60%),radial-gradient(840px 620px at 106% -6%,rgba(107,83,213,.26),transparent 58%),radial-gradient(760px 660px at 14% 118%,rgba(255,111,184,.2),transparent 56%),radial-gradient(720px 600px at 100% 108%,rgba(255,203,97,.24),transparent 56%),linear-gradient(180deg,#f8f6fc,#fbfaff 45%,#f5fbf8)}
+.card{display:flex;width:min(100%,840px);overflow:hidden;background:#fff;border-radius:24px;box-shadow:0 30px 70px rgba(40,20,80,.12)}
+.formSide{flex:1.15;display:flex;flex-direction:column;gap:22px;padding:44px 40px}
+.formSide>:nth-child(2){margin-top:auto}
+.formSide>:last-child{margin-bottom:auto}
+.hhSide{position:relative;flex:0.92;display:flex;flex-direction:column;justify-content:center;gap:14px;padding:44px 36px;background:#f0e7fe}
+.logo{display:block;width:116px;height:auto}
+.heading{display:flex;flex-direction:column;gap:8px}
+.title{margin:0;font-size:28px;font-weight:800;line-height:1.2;color:#171717}
+.hint{margin:0;font-size:14px;line-height:1.5;color:#5e5b66}
+.hint b{font-weight:600;color:#171717}
+.form .ant-form-item{margin-bottom:16px}
+.form .ant-form-item-label>label{font-size:13px;font-weight:600}
+.submit{margin-top:6px;margin-bottom:0}
+.hhTitle{margin:0;font-size:20px;font-weight:800;color:#171717}
+.hhButton{margin-top:8px}
+.hhIcon{font-size:22px}
+.or{display:none}
+@media (max-width:767px){.page{padding:24px 16px}.card{flex-direction:column}.formSide,.hhSide{padding:28px 24px 32px}.or{display:flex;align-items:center;gap:12px;font-size:12px;color:#928fa0}.or:after,.or:before{content:"";flex:1;height:1px;background:rgba(21,23,22,.1)}}
+.modeSwitch{margin-top:-8px}
+.linkHint,.linkSent{margin-bottom:16px}
+.devLogins{display:grid;gap:8px;margin-top:20px;padding:12px;border:1px dashed #c9c4d6;border-radius:12px}
+.devLoginsTitle{font-size:12px;font-weight:600;color:#5e5b66}
+.devLoginsNote{font-size:13px;color:#5e5b66}
+.passwordStep:not([hidden]){display:flex;flex-direction:column;gap:22px}
+.codeStep{display:flex;flex-direction:column;gap:16px}
+.codeField{display:flex;flex-direction:column;gap:8px}
+.codeError{font-size:13px;color:#e01a4f}
+.codeActions{display:flex;flex-wrap:wrap;justify-content:space-between;gap:8px;margin-top:-8px}
+.codeActions .ant-btn{padding-inline:0}
