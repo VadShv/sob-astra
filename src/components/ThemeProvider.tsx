@@ -29,6 +29,7 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     localStorage.setItem("theme-mode", mode);
+    document.documentElement.setAttribute("data-theme", mode);
   }, [mode]);
 
   const toggle = () => setMode((m) => (m === "light" ? "dark" : "light"));
