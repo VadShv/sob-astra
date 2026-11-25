@@ -6,6 +6,7 @@ import { Table, Button, Tag, Skeleton, Modal, Form, Input, Select, message, Popc
 import type { ColumnsType } from "antd/es/table";
 import { SettingsLayout } from "@/components/SettingsLayout";
 import { appApi } from "@/lib/api";
+import { qk } from "@/lib/query-keys";
 
 interface UserRow {
   id: string;
@@ -22,12 +23,12 @@ export default function UsersSettingsPage() {
   const [form] = Form.useForm();
 
   const { data, isLoading } = useQuery({
-    queryKey: ["company-users"],
+    queryKey: qk.settings.companyUsers(),
     queryFn: () => appApi.getCompanyUsers(),
   });
 
   const { data: rolesData } = useQuery({
-    queryKey: ["company-roles"],
+    queryKey: qk.settings.companyRoles(),
     queryFn: () => appApi.getCompanyRoles(),
   });
 
@@ -42,7 +43,7 @@ export default function UsersSettingsPage() {
     mutationFn: (payload: { email: string; role: string }) => appApi.inviteUser(payload),
     onSuccess: () => {
       message.success("Приглашение отправлено");
-      qc.invalidateQueries({ queryKey: ["company-users"] });
+      qc.invalidateQueries({ queryKey: qk.settings.companyUsers() });
       setInviteOpen(false);
       form.resetFields();
     },
@@ -53,7 +54,7 @@ export default function UsersSettingsPage() {
     mutationFn: (userId: string) => appApi.removeUser(userId),
     onSuccess: () => {
       message.success("Пользователь удалён");
-      qc.invalidateQueries({ queryKey: ["company-users"] });
+      qc.invalidateQueries({ queryKey: qk.settings.companyUsers() });
     },
     onError: () => message.error("Не удалось удалить"),
   });
@@ -64,7 +65,7 @@ export default function UsersSettingsPage() {
     mutationFn: ({ userId, role }: { userId: string; role: string }) => appApi.updateUserRole(userId, role),
     onSuccess: () => {
       message.success("Роль обновлена");
-      qc.invalidateQueries({ queryKey: ["company-users"] });
+      qc.invalidateQueries({ queryKey: qk.settings.companyUsers() });
     },
     onError: () => message.error("Не удалось обновить роль"),
   });
@@ -79,7 +80,7 @@ export default function UsersSettingsPage() {
     mutationFn: (userId: string) => appApi.deactivateUser(userId),
     onSuccess: () => {
       message.success("Пользователь деактивирован");
-      qc.invalidateQueries({ queryKey: ["company-users"] });
+      qc.invalidateQueries({ queryKey: qk.settings.companyUsers() });
     },
     onError: () => message.error("Не удалось деактивировать"),
   });

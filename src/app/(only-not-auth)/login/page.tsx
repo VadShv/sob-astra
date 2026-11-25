@@ -16,6 +16,7 @@ import ruRU from "antd/locale/ru_RU";
 import { HhIcon } from "@/components/HhIcon";
 import { loginTheme } from "@/lib/theme";
 import { authApi, type ApiError, type Challenge } from "@/lib/api";
+import { qk } from "@/lib/query-keys";
 import { usePageTitle } from "@/components/usePageTitle";
 import s from "./login.module.css";
 
@@ -107,7 +108,7 @@ export default function LoginPage() {
   usePageTitle("Вход");
 
   const { data: user } = useQuery({
-    queryKey: ["user"],
+    queryKey: qk.auth.user(),
     queryFn: () => authApi.me(),
     retry: 2,
     staleTime: 30_000,
@@ -136,7 +137,7 @@ export default function LoginPage() {
   }, []);
 
   const handleLoginSuccess = async () => {
-    await queryClient.invalidateQueries({ queryKey: ["user"] });
+    await queryClient.invalidateQueries({ queryKey: qk.auth.user() });
     router.replace("/");
   };
 

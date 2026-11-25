@@ -5,6 +5,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Button, Tag, Skeleton, Modal, Form, Input, Space, message, Popconfirm } from "antd";
 import { SettingsLayout } from "@/components/SettingsLayout";
 import { appApi } from "@/lib/api";
+import { qk } from "@/lib/query-keys";
 
 const DEFAULT_STAGES = [
   { name: "Отклик", type: "new" },
@@ -21,7 +22,7 @@ export default function FunnelsSettingsPage() {
   const [form] = Form.useForm();
 
   const { data, isLoading } = useQuery({
-    queryKey: ["funnel-templates"],
+    queryKey: qk.settings.funnels(),
     queryFn: () => appApi.getFunnels(),
   });
 
@@ -29,7 +30,7 @@ export default function FunnelsSettingsPage() {
     mutationFn: (payload: Record<string, unknown>) => appApi.createFunnel(payload),
     onSuccess: () => {
       message.success("Воронка создана");
-      qc.invalidateQueries({ queryKey: ["funnel-templates"] });
+      qc.invalidateQueries({ queryKey: qk.settings.funnels() });
       setCreateOpen(false);
       form.resetFields();
     },
@@ -40,7 +41,7 @@ export default function FunnelsSettingsPage() {
     mutationFn: (id: string) => appApi.deleteFunnel(id),
     onSuccess: () => {
       message.success("Воронка удалена");
-      qc.invalidateQueries({ queryKey: ["funnel-templates"] });
+      qc.invalidateQueries({ queryKey: qk.settings.funnels() });
     },
     onError: () => message.error("Не удалось удалить"),
   });
@@ -50,7 +51,7 @@ export default function FunnelsSettingsPage() {
       appApi.updateFunnel(id, payload),
     onSuccess: () => {
       message.success("Воронка обновлена");
-      qc.invalidateQueries({ queryKey: ["funnel-templates"] });
+      qc.invalidateQueries({ queryKey: qk.settings.funnels() });
       setCreateOpen(false);
       form.resetFields();
     },

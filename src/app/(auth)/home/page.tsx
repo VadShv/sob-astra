@@ -7,6 +7,7 @@ import type { ColumnsType } from "antd/es/table";
 import { useQuery, useMutation, useQueryClient, keepPreviousData } from "@tanstack/react-query";
 import { PageHeader } from "@/components/PageHeader";
 import { authApi, appApi, type Vacancy, type HiringKpi } from "@/lib/api";
+import { qk } from "@/lib/query-keys";
 import { usePageTitle } from "@/components/usePageTitle";
 import s from "./home.module.css";
 
@@ -63,12 +64,12 @@ export default function HomePage() {
   const [sortOrder, setSortOrder] = useState<"asc" | "desc">("asc");
 
   const { data: userResp } = useQuery({
-    queryKey: ["auth-me"],
+    queryKey: qk.auth.me(),
     queryFn: () => authApi.me(),
   });
 
   const { data: vacancies, isLoading } = useQuery({
-    queryKey: ["vacancies-active", statusFilter, page, pageSize, sortBy, sortOrder],
+    queryKey: qk.vacancies.active(statusFilter, page, pageSize, sortBy, sortOrder),
     queryFn: ({ signal }) =>
       appApi.getVacancies({
         status: statusFilter,
@@ -82,12 +83,12 @@ export default function HomePage() {
   });
 
   const { data: facets } = useQuery({
-    queryKey: ["vacancy-facets", statusFilter],
+    queryKey: qk.vacancies.facets(statusFilter),
     queryFn: () => appApi.getVacancyFacets({ status: statusFilter }),
   });
 
   const { data: orgUnits } = useQuery({
-    queryKey: ["org-units"],
+    queryKey: qk.reference.orgUnits(),
     queryFn: () => appApi.getOrgUnits(),
   });
 
@@ -95,9 +96,9 @@ export default function HomePage() {
     mutationFn: (payload: Record<string, unknown>) => appApi.createVacancy(payload),
     onSuccess: (resp) => {
       message.success("Вакансия создана");
-      qc.invalidateQueries({ queryKey: ["vacancies-active"] });
-      qc.invalidateQueries({ queryKey: ["sidebar-vacancies"] });
-      qc.invalidateQueries({ queryKey: ["vacancy-facets"] });
+      qc.invalidateQueries({ queryKey: qk.vacancies.all() });
+      qc.invalidateQueries({ queryKey: qk.vacancies.sidebar() });
+      qc.invalidateQueries({ queryKey: qk.vacancies.facets() });
       setCreateOpen(false);
       form.resetFields();
       router.push(`/vacancy/${resp.id}`);
@@ -111,8 +112,8 @@ export default function HomePage() {
     onSuccess: () => {
       message.success("Статус обновлён");
       setSelectedRowKeys([]);
-      qc.invalidateQueries({ queryKey: ["vacancies-active"] });
-      qc.invalidateQueries({ queryKey: ["sidebar-vacancies"] });
+      qc.invalidateQueries({ queryKey: qk.vacancies.all() });
+      qc.invalidateQueries({ queryKey: qk.vacancies.sidebar() });
     },
     onError: () => message.error("Не удалось обновить статус"),
   });
@@ -122,15 +123,15 @@ export default function HomePage() {
     onSuccess: () => {
       message.success("Вакансии удалены");
       setSelectedRowKeys([]);
-      qc.invalidateQueries({ queryKey: ["vacancies-active"] });
-      qc.invalidateQueries({ queryKey: ["sidebar-vacancies"] });
-      qc.invalidateQueries({ queryKey: ["vacancy-facets"] });
+      qc.invalidateQueries({ queryKey: qk.vacancies.all() });
+      qc.invalidateQueries({ queryKey: qk.vacancies.sidebar() });
+      qc.invalidateQueries({ queryKey: qk.vacancies.facets() });
     },
     onError: () => message.error("Не удалось удалить"),
   });
 
   const { data: kpi } = useQuery({
-    queryKey: ["hiring-kpi"],
+    queryKey: qk.analytics.kpi(),
     queryFn: () =>
       appApi.getHiringKpi({
         from: new Date(Date.now() - 90 * 86400000).toISOString(),

@@ -6,6 +6,7 @@ import { Form, Input, Select, Button, Card, Space, Checkbox, message, Skeleton }
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { PageHeader } from "@/components/PageHeader";
 import { appApi, type Vacancy } from "@/lib/api";
+import { qk } from "@/lib/query-keys";
 
 function VacancyForm() {
   const router = useRouter();
@@ -17,22 +18,22 @@ function VacancyForm() {
   const isEdit = !!editId;
 
   const { data: orgUnits } = useQuery({
-    queryKey: ["org-units"],
+    queryKey: qk.reference.orgUnits(),
     queryFn: () => appApi.getOrgUnits(),
   });
 
   const { data: facets } = useQuery({
-    queryKey: ["vacancy-facets"],
+    queryKey: qk.vacancies.facets(),
     queryFn: () => appApi.getVacancyFacets({ status: "active,paused,distribution" }),
   });
 
   const { data: grades } = useQuery({
-    queryKey: ["reference-grades"],
+    queryKey: qk.reference.grades(),
     queryFn: () => appApi.getReferenceDictionary("grades"),
   });
 
   const { data: existingVacancy, isLoading: loadingVacancy } = useQuery({
-    queryKey: ["vacancy", editId],
+    queryKey: qk.vacancies.detail(editId!),
     queryFn: () => appApi.getVacancyById(editId!),
     enabled: isEdit,
   });
@@ -58,8 +59,8 @@ function VacancyForm() {
     mutationFn: (payload: Record<string, unknown>) => appApi.createVacancy(payload),
     onSuccess: (resp) => {
       message.success("Вакансия создана");
-      qc.invalidateQueries({ queryKey: ["vacancies-active"] });
-      qc.invalidateQueries({ queryKey: ["sidebar-vacancies"] });
+      qc.invalidateQueries({ queryKey: qk.vacancies.all() });
+      qc.invalidateQueries({ queryKey: qk.vacancies.sidebar() });
       router.push(`/vacancy/${resp.id}`);
     },
     onError: () => {
@@ -72,10 +73,10 @@ function VacancyForm() {
     mutationFn: (payload: Record<string, unknown>) => appApi.updateVacancy(editId!, payload),
     onSuccess: () => {
       message.success("Вакансия обновлена");
-      qc.invalidateQueries({ queryKey: ["vacancy", editId] });
-      qc.invalidateQueries({ queryKey: ["vacancies-active"] });
-      qc.invalidateQueries({ queryKey: ["sidebar-vacancies"] });
-      qc.invalidateQueries({ queryKey: ["vacancy-facets"] });
+      qc.invalidateQueries({ queryKey: qk.vacancies.detail(editId!) });
+      qc.invalidateQueries({ queryKey: qk.vacancies.all() });
+      qc.invalidateQueries({ queryKey: qk.vacancies.sidebar() });
+      qc.invalidateQueries({ queryKey: qk.vacancies.facets() });
       router.push(`/vacancy/${editId}`);
     },
     onError: () => {

@@ -5,18 +5,19 @@ import { Form, Input, Button, Select, message, Skeleton } from "antd";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { SettingsLayout } from "@/components/SettingsLayout";
 import { appApi } from "@/lib/api";
+import { qk } from "@/lib/query-keys";
 
 export default function CompanySettingsPage() {
   const qc = useQueryClient();
   const [form] = Form.useForm();
 
   const { data: company, isLoading } = useQuery({
-    queryKey: ["company"],
+    queryKey: qk.settings.company(),
     queryFn: () => appApi.getCompany(),
   });
 
   const { data: regions } = useQuery({
-    queryKey: ["reference-regions"],
+    queryKey: qk.reference.regions(),
     queryFn: () => appApi.getReferenceDictionary("regions"),
   });
 
@@ -24,7 +25,7 @@ export default function CompanySettingsPage() {
     mutationFn: (values: Record<string, unknown>) => appApi.updateCompany(values),
     onSuccess: () => {
       message.success("Сохранено");
-      qc.invalidateQueries({ queryKey: ["company"] });
+      qc.invalidateQueries({ queryKey: qk.settings.company() });
     },
     onError: () => message.error("Не удалось сохранить"),
   });

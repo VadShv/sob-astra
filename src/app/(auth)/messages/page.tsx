@@ -6,6 +6,7 @@ import { Button, Segmented, Skeleton, Table, Tag, Input, message, Drawer, Checkb
 import type { ColumnsType } from "antd/es/table";
 import { PageHeader } from "@/components/PageHeader";
 import { appApi } from "@/lib/api";
+import { qk } from "@/lib/query-keys";
 import { usePageTitle } from "@/components/usePageTitle";
 import s from "./messages.module.css";
 
@@ -33,7 +34,7 @@ export default function MessagesPage() {
   const [pageSize, setPageSize] = useState(20);
 
   const { data, isLoading } = useQuery({
-    queryKey: ["conversations-awaiting", subTab, onlyMine, channelFilter, page, pageSize],
+    queryKey: qk.conversations.awaiting(subTab, onlyMine, channelFilter, page, pageSize),
     queryFn: ({ signal }) =>
       appApi.getConversationsAwaiting({
         sort: "longest",
@@ -48,7 +49,7 @@ export default function MessagesPage() {
   });
 
   const { data: messagesData, isLoading: messagesLoading } = useQuery({
-    queryKey: ["conversation-messages", selectedCandidacy],
+    queryKey: qk.conversations.messages(selectedCandidacy!),
     queryFn: () => appApi.getConversationMessages(selectedCandidacy!),
     enabled: !!selectedCandidacy,
     refetchInterval: 5000,
@@ -60,8 +61,8 @@ export default function MessagesPage() {
     onSuccess: () => {
       message.success("Отправлено");
       setReplyText("");
-      qc.invalidateQueries({ queryKey: ["conversation-messages", selectedCandidacy] });
-      qc.invalidateQueries({ queryKey: ["conversations-awaiting"] });
+      qc.invalidateQueries({ queryKey: qk.conversations.messages(selectedCandidacy!) });
+      qc.invalidateQueries({ queryKey: qk.conversations.all() });
     },
     onError: () => message.error("Не удалось отправить"),
   });

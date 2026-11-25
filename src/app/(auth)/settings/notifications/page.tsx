@@ -5,6 +5,7 @@ import { Form, Switch, Button, Divider, message, Skeleton } from "antd";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { SettingsLayout } from "@/components/SettingsLayout";
 import { appApi } from "@/lib/api";
+import { qk } from "@/lib/query-keys";
 
 const FALLBACK_NOTIFICATION_KEYS = [
   { key: "newCandidate", title: "Новый кандидат", desc: "Когда кандидат откликается на вакансию" },
@@ -18,12 +19,12 @@ export default function NotificationsSettingsPage() {
   const [form] = Form.useForm();
 
   const { data: settings, isLoading } = useQuery({
-    queryKey: ["notification-settings"],
+    queryKey: qk.notifications.settings(),
     queryFn: () => appApi.getNotificationSettings(),
   });
 
   const { data: typesData } = useQuery({
-    queryKey: ["notification-types"],
+    queryKey: qk.notifications.types(),
     queryFn: () => appApi.getNotificationTypes(),
   });
 
@@ -35,7 +36,7 @@ export default function NotificationsSettingsPage() {
     mutationFn: (values: Record<string, boolean>) => appApi.updateNotificationSettings(values),
     onSuccess: () => {
       message.success("Сохранено");
-      qc.invalidateQueries({ queryKey: ["notification-settings"] });
+      qc.invalidateQueries({ queryKey: qk.notifications.settings() });
     },
     onError: () => message.error("Не удалось сохранить"),
   });

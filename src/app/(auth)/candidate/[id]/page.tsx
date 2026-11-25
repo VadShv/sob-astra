@@ -6,6 +6,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Skeleton, Tag, Button, Space, Divider, message, Modal, Form, Input, Select, Upload, Tooltip } from "antd";
 import { PageHeader } from "@/components/PageHeader";
 import { appApi, type Candidate } from "@/lib/api";
+import { qk } from "@/lib/query-keys";
 import { usePageTitle } from "@/components/usePageTitle";
 import s from "./candidate.module.css";
 
@@ -25,27 +26,27 @@ export default function CandidatePage({
   const [vacancyForm] = Form.useForm();
 
   const { data: candidate, isLoading } = useQuery({
-    queryKey: ["candidate", id],
+    queryKey: qk.candidates.detail(id),
     queryFn: () => appApi.getCandidateById(id),
   });
 
   const { data: candidacies } = useQuery({
-    queryKey: ["candidate-candidacies", id],
+    queryKey: qk.candidates.candidacies(id),
     queryFn: () => appApi.getCandidateCandidacies(id),
   });
 
   const { data: interviews } = useQuery({
-    queryKey: ["candidate-interviews", id],
+    queryKey: qk.candidates.interviews(id),
     queryFn: () => appApi.getCandidateInterviews(id),
   });
 
   const { data: vacancies } = useQuery({
-    queryKey: ["vacancies-for-add"],
+    queryKey: qk.vacancies.forAdd(),
     queryFn: () => appApi.getVacancies({ status: "active", page: "1", pageSize: "100" }),
   });
 
   const { data: notesData } = useQuery({
-    queryKey: ["candidate-notes", id],
+    queryKey: qk.candidates.notes(id),
     queryFn: () => appApi.getCandidateNotes(id),
   });
 
@@ -53,7 +54,7 @@ export default function CandidatePage({
     mutationFn: (file: File) => appApi.uploadResume(id, file),
     onSuccess: () => {
       message.success("Резюме загружено");
-      qc.invalidateQueries({ queryKey: ["candidate", id] });
+      qc.invalidateQueries({ queryKey: qk.candidates.detail(id) });
     },
     onError: () => message.error("Не удалось загрузить"),
   });
@@ -62,7 +63,7 @@ export default function CandidatePage({
     mutationFn: (tags: string[]) => appApi.updateCandidateTags(id, tags),
     onSuccess: () => {
       message.success("Метки обновлены");
-      qc.invalidateQueries({ queryKey: ["candidate", id] });
+      qc.invalidateQueries({ queryKey: qk.candidates.detail(id) });
     },
     onError: () => message.error("Не удалось обновить"),
   });
@@ -72,7 +73,7 @@ export default function CandidatePage({
     onSuccess: () => {
       message.success("Заметка добавлена");
       setNoteText("");
-      qc.invalidateQueries({ queryKey: ["candidate-notes", id] });
+      qc.invalidateQueries({ queryKey: qk.candidates.notes(id) });
     },
     onError: () => message.error("Не удалось добавить"),
   });
@@ -81,8 +82,8 @@ export default function CandidatePage({
     mutationFn: (payload: Record<string, unknown>) => appApi.updateCandidate(id, payload),
     onSuccess: () => {
       message.success("Кандидат обновлён");
-      qc.invalidateQueries({ queryKey: ["candidate", id] });
-      qc.invalidateQueries({ queryKey: ["candidates"] });
+      qc.invalidateQueries({ queryKey: qk.candidates.detail(id) });
+      qc.invalidateQueries({ queryKey: qk.candidates.all() });
       setEditOpen(false);
     },
     onError: () => message.error("Не удалось сохранить"),
@@ -92,9 +93,9 @@ export default function CandidatePage({
     mutationFn: (vacancyId: string) => appApi.addCandidateToVacancy(id, vacancyId),
     onSuccess: () => {
       message.success("Кандидат добавлен на вакансию");
-      qc.invalidateQueries({ queryKey: ["candidate-candidacies", id] });
-      qc.invalidateQueries({ queryKey: ["vacancy-candidacies"] });
-      qc.invalidateQueries({ queryKey: ["conversations-awaiting"] });
+      qc.invalidateQueries({ queryKey: qk.candidates.candidacies(id) });
+      qc.invalidateQueries({ queryKey: qk.vacancies.candidacies("") });
+      qc.invalidateQueries({ queryKey: qk.conversations.all() });
       setAddVacancyOpen(false);
       vacancyForm.resetFields();
     },

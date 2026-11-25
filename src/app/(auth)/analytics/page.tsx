@@ -6,6 +6,7 @@ import { Button, Segmented, Skeleton, Table, Tag, message, Modal, Select, DatePi
 import type { ColumnsType } from "antd/es/table";
 import { PageHeader } from "@/components/PageHeader";
 import { appApi, type HiringKpi } from "@/lib/api";
+import { qk } from "@/lib/query-keys";
 import { usePageTitle } from "@/components/usePageTitle";
 import s from "./analytics.module.css";
 
@@ -74,41 +75,41 @@ export default function AnalyticsPage() {
   const params = { from: range.from, to: range.to, tzOffset: "-180", ...(recruiterId ? { recruiterId } : {}), ...(vacancyId ? { vacancyId } : {}) };
 
   const { data: facets } = useQuery({
-    queryKey: ["vacancy-facets"],
+    queryKey: qk.vacancies.facets(),
     queryFn: () => appApi.getVacancyFacets({ status: "active,paused,distribution" }),
   });
 
   const { data: allVacancies } = useQuery({
-    queryKey: ["vacancies-for-filter"],
+    queryKey: qk.vacancies.forFilter(),
     queryFn: () => appApi.getVacancies({ status: "active,paused,distribution", page: "1", pageSize: "100" }),
   });
 
   const { data: kpi, isLoading } = useQuery({
-    queryKey: ["hiring-kpi", period, recruiterId, vacancyId],
+    queryKey: qk.analytics.kpi(period, recruiterId, vacancyId),
     queryFn: () => appApi.getHiringKpi(params),
     placeholderData: keepPreviousData,
   });
 
   const { data: sourceData } = useQuery({
-    queryKey: ["analytics-source-breakdown", period, recruiterId, vacancyId],
+    queryKey: qk.analytics.sourceBreakdown(period, recruiterId, vacancyId),
     queryFn: () => appApi.getAnalyticsSourceBreakdown(params),
     placeholderData: keepPreviousData,
   });
 
   const { data: rejectionData } = useQuery({
-    queryKey: ["analytics-rejection-reasons", period, recruiterId, vacancyId],
+    queryKey: qk.analytics.rejectionReasons(period, recruiterId, vacancyId),
     queryFn: () => appApi.getAnalyticsRejectionReasons(params),
     placeholderData: keepPreviousData,
   });
 
   const { data: teamData } = useQuery({
-    queryKey: ["analytics-team-funnels", period, recruiterId, vacancyId],
+    queryKey: qk.analytics.teamFunnels(period, recruiterId, vacancyId),
     queryFn: () => appApi.getAnalyticsTeamFunnels(params),
     placeholderData: keepPreviousData,
   });
 
   const { data: exportLog } = useQuery({
-    queryKey: ["export-log"],
+    queryKey: qk.analytics.exportLog(),
     queryFn: () => appApi.getExportLog(),
     enabled: exportLogOpen,
   });

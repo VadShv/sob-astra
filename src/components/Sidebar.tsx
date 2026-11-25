@@ -6,6 +6,7 @@ import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Dropdown, Badge } from "antd";
 import { authApi, appApi, type Vacancy } from "@/lib/api";
+import { qk } from "@/lib/query-keys";
 import { useThemeMode } from "@/components/ThemeProvider";
 import s from "./sidebar.module.css";
 
@@ -107,12 +108,12 @@ export function Sidebar() {
   const [collapsed, setCollapsed] = useState(true);
 
   const { data: userResp } = useQuery({
-    queryKey: ["auth-me"],
+    queryKey: qk.auth.me(),
     queryFn: () => authApi.me(),
   });
 
   const { data: vacancies } = useQuery({
-    queryKey: ["sidebar-vacancies"],
+    queryKey: qk.vacancies.sidebar(),
     queryFn: () =>
       appApi.getVacancies({
         status: "active,paused,distribution",
@@ -124,13 +125,13 @@ export function Sidebar() {
   });
 
   const { data: unread } = useQuery({
-    queryKey: ["unread-count"],
+    queryKey: qk.notifications.unread(),
     queryFn: () => appApi.getUnreadCount(),
     refetchInterval: 30000,
   });
 
   const { data: awaiting } = useQuery({
-    queryKey: ["awaiting-count"],
+    queryKey: qk.notifications.awaiting(),
     queryFn: () => appApi.getAwaitingCount(),
     refetchInterval: 30000,
   });

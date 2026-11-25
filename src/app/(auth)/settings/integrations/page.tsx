@@ -5,6 +5,7 @@ import { Button, Skeleton, message, Popconfirm, Modal, Form, Input } from "antd"
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { SettingsLayout } from "@/components/SettingsLayout";
 import { appApi, authApi } from "@/lib/api";
+import { qk } from "@/lib/query-keys";
 import s from "./integrations.module.css";
 
 interface IntegrationCard {
@@ -93,12 +94,12 @@ export default function IntegrationsPage() {
   const qc = useQueryClient();
 
   const { data: integrations, isLoading } = useQuery({
-    queryKey: ["integrations"],
+    queryKey: qk.settings.integrations(),
     queryFn: () => appApi.getIntegrations(),
   });
 
   const { data: userResp } = useQuery({
-    queryKey: ["auth-me"],
+    queryKey: qk.auth.me(),
     queryFn: () => authApi.me(),
   });
 
@@ -107,7 +108,7 @@ export default function IntegrationsPage() {
       appApi.connectIntegration(type, payload),
     onSuccess: () => {
       message.success("Интеграция подключена");
-      qc.invalidateQueries({ queryKey: ["integrations"] });
+      qc.invalidateQueries({ queryKey: qk.settings.integrations() });
     },
     onError: () => message.error("Не удалось подключить"),
   });
@@ -116,7 +117,7 @@ export default function IntegrationsPage() {
     mutationFn: (type: string) => appApi.disconnectIntegration(type),
     onSuccess: () => {
       message.success("Интеграция отключена");
-      qc.invalidateQueries({ queryKey: ["integrations"] });
+      qc.invalidateQueries({ queryKey: qk.settings.integrations() });
     },
     onError: () => message.error("Не удалось отключить"),
   });

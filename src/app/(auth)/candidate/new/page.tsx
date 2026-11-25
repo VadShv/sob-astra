@@ -6,6 +6,7 @@ import { Form, Input, Select, Button, Card, Space, message } from "antd";
 import { useMutation, useQueryClient, useQuery } from "@tanstack/react-query";
 import { PageHeader } from "@/components/PageHeader";
 import { appApi } from "@/lib/api";
+import { qk } from "@/lib/query-keys";
 
 function CandidateCreateForm() {
   const router = useRouter();
@@ -16,7 +17,7 @@ function CandidateCreateForm() {
   const backUrl = searchParams.get("back") || "/search";
 
   const { data: sources } = useQuery({
-    queryKey: ["candidate-sources"],
+    queryKey: qk.candidates.sources(),
     queryFn: () => appApi.getReferenceDictionary("candidateSources"),
   });
 
@@ -26,7 +27,7 @@ function CandidateCreateForm() {
     mutationFn: (payload: Record<string, unknown>) => appApi.createCandidate(payload),
     onSuccess: (resp) => {
       message.success("Кандидат создан");
-      qc.invalidateQueries({ queryKey: ["candidates"] });
+      qc.invalidateQueries({ queryKey: qk.candidates.all() });
       router.push(`/candidate/${resp.id}`);
     },
     onError: () => {

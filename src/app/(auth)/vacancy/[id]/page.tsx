@@ -6,6 +6,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Skeleton, Tag, Button, Dropdown, message, Popconfirm } from "antd";
 import { PageHeader } from "@/components/PageHeader";
 import { appApi, type Vacancy, type VacancyStageCount } from "@/lib/api";
+import { qk } from "@/lib/query-keys";
 import { usePageTitle } from "@/components/usePageTitle";
 import s from "./vacancy.module.css";
 
@@ -21,12 +22,12 @@ export default function VacancyPage({
   usePageTitle("Вакансия");
 
   const { data: vacancy, isLoading } = useQuery({
-    queryKey: ["vacancy", id],
+    queryKey: qk.vacancies.detail(id),
     queryFn: () => appApi.getVacancyById(id),
   });
 
   const { data: candidaciesData } = useQuery({
-    queryKey: ["vacancy-candidacies", id],
+    queryKey: qk.vacancies.candidacies(id),
     queryFn: () => appApi.getVacancyCandidacies(id),
   });
 
@@ -34,10 +35,10 @@ export default function VacancyPage({
     mutationFn: (status: string) => appApi.updateVacancyStatus(id, status),
     onSuccess: () => {
       message.success("Статус обновлён");
-      qc.invalidateQueries({ queryKey: ["vacancy", id] });
-      qc.invalidateQueries({ queryKey: ["vacancies-active"] });
-      qc.invalidateQueries({ queryKey: ["sidebar-vacancies"] });
-      qc.invalidateQueries({ queryKey: ["vacancy-facets"] });
+      qc.invalidateQueries({ queryKey: qk.vacancies.detail(id) });
+      qc.invalidateQueries({ queryKey: qk.vacancies.all() });
+      qc.invalidateQueries({ queryKey: qk.vacancies.sidebar() });
+      qc.invalidateQueries({ queryKey: qk.vacancies.facets() });
     },
     onError: () => message.error("Не удалось изменить статус"),
   });
@@ -47,7 +48,7 @@ export default function VacancyPage({
       appApi.moveCandidacyStage(candidacyId, stageId),
     onSuccess: () => {
       message.success("Кандидат перемещён");
-      qc.invalidateQueries({ queryKey: ["vacancy-candidacies", id] });
+      qc.invalidateQueries({ queryKey: qk.vacancies.candidacies(id) });
     },
     onError: () => message.error("Не удалось переместить"),
   });

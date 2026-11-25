@@ -6,6 +6,7 @@ import { Button, Table, Tag, Modal, Form, Input, Select, Space, message, Popconf
 import type { ColumnsType } from "antd/es/table";
 import { SettingsLayout } from "@/components/SettingsLayout";
 import { appApi } from "@/lib/api";
+import { qk } from "@/lib/query-keys";
 
 interface Template {
   id: string;
@@ -22,17 +23,17 @@ export default function TemplatesSettingsPage() {
   const [form] = Form.useForm();
 
   const { data: templatesResp, isLoading } = useQuery({
-    queryKey: ["message-templates"],
+    queryKey: qk.settings.messageTemplates(),
     queryFn: () => appApi.getMessageTemplates(),
   });
 
   const { data: varsResp } = useQuery({
-    queryKey: ["message-template-variables"],
+    queryKey: qk.settings.messageTemplateVariables(),
     queryFn: () => appApi.getMessageTemplateVariables(),
   });
 
   const { data: channelsData } = useQuery({
-    queryKey: ["reference-channels"],
+    queryKey: qk.reference.channels(),
     queryFn: () => appApi.getReferenceDictionary("channels"),
   });
 
@@ -48,7 +49,7 @@ export default function TemplatesSettingsPage() {
     mutationFn: (payload: Record<string, unknown>) => appApi.createTemplate(payload),
     onSuccess: () => {
       message.success("Шаблон создан");
-      qc.invalidateQueries({ queryKey: ["message-templates"] });
+      qc.invalidateQueries({ queryKey: qk.settings.messageTemplates() });
       setCreateOpen(false);
       form.resetFields();
     },
@@ -59,7 +60,7 @@ export default function TemplatesSettingsPage() {
     mutationFn: (id: string) => appApi.deleteTemplate(id),
     onSuccess: () => {
       message.success("Шаблон удалён");
-      qc.invalidateQueries({ queryKey: ["message-templates"] });
+      qc.invalidateQueries({ queryKey: qk.settings.messageTemplates() });
     },
     onError: () => message.error("Не удалось удалить"),
   });
@@ -69,7 +70,7 @@ export default function TemplatesSettingsPage() {
       appApi.updateTemplate(id, payload),
     onSuccess: () => {
       message.success("Шаблон обновлён");
-      qc.invalidateQueries({ queryKey: ["message-templates"] });
+      qc.invalidateQueries({ queryKey: qk.settings.messageTemplates() });
       setCreateOpen(false);
       setEditId(null);
       form.resetFields();

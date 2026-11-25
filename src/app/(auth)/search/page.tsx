@@ -9,6 +9,7 @@ import {
 import type { ColumnsType } from "antd/es/table";
 import { PageHeader } from "@/components/PageHeader";
 import { appApi, type Candidate } from "@/lib/api";
+import { qk } from "@/lib/query-keys";
 import { usePageTitle } from "@/components/usePageTitle";
 import s from "./search.module.css";
 
@@ -92,7 +93,7 @@ export default function SearchPage() {
   useEffect(() => { setPage(1); }, [debouncedSearch, selectedSources, selectedTags, sort]);
 
   const { data, isLoading } = useQuery({
-    queryKey: ["candidates", debouncedSearch, selectedSources, selectedTags, sort, page, pageSize],
+    queryKey: qk.candidates.list(debouncedSearch, selectedSources, selectedTags, sort, page, pageSize),
     queryFn: ({ signal }) => {
       const params: Record<string, string> = { page: String(page), pageSize: String(pageSize) };
       if (debouncedSearch) params.q = debouncedSearch;
@@ -105,22 +106,22 @@ export default function SearchPage() {
   });
 
   const { data: tags } = useQuery({
-    queryKey: ["candidate-tags"],
+    queryKey: qk.candidates.tags(),
     queryFn: () => appApi.getReferenceDictionary("candidateTags"),
   });
 
   const { data: sources } = useQuery({
-    queryKey: ["candidate-sources"],
+    queryKey: qk.candidates.sources(),
     queryFn: () => appApi.getReferenceDictionary("candidateSources"),
   });
 
   const { data: coldSearches } = useQuery({
-    queryKey: ["cold-searches"],
+    queryKey: qk.search.cold(),
     queryFn: () => appApi.getColdSearches(),
   });
 
   const { data: savedSearches } = useQuery({
-    queryKey: ["saved-searches"],
+    queryKey: qk.search.saved(),
     queryFn: () => appApi.getSavedSearches(),
   });
 
@@ -128,7 +129,7 @@ export default function SearchPage() {
     mutationFn: (id: string) => appApi.deleteSavedSearch(id),
     onSuccess: () => {
       message.success("Поиск удалён");
-      qc.invalidateQueries({ queryKey: ["saved-searches"] });
+      qc.invalidateQueries({ queryKey: qk.search.saved() });
     },
     onError: () => message.error("Не удалось удалить"),
   });
@@ -337,7 +338,7 @@ export default function SearchPage() {
                 try {
                   await appApi.createSavedSearch({ name: debouncedSearch, query: debouncedSearch });
                   message.success("Поиск сохранён");
-                  qc.invalidateQueries({ queryKey: ["saved-searches"] });
+                  qc.invalidateQueries({ queryKey: qk.search.saved() });
                 } catch { message.error("Не удалось сохранить"); }
               }}
             >

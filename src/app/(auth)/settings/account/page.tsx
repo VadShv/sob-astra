@@ -5,13 +5,14 @@ import { Form, Input, Button, Select, Divider, message, Skeleton, Upload, Switch
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { SettingsLayout } from "@/components/SettingsLayout";
 import { authApi, appApi } from "@/lib/api";
+import { qk } from "@/lib/query-keys";
 
 export default function AccountSettingsPage() {
   const qc = useQueryClient();
   const [form] = Form.useForm();
 
   const { data: user, isLoading } = useQuery({
-    queryKey: ["auth-me"],
+    queryKey: qk.auth.me(),
     queryFn: () => authApi.me(),
   });
 
@@ -19,18 +20,18 @@ export default function AccountSettingsPage() {
     mutationFn: (values: Record<string, unknown>) => appApi.updateAccount(values),
     onSuccess: () => {
       message.success("Сохранено");
-      qc.invalidateQueries({ queryKey: ["auth-me"] });
+      qc.invalidateQueries({ queryKey: qk.auth.me() });
     },
     onError: () => message.error("Не удалось сохранить"),
   });
 
   const { data: tfaStatus } = useQuery({
-    queryKey: ["2fa-status"],
+    queryKey: qk.settings.twoFaStatus(),
     queryFn: () => appApi.get2FAStatus(),
   });
 
   const { data: sessionsData } = useQuery({
-    queryKey: ["user-sessions"],
+    queryKey: qk.settings.sessions(),
     queryFn: () => appApi.getSessions(),
   });
 
@@ -38,7 +39,7 @@ export default function AccountSettingsPage() {
     mutationFn: (file: File) => appApi.uploadAvatar(file),
     onSuccess: () => {
       message.success("Аватар загружен");
-      qc.invalidateQueries({ queryKey: ["auth-me"] });
+      qc.invalidateQueries({ queryKey: qk.auth.me() });
     },
     onError: () => message.error("Не удалось загрузить"),
   });
@@ -50,7 +51,7 @@ export default function AccountSettingsPage() {
     },
     onSuccess: () => {
       message.success("2FA обновлён");
-      qc.invalidateQueries({ queryKey: ["2fa-status"] });
+      qc.invalidateQueries({ queryKey: qk.settings.twoFaStatus() });
     },
     onError: () => message.error("Не удалось обновить"),
   });
@@ -59,7 +60,7 @@ export default function AccountSettingsPage() {
     mutationFn: (sessionId: string) => appApi.revokeSession(sessionId),
     onSuccess: () => {
       message.success("Сессия завершена");
-      qc.invalidateQueries({ queryKey: ["user-sessions"] });
+      qc.invalidateQueries({ queryKey: qk.settings.sessions() });
     },
     onError: () => message.error("Не удалось завершить"),
   });

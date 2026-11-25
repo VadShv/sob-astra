@@ -5,13 +5,14 @@ import { Form, Input, ColorPicker, Button, Upload, Divider, message, Skeleton } 
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { SettingsLayout } from "@/components/SettingsLayout";
 import { appApi } from "@/lib/api";
+import { qk } from "@/lib/query-keys";
 
 export default function AppearanceSettingsPage() {
   const qc = useQueryClient();
   const [form] = Form.useForm();
 
   const { data: settings, isLoading } = useQuery({
-    queryKey: ["appearance-settings"],
+    queryKey: qk.settings.appearance(),
     queryFn: () => appApi.getAppearanceSettings(),
   });
 
@@ -19,7 +20,7 @@ export default function AppearanceSettingsPage() {
     mutationFn: (values: Record<string, unknown>) => appApi.updateAppearanceSettings(values),
     onSuccess: () => {
       message.success("Сохранено");
-      qc.invalidateQueries({ queryKey: ["appearance-settings"] });
+      qc.invalidateQueries({ queryKey: qk.settings.appearance() });
     },
     onError: () => message.error("Не удалось сохранить"),
   });

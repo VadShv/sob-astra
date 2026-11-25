@@ -6,6 +6,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import { SettingsLayout } from "@/components/SettingsLayout";
 import { appApi } from "@/lib/api";
+import { qk } from "@/lib/query-keys";
 
 interface Role {
   id: string;
@@ -34,7 +35,7 @@ export default function RolesSettingsPage() {
   const [form] = Form.useForm();
 
   const { data: permissionsData } = useQuery({
-    queryKey: ["permissions"],
+    queryKey: qk.settings.permissions(),
     queryFn: () => appApi.getPermissions(),
   });
 
@@ -42,7 +43,7 @@ export default function RolesSettingsPage() {
   const PERMISSIONS = permissionOptions.length > 0 ? permissionOptions : FALLBACK_PERMISSIONS;
 
   const { data: rolesResp, isLoading } = useQuery({
-    queryKey: ["company-roles"],
+    queryKey: qk.settings.companyRoles(),
     queryFn: () => appApi.getCompanyRoles(),
   });
 
@@ -51,7 +52,7 @@ export default function RolesSettingsPage() {
       appApi.createRole(payload),
     onSuccess: () => {
       message.success("Роль создана");
-      qc.invalidateQueries({ queryKey: ["company-roles"] });
+      qc.invalidateQueries({ queryKey: qk.settings.companyRoles() });
       setCreateOpen(false);
       form.resetFields();
     },
@@ -62,7 +63,7 @@ export default function RolesSettingsPage() {
     mutationFn: (id: string) => appApi.deleteRole(id),
     onSuccess: () => {
       message.success("Роль удалена");
-      qc.invalidateQueries({ queryKey: ["company-roles"] });
+      qc.invalidateQueries({ queryKey: qk.settings.companyRoles() });
     },
     onError: () => message.error("Не удалось удалить"),
   });
@@ -72,7 +73,7 @@ export default function RolesSettingsPage() {
       appApi.updateRole(id, payload),
     onSuccess: () => {
       message.success("Роль обновлена");
-      qc.invalidateQueries({ queryKey: ["company-roles"] });
+      qc.invalidateQueries({ queryKey: qk.settings.companyRoles() });
       setCreateOpen(false);
       setEditId(null);
       form.resetFields();
