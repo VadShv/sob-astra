@@ -1,9 +1,9 @@
 "use client";
 
-import { use } from "react";
+import { use, useState } from "react";
 import { useRouter } from "next/navigation";
-import { useQuery } from "@tanstack/react-query";
-import { Skeleton, Tag, Button, Space, Divider, message } from "antd";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { Skeleton, Tag, Button, Space, Divider, message, Modal, Form, Input, Select } from "antd";
 import { PageHeader } from "@/components/PageHeader";
 import { appApi, type Candidate } from "@/lib/api";
 import s from "./candidate.module.css";
@@ -15,6 +15,11 @@ export default function CandidatePage({
 }) {
   const { id } = use(params);
   const router = useRouter();
+  const qc = useQueryClient();
+  const [editOpen, setEditOpen] = useState(false);
+  const [addVacancyOpen, setAddVacancyOpen] = useState(false);
+  const [editForm] = Form.useForm();
+  const [vacancyForm] = Form.useForm();
 
   const { data: candidate, isLoading } = useQuery({
     queryKey: ["candidate", id],
@@ -29,6 +34,32 @@ export default function CandidatePage({
   const { data: interviews } = useQuery({
     queryKey: ["candidate-interviews", id],
     queryFn: () => appApi.getCandidateInterviews(id),
+  });
+
+  const { data: vacancies } = useQuery({
+    queryKey: ["vacancies-for-add"],
+    queryFn: () => appApi.getVacancies({ status: "active", page: "1", pageSize: "100" }),
+  });
+
+  const updateMut = useMutation({
+    mutationFn: (payload: Record<string, unknown>) => appApi.updateCandidate(id, payload),
+    onSuccess: () => {
+      message.success("Кандидат обновлён");
+      qc.invalidateQueries({ queryKey: ["candidate", id] });
+      setEditOpen(false);
+    },
+    onError: () => message.error("Не удалось сохранить"),
+  });
+
+  const addVacancyMut = useMutation({
+    mutationFn: (vacancyId: string) => appApi.addCandidateToVacancy(id, vacancyId),
+    onSuccess: () => {
+      message.success("Кандидат добавлен на вакансию");
+      qc.invalidateQueries({ queryKey: ["candidate-candidacies", id] });
+      setAddVacancyOpen(false);
+      vacancyForm.resetFields();
+    },
+    onError: () => message.error("Не удалось добавить"),
   });
 
   if (isLoading) {
@@ -54,8 +85,9 @@ export default function CandidatePage({
   const c = candidate as Candidate;
   const fullName = c.fullName ?? `${c.firstName ?? ""} ${c.lastName ?? ""}`.trim();
   const initials = fullName.split(" ").map((w) => w[0]).join("").toUpperCase().slice(0, 2);
-  const candidacyItems = ((candidacies as { items?: Record<string, string>[] })?.items ?? []);
-  const interviewItems = ((interviews as { items?: Record<string, unknown>[] })?.items ?? []);
+  const candidacyItems = (candidacies as { items?: Record<string, string>[] })?.items ?? [];
+  const interviewItems = (interviews as { items?: Record<string, unknown>[] })?.items ?? [];
+  const vacancyItems = vacancies?.items ?? [];
 
   return (
     <div className={s.page}>
@@ -63,10 +95,21 @@ export default function CandidatePage({
         title={fullName}
         actions={
           <>
-            <Button onClick={() => message.info("Редактирование — в разработке")}>
+            <Button onClick={() => {
+              editForm.setFieldsValue({
+                firstName: c.firstName,
+                lastName: c.lastName,
+                email: c.email,
+                phone: c.phone,
+                position: c.passport?.title,
+                salary: c.passport?.salary,
+                area: c.passport?.area,
+              });
+              setEditOpen(true);
+            }}>
               Редактировать
             </Button>
-            <Button type="primary" onClick={() => message.info("Добавление на вакансию — в разработке")}>
+            <Button type="primary" onClick={() => setAddVacancyOpen(true)}>
               Добавить на вакансию
             </Button>
           </>
@@ -85,7 +128,7 @@ export default function CandidatePage({
             )}
             {c.passport?.salary && (
               <span className={s.profileMetaItem}>
-                Зарплата: {c.passport.salary.toLocaleString("ru")} ₽
+                Зарплата: {c.passport.salary.toLocaleString("ru-RU")} ₽
               </span>
             )}
             {c.passport?.area && (
@@ -137,7 +180,7 @@ export default function CandidatePage({
               <div>
                 <div style={{ fontWeight: 600 }}>{cyc.vacancyTitle}</div>
                 <div style={{ fontSize: 12, color: "rgba(0,0,0,.45)" }}>
-                  {cyc.stageName} · обновлён {new Date(cyc.updatedAt).toLocaleDateString("ru")}
+                  {cyc.stageName} · обновлён {new Date(cyc.updatedAt).toLocaleDateString("ru-RU")}
                 </div>
               </div>
               <Tag color={cyc.status === "active" ? "green" : "default"}>{cyc.stageType}</Tag>
@@ -149,14 +192,14 @@ export default function CandidatePage({
       {interviewItems.length > 0 && (
         <div className={s.panel}>
           <h3 className={s.panelTitle}>Интервью ИИ ({interviewItems.length})</h3>
-          {          interviewItems.map((iv) => (
+          {interviewItems.map((iv) => (
             <div key={iv.interviewId as string} style={{ padding: "10px 0", borderBottom: "1px solid rgba(0,0,0,.06)" }}>
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                 <span style={{ fontWeight: 600 }}>{iv.vacancyTitle as string}</span>
                 <Tag color="purple">{iv.status as string}</Tag>
               </div>
               <div style={{ fontSize: 12, color: "rgba(0,0,0,.45)", marginTop: 4 }}>
-                {iv.startedAt ? new Date(iv.startedAt as string).toLocaleString("ru") : "—"}
+                {iv.startedAt ? new Date(iv.startedAt as string).toLocaleString("ru-RU") : "—"}
                 {iv.score != null && ` · Оценка: ${iv.score}`}
               </div>
               {(iv.summary as string) && (
@@ -168,6 +211,47 @@ export default function CandidatePage({
           ))}
         </div>
       )}
+
+      <Modal
+        title="Редактировать кандидата"
+        open={editOpen}
+        onCancel={() => setEditOpen(false)}
+        onOk={() => editForm.validateFields().then((values) => updateMut.mutate(values))}
+        okText="Сохранить"
+        cancelText="Отмена"
+        confirmLoading={updateMut.isPending}
+      >
+        <Form form={editForm} layout="vertical">
+          <Form.Item label="Имя" name="firstName"><Input /></Form.Item>
+          <Form.Item label="Фамилия" name="lastName"><Input /></Form.Item>
+          <Form.Item label="Email" name="email" rules={[{ type: "email" }]}><Input /></Form.Item>
+          <Form.Item label="Телефон" name="phone"><Input /></Form.Item>
+          <Form.Item label="Должность" name="position"><Input /></Form.Item>
+          <Form.Item label="Зарплата" name="salary"><Input type="number" /></Form.Item>
+          <Form.Item label="Город" name="area"><Input /></Form.Item>
+        </Form>
+      </Modal>
+
+      <Modal
+        title="Добавить на вакансию"
+        open={addVacancyOpen}
+        onCancel={() => setAddVacancyOpen(false)}
+        onOk={() => vacancyForm.validateFields().then((values) => addVacancyMut.mutate(values.vacancyId))}
+        okText="Добавить"
+        cancelText="Отмена"
+        confirmLoading={addVacancyMut.isPending}
+      >
+        <Form form={vacancyForm} layout="vertical">
+          <Form.Item label="Вакансия" name="vacancyId" rules={[{ required: true, message: "Выберите вакансию" }]}>
+            <Select
+              showSearch
+              options={vacancyItems.map((v) => ({ value: v.id, label: v.title }))}
+              placeholder="Выберите вакансию"
+              filterOption={(input, option) => (option?.label ?? "").toLowerCase().includes(input.toLowerCase())}
+            />
+          </Form.Item>
+        </Form>
+      </Modal>
     </div>
   );
 }

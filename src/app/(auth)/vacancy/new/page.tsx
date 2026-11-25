@@ -1,17 +1,20 @@
 "use client";
 
-import { useState } from "react";
-import { useRouter } from "next/navigation";
-import { Form, Input, Select, Button, Card, Space, Checkbox, message } from "antd";
+import { Suspense, useState, useEffect } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
+import { Form, Input, Select, Button, Card, Space, Checkbox, message, Skeleton } from "antd";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { PageHeader } from "@/components/PageHeader";
-import { appApi } from "@/lib/api";
+import { appApi, type Vacancy } from "@/lib/api";
 
-export default function VacancyCreatePage() {
+function VacancyForm() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const qc = useQueryClient();
   const [form] = Form.useForm();
   const [saving, setSaving] = useState(false);
+  const editId = searchParams.get("id");
+  const isEdit = !!editId;
 
   const { data: orgUnits } = useQuery({
     queryKey: ["org-units"],
@@ -23,11 +26,30 @@ export default function VacancyCreatePage() {
     queryFn: () => appApi.getVacancyFacets({ status: "active,paused,distribution" }),
   });
 
+  const { data: existingVacancy, isLoading: loadingVacancy } = useQuery({
+    queryKey: ["vacancy", editId],
+    queryFn: () => appApi.getVacancyById(editId!),
+    enabled: isEdit,
+  });
+
+  useEffect(() => {
+    if (existingVacancy) {
+      const v = existingVacancy as Vacancy;
+      form.setFieldsValue({
+        title: v.title,
+        orgUnitId: v.orgUnit?.id,
+        plannedHires: v.plannedHires,
+        isConfidential: v.isConfidential,
+      });
+    }
+  }, [existingVacancy, form]);
+
   const createMut = useMutation({
     mutationFn: (payload: Record<string, unknown>) => appApi.createVacancy(payload),
     onSuccess: (resp) => {
       message.success("Вакансия создана");
       qc.invalidateQueries({ queryKey: ["vacancies-active"] });
+      qc.invalidateQueries({ queryKey: ["sidebar-vacancies"] });
       router.push(`/vacancy/${resp.id}`);
     },
     onError: () => {
@@ -36,13 +58,36 @@ export default function VacancyCreatePage() {
     },
   });
 
+  const updateMut = useMutation({
+    mutationFn: (payload: Record<string, unknown>) => appApi.updateVacancy(editId!, payload),
+    onSuccess: () => {
+      message.success("Вакансия обновлена");
+      qc.invalidateQueries({ queryKey: ["vacancy", editId] });
+      qc.invalidateQueries({ queryKey: ["vacancies-active"] });
+      router.push(`/vacancy/${editId}`);
+    },
+    onError: () => {
+      message.error("Не удалось сохранить");
+      setSaving(false);
+    },
+  });
+
   const orgUnitItems = ((orgUnits as { items?: { id: string; name: string }[] })?.items ?? []);
   const recruiterItems = (facets?.recruiters ?? []);
+
+  if (isEdit && loadingVacancy) {
+    return (
+      <div style={{ maxWidth: 720, margin: "0 auto" }}>
+        <PageHeader title="Загрузка…" />
+        <Skeleton active />
+      </div>
+    );
+  }
 
   return (
     <div style={{ maxWidth: 720, margin: "0 auto" }}>
       <PageHeader
-        title="Новая вакансия"
+        title={isEdit ? "Редактирование вакансии" : "Новая вакансия"}
         actions={
           <Space>
             <Button onClick={() => router.back()}>Отмена</Button>
@@ -52,11 +97,12 @@ export default function VacancyCreatePage() {
               onClick={() => {
                 form.validateFields().then((values) => {
                   setSaving(true);
-                  createMut.mutate(values);
+                  if (isEdit) updateMut.mutate(values);
+                  else createMut.mutate(values);
                 });
               }}
             >
-              Создать
+              {isEdit ? "Сохранить" : "Создать"}
             </Button>
           </Space>
         }
@@ -95,7 +141,17 @@ export default function VacancyCreatePage() {
           <Form.Item label="Зарплата от" name="salaryFrom">
             <Input type="number" min={0} placeholder="₽" />
           </Form.Item>
-          <Form.Item label="Зарплата до" name="salaryTo">
+          <Form.Item label="Зарплата до" name="salaryTo" dependencies={["salaryFrom"]}
+            rules={[
+              ({ getFieldValue }) => ({
+                validator(_, value) {
+                  const from = getFieldValue("salaryFrom");
+                  if (!value || !from || from <= value) return Promise.resolve();
+                  return Promise.reject(new Error("«Зарплата до» должна быть больше «Зарплата от»"));
+                },
+              }),
+            ]}
+          >
             <Input type="number" min={0} placeholder="₽" />
           </Form.Item>
           <Form.Item label="Описание" name="description">
@@ -107,5 +163,13 @@ export default function VacancyCreatePage() {
         </Form>
       </Card>
     </div>
+  );
+}
+
+export default function VacancyCreatePage() {
+  return (
+    <Suspense fallback={<div style={{ padding: 24 }}><Skeleton active /></div>}>
+      <VacancyForm />
+    </Suspense>
   );
 }

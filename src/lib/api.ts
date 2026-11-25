@@ -1,4 +1,4 @@
-import axios, { type AxiosInstance } from "axios";
+import axios, { type AxiosInstance, type AxiosError } from "axios";
 
 export const API_BASE_URL = "/proxy";
 export const REAL_API_BASE_URL = "https://api.sobesso.ru";
@@ -9,6 +9,31 @@ export const apiClient: AxiosInstance = axios.create({
   withCredentials: true,
   headers: { "Content-Type": "application/json" },
 });
+
+apiClient.interceptors.response.use(
+  (response) => response,
+  (error: AxiosError<{ message?: string; attemptsLeft?: number; retryAfterSeconds?: number }>) => {
+    if (error.response?.status === 401 && typeof window !== "undefined") {
+      if (!window.location.pathname.startsWith("/login")) {
+        window.location.href = "/login";
+      }
+    }
+    return Promise.reject(error);
+  }
+);
+
+export function parseApiError(error: unknown): string {
+  if (axios.isAxiosError(error)) {
+    const data = error.response?.data as { message?: string } | undefined;
+    if (data?.message) return data.message;
+    if (error.response?.status === 401) return "Необходима авторизация";
+    if (error.response?.status === 403) return "Недостаточно прав";
+    if (error.response?.status === 404) return "Не найдено";
+    if (error.response?.status === 429) return "Слишком много запросов";
+    if (error.response?.status && error.response.status >= 500) return "Ошибка сервера";
+  }
+  return "Произошла ошибка";
+}
 
 export interface User {
   id: string;
@@ -154,6 +179,9 @@ export const authApi = {
   },
   hhAuthUrl(): string {
     return `${REAL_API_BASE_URL}/auth/hh`;
+  },
+  async logout(): Promise<void> {
+    await apiClient.post("/auth/logout");
   },
 };
 
@@ -343,6 +371,14 @@ export const appApi = {
   },
   async updateAppearanceSettings(payload: Record<string, unknown>): Promise<unknown> {
     const { data } = await apiClient.patch("/api/view-settings/interview-appearance", payload);
+    return data;
+  },
+  async uploadFile(endpoint: string, file: File): Promise<{ url: string }> {
+    const formData = new FormData();
+    formData.append("file", file);
+    const { data } = await apiClient.post(endpoint, formData, {
+      headers: { "Content-Type": "multipart/form-data" },
+    });
     return data;
   },
 

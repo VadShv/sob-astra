@@ -55,6 +55,10 @@ export default function HomePage() {
   const [form] = Form.useForm();
   const [statusFilter, setStatusFilter] = useState<string>("active,paused,distribution");
   const [selectedRowKeys, setSelectedRowKeys] = useState<React.Key[]>([]);
+  const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState(20);
+  const [sortBy, setSortBy] = useState<string>("");
+  const [sortOrder, setSortOrder] = useState<"asc" | "desc">("asc");
 
   const { data: userResp } = useQuery({
     queryKey: ["auth-me"],
@@ -62,14 +66,15 @@ export default function HomePage() {
   });
 
   const { data: vacancies, isLoading } = useQuery({
-    queryKey: ["vacancies-active", statusFilter],
+    queryKey: ["vacancies-active", statusFilter, page, pageSize, sortBy, sortOrder],
     queryFn: () =>
       appApi.getVacancies({
         status: statusFilter,
         showAllVacancies: "true",
         groupMulti: "true",
-        page: "1",
-        pageSize: "20",
+        page: String(page),
+        pageSize: String(pageSize),
+        ...(sortBy ? { sortBy, sortOrder } : {}),
       }),
   });
 
@@ -115,6 +120,7 @@ export default function HomePage() {
         title: "Вакансия",
         dataIndex: "title",
         key: "title",
+        sorter: true,
         render: (title: string, record: Vacancy) => (
           <div>
             <div style={{ fontWeight: 600 }}>
@@ -305,16 +311,43 @@ export default function HomePage() {
                   onClick: () => router.push(`/vacancy/${record.id}`),
                   style: { cursor: "pointer" },
                 })}
-                pagination={false}
+                pagination={{
+                  current: page,
+                  pageSize,
+                  total,
+                  showSizeChanger: true,
+                  showTotal: (t) => `${t} вакансий`,
+                  onChange: (p, ps) => { setPage(p); setPageSize(ps); },
+                }}
+                onChange={(_pagination, _filters, sorter) => {
+                  const s = Array.isArray(sorter) ? sorter[0] : sorter;
+                  if (s?.field) {
+                    setSortBy(String(s.field));
+                    setSortOrder(s.order === "descend" ? "desc" : "asc");
+                  } else {
+                    setSortBy("");
+                  }
+                }}
                 size="middle"
                 scroll={{ x: true }}
               />
             )}
           </div>
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", paddingTop: 12 }}>
-            <Button type="primary" onClick={() => setCreateOpen(true)}>
-              Создать
-            </Button>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", paddingTop: 12, gap: 8, flexWrap: "wrap" }}>
+            <div style={{ display: "flex", gap: 8, alignItems: "center", flexWrap: "wrap" }}>
+              <Button type="primary" onClick={() => setCreateOpen(true)}>
+                Создать
+              </Button>
+              {selectedRowKeys.length > 0 && (
+                <>
+                  <Button onClick={() => message.info("Пауза — в разработке")}>Пауза</Button>
+                  <Button onClick={() => message.info("Активировать — в разработке")}>Активировать</Button>
+                  <Button onClick={() => message.info("Закрыть — в разработке")}>Закрыть</Button>
+                  <Button danger onClick={() => { setSelectedRowKeys([]); message.info("Удаление — в разработке")}}>Удалить</Button>
+                  <Button type="text" onClick={() => setSelectedRowKeys([])}>Снять выделение</Button>
+                </>
+              )}
+            </div>
             <span style={{ fontSize: 13, color: "rgba(0,0,0,.45)" }}>
               {selectedRowKeys.length > 0
                 ? `Выбрано: ${selectedRowKeys.length}`

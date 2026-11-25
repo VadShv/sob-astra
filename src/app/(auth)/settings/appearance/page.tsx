@@ -46,7 +46,20 @@ export default function AppearanceSettingsPage() {
             <Input placeholder="Например: Группа компаний Астра" />
           </Form.Item>
           <Form.Item label="Логотип" name="logo">
-            <Upload maxCount={1} listType="picture-card">
+            <Upload
+              maxCount={1}
+              listType="picture-card"
+              customRequest={async ({ file, onSuccess, onError }) => {
+                try {
+                  const resp = await appApi.uploadFile("/api/upload/logo", file as File);
+                  onSuccess?.(resp);
+                  message.success("Логотип загружен");
+                } catch {
+                  onError?.(new Error("Ошибка загрузки"));
+                  message.error("Не удалось загрузить");
+                }
+              }}
+            >
               <div style={{ color: "rgba(0,0,0,.45)" }}>Нажмите для загрузки</div>
             </Upload>
           </Form.Item>

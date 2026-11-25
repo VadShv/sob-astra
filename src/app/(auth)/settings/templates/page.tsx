@@ -18,6 +18,7 @@ interface Template {
 export default function TemplatesSettingsPage() {
   const qc = useQueryClient();
   const [createOpen, setCreateOpen] = useState(false);
+  const [editId, setEditId] = useState<string | null>(null);
   const [form] = Form.useForm();
 
   const { data: templatesResp } = useQuery({
@@ -50,6 +51,19 @@ export default function TemplatesSettingsPage() {
     onError: () => message.error("Не удалось удалить"),
   });
 
+  const updateMut = useMutation({
+    mutationFn: ({ id, payload }: { id: string; payload: Record<string, unknown> }) =>
+      appApi.updateTemplate(id, payload),
+    onSuccess: () => {
+      message.success("Шаблон обновлён");
+      qc.invalidateQueries({ queryKey: ["message-templates"] });
+      setCreateOpen(false);
+      setEditId(null);
+      form.resetFields();
+    },
+    onError: () => message.error("Не удалось обновить"),
+  });
+
   const templates = ((templatesResp as { items?: Template[] })?.items ?? []) as Template[];
   const variables = ((varsResp as { variables?: string[] })?.variables ?? []) as string[];
 
@@ -67,7 +81,11 @@ export default function TemplatesSettingsPage() {
       key: "actions",
       render: (_, record) => (
         <Space>
-          <Button type="text" size="small" onClick={() => message.info("Редактирование — в разработке")}>
+          <Button type="text" size="small" onClick={() => {
+            form.setFieldsValue({ name: record.name, channel: record.channel, body: record.body });
+            setEditId(record.id);
+            setCreateOpen(true);
+          }}>
             Изменить
           </Button>
           <Popconfirm title="Удалить шаблон?" onConfirm={() => deleteMut.mutate(record.id)}>
@@ -82,7 +100,7 @@ export default function TemplatesSettingsPage() {
     <SettingsLayout activeItem="Шаблоны сообщений">
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
         <div style={{ fontSize: 16, fontWeight: 600 }}>Шаблоны сообщений</div>
-        <Button type="primary" onClick={() => setCreateOpen(true)}>
+        <Button type="primary" onClick={() => { form.resetFields(); setEditId(null); setCreateOpen(true); }}>
           Создать шаблон
         </Button>
       </div>
@@ -94,15 +112,18 @@ export default function TemplatesSettingsPage() {
         size="middle"
       />
       <Modal
-        title="Новый шаблон"
+        title={editId ? "Редактировать шаблон" : "Новый шаблон"}
         open={createOpen}
-        onCancel={() => setCreateOpen(false)}
+        onCancel={() => { setCreateOpen(false); setEditId(null); }}
         onOk={() => {
-          form.validateFields().then((values) => createMut.mutate(values));
+          form.validateFields().then((values) => {
+            if (editId) updateMut.mutate({ id: editId, payload: values });
+            else createMut.mutate(values);
+          });
         }}
-        okText="Создать"
+        okText={editId ? "Сохранить" : "Создать"}
         cancelText="Отмена"
-        confirmLoading={createMut.isPending}
+        confirmLoading={createMut.isPending || updateMut.isPending}
         width={520}
       >
         <Form form={form} layout="vertical">

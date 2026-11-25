@@ -30,6 +30,7 @@ const PERMISSIONS = [
 export default function RolesSettingsPage() {
   const qc = useQueryClient();
   const [createOpen, setCreateOpen] = useState(false);
+  const [editId, setEditId] = useState<string | null>(null);
   const [form] = Form.useForm();
 
   const { data: rolesResp } = useQuery({
@@ -56,6 +57,19 @@ export default function RolesSettingsPage() {
       qc.invalidateQueries({ queryKey: ["company-roles"] });
     },
     onError: () => message.error("Не удалось удалить"),
+  });
+
+  const updateMut = useMutation({
+    mutationFn: ({ id, payload }: { id: string; payload: Record<string, unknown> }) =>
+      appApi.updateRole(id, payload),
+    onSuccess: () => {
+      message.success("Роль обновлена");
+      qc.invalidateQueries({ queryKey: ["company-roles"] });
+      setCreateOpen(false);
+      setEditId(null);
+      form.resetFields();
+    },
+    onError: () => message.error("Не удалось обновить"),
   });
 
   const roles = ((rolesResp as { items?: Role[] })?.items ?? []) as Role[];
@@ -85,7 +99,11 @@ export default function RolesSettingsPage() {
       key: "actions",
       render: (_, record) => (
         <Space>
-          <Button type="text" size="small" onClick={() => message.info("Редактирование — в разработке")}>
+          <Button type="text" size="small" onClick={() => {
+            form.setFieldsValue({ name: record.name, description: record.description, permissions: record.permissions });
+            setEditId(record.id);
+            setCreateOpen(true);
+          }}>
             Изменить
           </Button>
           <Popconfirm title="Удалить роль?" onConfirm={() => deleteMut.mutate(record.id)}>
@@ -100,7 +118,7 @@ export default function RolesSettingsPage() {
     <SettingsLayout activeItem="Роли и права">
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
         <div style={{ fontSize: 16, fontWeight: 600 }}>Роли и права доступа</div>
-        <Button type="primary" onClick={() => setCreateOpen(true)}>
+        <Button type="primary" onClick={() => { form.resetFields(); setEditId(null); setCreateOpen(true); }}>
           Создать роль
         </Button>
       </div>
@@ -112,15 +130,18 @@ export default function RolesSettingsPage() {
         size="middle"
       />
       <Modal
-        title="Новая роль"
+        title={editId ? "Редактировать роль" : "Новая роль"}
         open={createOpen}
-        onCancel={() => setCreateOpen(false)}
+        onCancel={() => { setCreateOpen(false); setEditId(null); }}
         onOk={() => {
-          form.validateFields().then((values) => createMut.mutate(values));
+          form.validateFields().then((values) => {
+            if (editId) updateMut.mutate({ id: editId, payload: values });
+            else createMut.mutate(values);
+          });
         }}
-        okText="Создать"
+        okText={editId ? "Сохранить" : "Создать"}
         cancelText="Отмена"
-        confirmLoading={createMut.isPending}
+        confirmLoading={createMut.isPending || updateMut.isPending}
       >
         <Form form={form} layout="vertical">
           <Form.Item label="Название роли" name="name" rules={[{ required: true }]}>

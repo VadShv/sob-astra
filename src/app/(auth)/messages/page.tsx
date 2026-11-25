@@ -36,12 +36,14 @@ export default function MessagesPage() {
         ...(subTab === "archive" ? { status: "archive" } : {}),
         ...(onlyMine ? { onlyMine: "true" } : {}),
       }),
+    refetchInterval: 10000,
   });
 
   const { data: messagesData, isLoading: messagesLoading } = useQuery({
     queryKey: ["conversation-messages", selectedCandidacy],
     queryFn: () => appApi.getConversationMessages(selectedCandidacy!),
     enabled: !!selectedCandidacy,
+    refetchInterval: 5000,
   });
 
   const sendMut = useMutation({
@@ -51,6 +53,7 @@ export default function MessagesPage() {
       message.success("Отправлено");
       setReplyText("");
       qc.invalidateQueries({ queryKey: ["conversation-messages", selectedCandidacy] });
+      qc.invalidateQueries({ queryKey: ["conversations-awaiting"] });
     },
     onError: () => message.error("Не удалось отправить"),
   });
@@ -64,6 +67,7 @@ export default function MessagesPage() {
 
   const columns: ColumnsType<Conversation> = [
     { title: "Кандидат", dataIndex: "candidateName", key: "candidateName" },
+    ...(tab === "vacancy" ? [{ title: "Вакансия", dataIndex: "vacancyTitle", key: "vacancyTitle", render: (v: string) => v || "—" }] : []),
     {
       title: "Канал",
       dataIndex: "channel",
@@ -164,6 +168,22 @@ export default function MessagesPage() {
                 {selectedConv?.candidateName ?? "Переписка"}
               </div>
               <div style={{ flex: 1, overflow: "auto", display: "flex", flexDirection: "column", gap: 8 }}>
+                {showCover && messages.length > 0 && (
+                  <div style={{
+                    padding: "12px 16px",
+                    borderRadius: 12,
+                    background: "rgba(107,83,213,.08)",
+                    border: "1px solid rgba(107,83,213,.2)",
+                    marginBottom: 8,
+                  }}>
+                    <div style={{ fontSize: 11, fontWeight: 700, textTransform: "uppercase", color: "#6B53D5", marginBottom: 4 }}>
+                      Сопроводительное письмо
+                    </div>
+                    <div style={{ fontSize: 13, color: "rgba(0,0,0,.65)", whiteSpace: "pre-wrap" }}>
+                      {messages.find((m) => m.direction === "in")?.body ?? "—"}
+                    </div>
+                  </div>
+                )}
                 {messages.length === 0 ? (
                   <div style={{ textAlign: "center", color: "rgba(0,0,0,.45)", padding: 24 }}>
                     Нет сообщений
@@ -183,7 +203,7 @@ export default function MessagesPage() {
                     >
                       <div style={{ fontSize: 13 }}>{msg.body}</div>
                       <div style={{ fontSize: 11, opacity: 0.6, marginTop: 4 }}>
-                        {new Date(msg.createdAt).toLocaleString("ru")}
+                        {new Date(msg.createdAt).toLocaleString("ru-RU")}
                       </div>
                     </div>
                   ))

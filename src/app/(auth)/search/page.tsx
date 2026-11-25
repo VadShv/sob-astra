@@ -75,16 +75,20 @@ export default function SearchPage() {
   const [selectedSources, setSelectedSources] = useState<string[]>([]);
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
   const [sort, setSort] = useState("recent");
+  const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState(20);
 
   useEffect(() => {
     const t = setTimeout(() => setDebouncedSearch(search), 400);
     return () => clearTimeout(t);
   }, [search]);
 
+  useEffect(() => { setPage(1); }, [debouncedSearch, selectedSources, selectedTags, sort]);
+
   const { data, isLoading } = useQuery({
-    queryKey: ["candidates", debouncedSearch, selectedSources, selectedTags, sort],
+    queryKey: ["candidates", debouncedSearch, selectedSources, selectedTags, sort, page, pageSize],
     queryFn: () => {
-      const params: Record<string, string> = { page: "1", pageSize: "20" };
+      const params: Record<string, string> = { page: String(page), pageSize: String(pageSize) };
       if (debouncedSearch) params.q = debouncedSearch;
       if (selectedSources.length) params.sources = selectedSources.join(",");
       if (selectedTags.length) params.tags = selectedTags.join(",");
@@ -172,6 +176,12 @@ export default function SearchPage() {
         </div>
         {isLoading ? (
           <Skeleton active />
+        ) : items.length === 0 ? (
+          <div style={{ textAlign: "center", padding: 48, color: "rgba(0,0,0,.45)" }}>
+            {debouncedSearch || selectedSources.length || selectedTags.length
+              ? "Ничего не найдено. Попробуйте изменить запрос или фильтры."
+              : "Начните искать — введите запрос выше."}
+          </div>
         ) : (
           <Table<Candidate>
             columns={buildColumns()}
@@ -181,7 +191,14 @@ export default function SearchPage() {
               onClick: () => router.push(`/candidate/${record.candidateId}`),
               style: { cursor: "pointer" },
             })}
-            pagination={{ pageSize: 20, showSizeChanger: false }}
+            pagination={{
+              current: page,
+              pageSize,
+              total: data?.total ?? items.length,
+              showSizeChanger: true,
+              showTotal: (t) => `${t} резюме`,
+              onChange: (p, ps) => { setPage(p); setPageSize(ps); },
+            }}
             size="middle"
           />
         )}

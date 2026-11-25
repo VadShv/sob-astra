@@ -2,8 +2,8 @@
 
 import { use, useState } from "react";
 import { useRouter } from "next/navigation";
-import { useQuery } from "@tanstack/react-query";
-import { Skeleton, Tag, Button, message } from "antd";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { Skeleton, Tag, Button, Dropdown, message, Popconfirm } from "antd";
 import { PageHeader } from "@/components/PageHeader";
 import { appApi, type Vacancy, type VacancyStageCount } from "@/lib/api";
 import s from "./vacancy.module.css";
@@ -15,6 +15,7 @@ export default function VacancyPage({
 }) {
   const { id } = use(params);
   const router = useRouter();
+  const qc = useQueryClient();
   const [activeStage, setActiveStage] = useState<string>("all");
 
   const { data: vacancy, isLoading } = useQuery({
@@ -25,6 +26,26 @@ export default function VacancyPage({
   const { data: candidaciesData } = useQuery({
     queryKey: ["vacancy-candidacies", id],
     queryFn: () => appApi.getVacancyCandidacies(id),
+  });
+
+  const statusMut = useMutation({
+    mutationFn: (status: string) => appApi.updateVacancyStatus(id, status),
+    onSuccess: () => {
+      message.success("Статус обновлён");
+      qc.invalidateQueries({ queryKey: ["vacancy", id] });
+      qc.invalidateQueries({ queryKey: ["vacancies-active"] });
+    },
+    onError: () => message.error("Не удалось изменить статус"),
+  });
+
+  const moveMut = useMutation({
+    mutationFn: ({ candidacyId, stageId }: { candidacyId: string; stageId: string }) =>
+      appApi.moveCandidacyStage(candidacyId, stageId),
+    onSuccess: () => {
+      message.success("Кандидат перемещён");
+      qc.invalidateQueries({ queryKey: ["vacancy-candidacies", id] });
+    },
+    onError: () => message.error("Не удалось переместить"),
   });
 
   if (isLoading || !vacancy) {
@@ -50,6 +71,8 @@ export default function VacancyPage({
   ];
 
   const recruiterNames = vacancy.recruiters?.map((r) => r.name).join(", ") || vacancy.hrName || "—";
+  const isPaused = vacancy.status === "paused";
+  const isActive = vacancy.status === "active";
 
   return (
     <div className={s.page}>
@@ -58,13 +81,20 @@ export default function VacancyPage({
         sub={`${vacancy.statusLabel} · ${recruiterNames}`}
         actions={
           <>
-            <Button href={`/vacancy/new`}>Редактировать</Button>
-            <Button
-              type="primary"
-              onClick={() => router.push("/search")}
-            >
-              Добавить кандидата
-            </Button>
+            <Button href={`/vacancy/new?id=${id}`}>Редактировать</Button>
+            {isActive && (
+              <Popconfirm title="Поставить на паузу?" onConfirm={() => statusMut.mutate("paused")}>
+                <Button>Пауза</Button>
+              </Popconfirm>
+            )}
+            {isPaused && (
+              <Button type="primary" onClick={() => statusMut.mutate("active")}>
+                Активировать
+              </Button>
+            )}
+            <Popconfirm title="Закрыть вакансию?" onConfirm={() => statusMut.mutate("closed")}>
+              <Button danger>Закрыть</Button>
+            </Popconfirm>
           </>
         }
       />
@@ -118,20 +148,34 @@ export default function VacancyPage({
               <div
                 key={c.candidacyId}
                 className={s.candidateRow}
-                onClick={() => router.push(`/candidate/${c.candidateId}`)}
                 style={{ cursor: "pointer" }}
               >
-                <div className={s.avatar}>{initials}</div>
-                <div className={s.candidateInfo}>
+                <div className={s.avatar} onClick={() => router.push(`/candidate/${c.candidateId}`)}>
+                  {initials}
+                </div>
+                <div className={s.candidateInfo} onClick={() => router.push(`/candidate/${c.candidateId}`)}>
                   <div className={s.candidateName}>{c.candidateFullName}</div>
                   <div className={s.candidateMeta}>
                     {c.candidateEmail && <span>{c.candidateEmail}</span>}
-                    <span>обновлён {new Date(c.updatedAt).toLocaleDateString("ru")}</span>
+                    <span>обновлён {new Date(c.updatedAt).toLocaleDateString("ru-RU")}</span>
                   </div>
                 </div>
                 <div className={s.candidateStatus}>
                   <Tag color={statusColor}>{c.stageName}</Tag>
-                  <span style={{ fontSize: 13, color: "rgba(0,0,0,.65)" }}>{c.stageType}</span>
+                  <Dropdown
+                    menu={{
+                      items: stages.map((st) => ({
+                        key: st.stageId,
+                        label: st.name,
+                        onClick: () => moveMut.mutate({ candidacyId: c.candidacyId, stageId: st.stageId }),
+                      })),
+                    }}
+                    trigger={["click"]}
+                  >
+                    <Button size="small" type="text" onClick={(e) => e.stopPropagation()}>
+                      Переместить ▾
+                    </Button>
+                  </Dropdown>
                 </div>
               </div>
             );

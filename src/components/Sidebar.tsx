@@ -143,7 +143,7 @@ export function Sidebar() {
 
   const handleLogout = async () => {
     try {
-      await fetch("/proxy/auth/logout", { method: "POST", credentials: "include" });
+      await authApi.logout();
     } catch {
     }
     router.push("/login");
