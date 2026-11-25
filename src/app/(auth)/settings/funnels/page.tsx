@@ -2,9 +2,17 @@
 
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { Button, Tag, Skeleton, Modal, Form, Input, message } from "antd";
+import { Button, Tag, Skeleton, Modal, Form, Input, Space, message, Popconfirm } from "antd";
 import { SettingsLayout } from "@/components/SettingsLayout";
 import { appApi } from "@/lib/api";
+
+const DEFAULT_STAGES = [
+  { name: "Отклик", type: "new" },
+  { name: "Новые", type: "new" },
+  { name: "Оценка резюме", type: "review" },
+  { name: "Голосовое интервью", type: "interview" },
+  { name: "Одобрен", type: "offer" },
+];
 
 export default function FunnelsSettingsPage() {
   const qc = useQueryClient();
@@ -33,7 +41,11 @@ export default function FunnelsSettingsPage() {
     <SettingsLayout activeItem="Воронки">
       <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 16 }}>
         <h3 style={{ margin: 0, fontSize: 18, fontWeight: 700 }}>Воронки</h3>
-        <Button type="primary" onClick={() => setCreateOpen(true)}>
+        <Button type="primary" onClick={() => {
+          form.resetFields();
+          form.setFieldsValue({ stages: DEFAULT_STAGES });
+          setCreateOpen(true);
+        }}>
           Создать воронку
         </Button>
       </div>
@@ -44,14 +56,14 @@ export default function FunnelsSettingsPage() {
           <div>
             <div style={{ fontWeight: 600, fontSize: 16 }}>Стандартная воронка</div>
             <div style={{ fontSize: 13, color: "rgba(0,0,0,.45)", marginTop: 4 }}>
-              Отклик → Новые → Оценка резюме → Голосовое интервью → Одобрен
+              {DEFAULT_STAGES.map((s) => s.name).join(" → ")}
             </div>
           </div>
           <Tag color="green">По умолчанию</Tag>
         </div>
       ) : (
         <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
-          {funnels.map((f) => (
+          {funnels.map((f, i) => (
             <div
               key={f.id}
               style={{
@@ -69,7 +81,13 @@ export default function FunnelsSettingsPage() {
                   {f.stages?.map((st) => st.name).join(" → ") || "Этапы не заданы"}
                 </div>
               </div>
-              <Tag color="green">По умолчанию</Tag>
+              <Space>
+                {i === 0 && <Tag color="green">По умолчанию</Tag>}
+                <Button type="text" size="small" onClick={() => message.info("Редактирование воронки — в разработке")}>Изменить</Button>
+                <Popconfirm title="Удалить воронку?" onConfirm={() => message.info("Удаление — в разработке")}>
+                  <Button type="text" size="small" danger>Удалить</Button>
+                </Popconfirm>
+              </Space>
             </div>
           ))}
         </div>
@@ -84,10 +102,36 @@ export default function FunnelsSettingsPage() {
         okText="Создать"
         cancelText="Отмена"
         confirmLoading={createMut.isPending}
+        width={520}
       >
         <Form form={form} layout="vertical">
           <Form.Item label="Название" name="name" rules={[{ required: true, message: "Введите название" }]}>
             <Input placeholder="Например: Воронка для IT" />
+          </Form.Item>
+          <Form.Item label="Этапы">
+            <Form.List name="stages">
+              {(fields, { add, remove, move }) => (
+                <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+                  {fields.map((field, idx) => (
+                    <Space key={field.key} align="center">
+                      <span style={{ color: "rgba(0,0,0,.45)", width: 24, textAlign: "center" }}>{idx + 1}</span>
+                      <Form.Item name={[field.name, "name"]} noStyle rules={[{ required: true, message: "Введите название этапа" }]}>
+                        <Input placeholder="Название этапа" style={{ width: 200 }} />
+                      </Form.Item>
+                      <Form.Item name={[field.name, "type"]} noStyle>
+                        <Input placeholder="Тип" style={{ width: 100 }} />
+                      </Form.Item>
+                      <Button type="text" size="small" disabled={idx === 0} onClick={() => move(idx, idx - 1)}>↑</Button>
+                      <Button type="text" size="small" disabled={idx === fields.length - 1} onClick={() => move(idx, idx + 1)}>↓</Button>
+                      <Button type="text" size="small" danger disabled={fields.length <= 1} onClick={() => remove(field.name)}>×</Button>
+                    </Space>
+                  ))}
+                  <Button type="dashed" block onClick={() => add({ name: "", type: "new" })}>
+                    + Добавить этап
+                  </Button>
+                </div>
+              )}
+            </Form.List>
           </Form.Item>
         </Form>
       </Modal>
