@@ -1,0 +1,13 @@
+.integrations{display:flex;flex-direction:column;gap:24px}
+.section{display:flex;flex-direction:column;gap:12px}
+.sectionTitle{margin:0;font-size:18px;font-weight:700;color:var(--ats-ink,#151716)}
+.sectionDesc{font-size:14px;color:var(--ats-text-2,rgba(0,0,0,.65))}
+.cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:16px}
+.card{padding:20px 24px;border-radius:16px;border:1px solid var(--ats-border-2,#f0f0f0);background:var(--ats-bg,#fff);display:flex;flex-direction:column;gap:12px}
+.cardName{font-size:16px;font-weight:600;color:var(--ats-ink,#151716)}
+.cardStatus{font-size:13px;color:var(--ats-text-3,rgba(0,0,0,.45))}
+.cardConnected{color:#52c41a;font-weight:600}
+.cardActions{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.cardMeta{font-size:13px;color:var(--ats-text-2,rgba(0,0,0,.65));display:flex;flex-direction:column;gap:4px}
+.cardMetaRow{display:flex;gap:8px}
+.cardMetaLabel{color:var(--ats-text-3,rgba(0,0,0,.45));min-width:120px}

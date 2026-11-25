@@ -1,0 +1,17 @@
+.page{display:flex;flex-direction:column;gap:24px}
+.filters{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.kpiSection{padding:20px 24px;border-radius:18px;background:var(--ats-bg,#fff);display:flex;flex-direction:column;gap:16px}
+.kpiTitle{margin:0;font-size:22px;font-weight:700;color:var(--ats-ink,#151716)}
+.kpiGrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:16px}
+.kpiCard{padding:16px;border:1px solid var(--ats-border-2,#f0f0f0);border-radius:12px;display:flex;flex-direction:column;gap:8px}
+.kpiLabel{font-size:13px;font-weight:600;color:var(--ats-text-2,rgba(0,0,0,.65))}
+.kpiValue{font-size:28px;font-weight:800;color:var(--ats-ink,#151716)}
+.kpiHint{font-size:12px;color:var(--ats-text-3,rgba(0,0,0,.45))}
+.funnelSection{padding:20px 24px;border-radius:18px;background:var(--ats-bg,#fff);display:flex;flex-direction:column;gap:16px}
+.funnelTitle{margin:0;font-size:18px;font-weight:700;color:var(--ats-ink,#151716)}
+.funnelDesc{font-size:14px;color:var(--ats-text-2,rgba(0,0,0,.65))}
+.funnelSteps{display:flex;align-items:center;gap:0;flex-wrap:wrap}
+.funnelStep{display:flex;flex-direction:column;align-items:center;gap:4px;padding:12px 16px;min-width:100px}
+.funnelStepNumber{font-size:24px;font-weight:700;color:var(--ats-primary,#6b53d5)}
+.funnelStepLabel{font-size:12px;color:var(--ats-text-2,rgba(0,0,0,.65));text-align:center}
+.funnelArrow{color:var(--ats-text-3,rgba(0,0,0,.45));font-size:20px;align-self:center}
