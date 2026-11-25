@@ -1,8 +1,9 @@
 "use client";
 
 import { use, useState } from "react";
+import { useRouter } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
-import { Skeleton, Tag, Button } from "antd";
+import { Skeleton, Tag, Button, Tooltip, message } from "antd";
 import { PageHeader } from "@/components/PageHeader";
 import { appApi, type Vacancy, type VacancyStageCount } from "@/lib/api";
 import s from "./vacancy.module.css";
@@ -13,6 +14,7 @@ export default function VacancyPage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = use(params);
+  const router = useRouter();
   const [activeStage, setActiveStage] = useState<string>("all");
 
   const { data: vacancy, isLoading } = useQuery({
@@ -36,7 +38,7 @@ export default function VacancyPage({
 
   const stages: VacancyStageCount[] = vacancy.stageCounts ?? [];
   const totalCount = stages.reduce((sum, st) => sum + st.count, 0);
-  const candidacies = interviews?.candidacies ?? [];
+  const allCandidacies = interviews?.candidacies ?? [];
 
   const allStages = [
     { stageId: "all", name: "Все", count: totalCount, purpose: "all", enabled: true },
@@ -44,18 +46,46 @@ export default function VacancyPage({
     { stageId: "rejected", name: "Отказ", count: 0, purpose: "rejected", enabled: true },
   ];
 
+  const recruiterNames = vacancy.recruiters?.map((r) => r.name).join(", ") || vacancy.hrName || "—";
+
   return (
     <div className={s.page}>
       <PageHeader
         title={vacancy.title}
-        sub={`${vacancy.statusLabel} · ${vacancy.recruiters?.map((r) => r.name).join(", ") || vacancy.hrName || "—"}`}
+        sub={`${vacancy.statusLabel} · ${recruiterNames}`}
         actions={
           <>
-            <Button>Редактировать</Button>
-            <Button type="primary">Добавить кандидата</Button>
+            <Button onClick={() => message.info("Редактирование — в разработке")}>
+              Редактировать
+            </Button>
+            <Button
+              type="primary"
+              onClick={() => message.info("Добавление кандидата — в разработке")}
+            >
+              Добавить кандидата
+            </Button>
           </>
         }
       />
+
+      {(vacancy.plannedHires > 0 || vacancy.hiredCount > 0) && (
+        <div style={{ display: "flex", gap: 16, padding: "12px 24px", borderRadius: 18, background: "#fff" }}>
+          <div>
+            <span style={{ fontSize: 13, color: "rgba(0,0,0,.45)" }}>План найма: </span>
+            <strong>{vacancy.plannedHires}</strong>
+          </div>
+          <div>
+            <span style={{ fontSize: 13, color: "rgba(0,0,0,.45)" }}>Нанято: </span>
+            <strong>{vacancy.hiredCount}</strong>
+          </div>
+          {vacancy.orgUnit && (
+            <div>
+              <span style={{ fontSize: 13, color: "rgba(0,0,0,.45)" }}>Подразделение: </span>
+              <strong>{vacancy.orgUnit.name}</strong>
+            </div>
+          )}
+        </div>
+      )}
 
       <div className={s.funnel}>
         {allStages.map((stage, i) => (
@@ -73,15 +103,22 @@ export default function VacancyPage({
       </div>
 
       <div className={s.panel}>
-        {candidacies.length === 0 ? (
+        {allCandidacies.length === 0 ? (
           <div style={{ textAlign: "center", padding: "32px", color: "rgba(0,0,0,.45)" }}>
-            Нет кандидатов на этом этапе
+            {activeStage === "all"
+              ? "Нет кандидатов на этой вакансии"
+              : "Нет кандидатов на этом этапе"}
           </div>
         ) : (
-          candidacies.map((c) => {
+          allCandidacies.map((c) => {
             const initials = `${c.candidateFirstName?.[0] ?? ""}${c.candidateLastName?.[0] ?? ""}`.toUpperCase();
             return (
-              <div key={c.candidacyId} className={s.candidateRow}>
+              <div
+                key={c.candidacyId}
+                className={s.candidateRow}
+                onClick={() => router.push(`/candidate/${c.candidacyId}`)}
+                style={{ cursor: "pointer" }}
+              >
                 <div className={s.avatar}>{initials}</div>
                 <div className={s.candidateInfo}>
                   <div className={s.candidateName}>{c.candidateFullName}</div>

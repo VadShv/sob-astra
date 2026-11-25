@@ -1,9 +1,10 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
 import {
-  Input, Button, Table, Skeleton, Segmented, Tag, Drawer, Checkbox, Space,
+  Input, Button, Table, Skeleton, Segmented, Tag, Drawer, Checkbox, Space, message,
 } from "antd";
 import type { ColumnsType } from "antd/es/table";
 import { PageHeader } from "@/components/PageHeader";
@@ -67,12 +68,29 @@ function buildColumns(): ColumnsType<Candidate> {
 }
 
 export default function SearchPage() {
+  const router = useRouter();
   const [filterOpen, setFilterOpen] = useState(false);
   const [search, setSearch] = useState("");
+  const [debouncedSearch, setDebouncedSearch] = useState("");
+  const [selectedSources, setSelectedSources] = useState<string[]>([]);
+  const [selectedTags, setSelectedTags] = useState<string[]>([]);
+  const [sort, setSort] = useState("recent");
+
+  useEffect(() => {
+    const t = setTimeout(() => setDebouncedSearch(search), 400);
+    return () => clearTimeout(t);
+  }, [search]);
 
   const { data, isLoading } = useQuery({
-    queryKey: ["candidates", search],
-    queryFn: () => appApi.getCandidates({ page: "1", pageSize: "20" }),
+    queryKey: ["candidates", debouncedSearch, selectedSources, selectedTags, sort],
+    queryFn: () => {
+      const params: Record<string, string> = { page: "1", pageSize: "20" };
+      if (debouncedSearch) params.q = debouncedSearch;
+      if (selectedSources.length) params.sources = selectedSources.join(",");
+      if (selectedTags.length) params.tags = selectedTags.join(",");
+      if (sort === "old") params.sortBy = "createdAt";
+      return appApi.getCandidates(params);
+    },
   });
 
   const { data: tags } = useQuery({
@@ -106,18 +124,33 @@ export default function SearchPage() {
           size="large"
           value={search}
           onChange={(e) => setSearch(e.target.value)}
-          enterButton={
-            <Button type="primary" size="large">Найти</Button>
-          }
+          loading={isLoading && !!debouncedSearch}
+          enterButton={<Button type="primary" size="large">Найти</Button>}
         />
-        <Button size="large" onClick={() => setFilterOpen(true)}>Фильтры</Button>
+        <Button size="large" onClick={() => setFilterOpen(true)}>
+          Фильтры
+          {(selectedSources.length + selectedTags.length) > 0 && (
+            <Tag color="purple" style={{ marginLeft: 6 }}>
+              {selectedSources.length + selectedTags.length}
+            </Tag>
+          )}
+        </Button>
         <Button size="large" disabled={coldSearchItems.length === 0}>
           Поиски {coldSearchItems.length > 0 && `(${coldSearchItems.length})`}
         </Button>
-        <Button size="large" type="primary" className={s.aiButton}>
+        <Button
+          size="large"
+          type="primary"
+          className={s.aiButton}
+          onClick={() => message.info("AI-поиск — в разработке")}
+        >
           Найти с ИИ
         </Button>
-        <Button size="large" type="primary">
+        <Button
+          size="large"
+          type="primary"
+          onClick={() => router.push("/candidate/new?back=/search")}
+        >
           Добавить кандидата
         </Button>
       </div>
@@ -125,7 +158,12 @@ export default function SearchPage() {
       <div className={s.results}>
         <div className={s.resultControls}>
           <Segmented
-            options={["Сначала недавно обновлённые", "Сначала давно обновлённые"]}
+            options={[
+              { label: "Сначала недавно обновлённые", value: "recent" },
+              { label: "Сначала давно обновлённые", value: "old" },
+            ]}
+            value={sort}
+            onChange={(v) => setSort(v as string)}
             size="small"
           />
           <span style={{ color: "rgba(0,0,0,.65)", fontSize: 14 }}>
@@ -139,6 +177,10 @@ export default function SearchPage() {
             columns={buildColumns()}
             dataSource={items}
             rowKey="candidateId"
+            onRow={(record) => ({
+              onClick: () => router.push(`/candidate/${record.candidateId}`),
+              style: { cursor: "pointer" },
+            })}
             pagination={{ pageSize: 20, showSizeChanger: false }}
             size="middle"
           />
@@ -150,11 +192,24 @@ export default function SearchPage() {
         open={filterOpen}
         onClose={() => setFilterOpen(false)}
         width={320}
+        extra={
+          <Button
+            onClick={() => {
+              setSelectedSources([]);
+              setSelectedTags([]);
+            }}
+          >
+            Сбросить
+          </Button>
+        }
       >
         <div style={{ display: "flex", flexDirection: "column", gap: 24 }}>
           <div>
             <h4 style={{ marginBottom: 12 }}>Источники</h4>
-            <Checkbox.Group>
+            <Checkbox.Group
+              value={selectedSources}
+              onChange={(vals) => setSelectedSources(vals as string[])}
+            >
               <Space direction="vertical">
                 {sourceValues.map((src) => (
                   <Checkbox key={src.code} value={src.code}>{src.name}</Checkbox>
@@ -163,8 +218,11 @@ export default function SearchPage() {
             </Checkbox.Group>
           </div>
           <div>
-            <h4 style={{ marginBottom: 12 }}>Метики</h4>
-            <Checkbox.Group>
+            <h4 style={{ marginBottom: 12 }}>Метки</h4>
+            <Checkbox.Group
+              value={selectedTags}
+              onChange={(vals) => setSelectedTags(vals as string[])}
+            >
               <Space direction="vertical">
                 {tagValues.map((tag) => (
                   <Checkbox key={tag.code} value={tag.code}>{tag.name}</Checkbox>

@@ -1,10 +1,12 @@
 "use client";
 
+import { useState } from "react";
+import { useRouter } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
-import { Table, Tag, Button, Skeleton, Tooltip } from "antd";
+import { Table, Tag, Button, Skeleton, Tooltip, Modal, Form, Input, Select, Dropdown, message } from "antd";
 import type { ColumnsType } from "antd/es/table";
 import { PageHeader } from "@/components/PageHeader";
-import { authApi, appApi, type Vacancy } from "@/lib/api";
+import { authApi, appApi, type Vacancy, type HiringKpi } from "@/lib/api";
 import s from "./home.module.css";
 
 function getGreeting(): string {
@@ -30,96 +32,27 @@ function formatSearchDate(dateStr?: string): string {
   return `поиск с ${dd}.${m}`;
 }
 
-function buildColumns(): ColumnsType<Vacancy> {
-  return [
-    {
-      title: "Вакансия",
-      dataIndex: "title",
-      key: "title",
-      render: (title: string, record: Vacancy) => (
-        <div>
-          <div style={{ fontWeight: 600 }}>
-            {record.isConfidential ? `${title} 🔒` : title}
-          </div>
-          <div style={{ fontSize: 12, color: "rgba(0,0,0,.45)" }}>
-            {formatSearchDate(record.searchStartedAt)}
-          </div>
-          {record.hhReconnectRequired && (
-            <Tag color="warning" style={{ marginTop: 4, fontSize: 11 }}>
-              Переподключить hh.ru
-            </Tag>
-          )}
-        </div>
-      ),
-    },
-    {
-      title: "Рекрутер",
-      key: "recruiter",
-      render: (_: unknown, record: Vacancy) => {
-        const names = record.recruiters?.map((r) => r.name) ?? [];
-        if (names.length === 0 && record.hrName) return record.hrName;
-        return names.join(", ") || "—";
-      },
-    },
-    {
-      title: "Статус",
-      dataIndex: "statusLabel",
-      key: "status",
-      render: (label: string, record: Vacancy) => {
-        const color =
-          record.status === "active" ? "green" :
-          record.status === "paused" ? "orange" :
-          record.status === "closed" ? "default" : "blue";
-        return <Tag color={color}>{label}</Tag>;
-      },
-    },
-    {
-      title: "Кандидаты",
-      key: "candidates",
-      align: "center",
-      render: (_: unknown, record: Vacancy) => {
-        const total = record.stageCounts?.reduce((sum, sc) => sum + sc.count, 0) ?? 0;
-        return total;
-      },
-    },
-    {
-      title: "Ждут решения",
-      dataIndex: "awaitingDecisionCount",
-      key: "awaiting",
-      align: "center",
-      render: (count: number) => count || "",
-    },
-    {
-      title: "Откуда → куда",
-      key: "chain",
-      render: (_: unknown, record: Vacancy) => {
-        const src = record.SourceIntegrationVacancy?.integrationType ?? "";
-        const sink = record.SinkIntegrationVacancy?.integrationType ?? "";
-        if (!src && !sink) return null;
-        return (
-          <span style={{ fontSize: 12, color: "rgba(0,0,0,.45)" }}>
-            {src && <Tag>{src}</Tag>}
-            {src && sink && "→ "}
-            {sink && <Tag>{sink}</Tag>}
-          </span>
-        );
-      },
-    },
-    {
-      title: "ИИ-модули",
-      key: "modules",
-      align: "center",
-      render: (_: unknown, record: Vacancy) =>
-        record.interviewsCount > 0 ? (
-          <Tooltip title={`${record.interviewsCount} интервью ИИ`}>
-            <Tag color="purple">{record.interviewsCount}</Tag>
-          </Tooltip>
-        ) : null,
-    },
-  ];
-}
+const COLUMN_OPTIONS = [
+  { label: "Вакансия", key: "title", default: true },
+  { label: "Рекрутер", key: "recruiter", default: true },
+  { label: "Статус", key: "status", default: true },
+  { label: "Кандидаты", key: "candidates", default: true },
+  { label: "Ждут решения", key: "awaiting", default: true },
+  { label: "Откуда → куда", key: "chain", default: true },
+  { label: "ИИ-модули", key: "modules", default: true },
+  { label: "Планируем найм", key: "plannedHires", default: false },
+  { label: "Дедлайн", key: "deadline", default: false },
+  { label: "Грейд", key: "grade", default: false },
+];
 
 export default function HomePage() {
+  const router = useRouter();
+  const [createOpen, setCreateOpen] = useState(false);
+  const [selectedColumns, setSelectedColumns] = useState<Set<string>>(
+    new Set(COLUMN_OPTIONS.filter((c) => c.default).map((c) => c.key))
+  );
+  const [form] = Form.useForm();
+
   const { data: userResp } = useQuery({
     queryKey: ["auth-me"],
     queryFn: () => authApi.me(),
@@ -139,9 +72,16 @@ export default function HomePage() {
 
   const { data: facets } = useQuery({
     queryKey: ["vacancy-facets"],
+    queryFn: () => appApi.getVacancyFacets({ status: "active,paused,distribution" }),
+  });
+
+  const { data: kpi } = useQuery({
+    queryKey: ["hiring-kpi"],
     queryFn: () =>
-      appApi.getVacancyFacets({
-        status: "active,paused,distribution",
+      appApi.getHiringKpi({
+        from: new Date(Date.now() - 90 * 86400000).toISOString(),
+        to: new Date().toISOString(),
+        tzOffset: "-180",
       }),
   });
 
@@ -150,6 +90,120 @@ export default function HomePage() {
   const dateStr = formatDate();
   const items = vacancies?.items ?? [];
   const total = facets?.total ?? items.length;
+
+  const buildColumns = (): ColumnsType<Vacancy> => {
+    const cols: ColumnsType<Vacancy> = [];
+    const has = (key: string) => selectedColumns.has(key);
+
+    if (has("title")) {
+      cols.push({
+        title: "Вакансия",
+        dataIndex: "title",
+        key: "title",
+        render: (title: string, record: Vacancy) => (
+          <div>
+            <div style={{ fontWeight: 600 }}>
+              {record.isConfidential ? `${title} 🔒` : title}
+            </div>
+            <div style={{ fontSize: 12, color: "rgba(0,0,0,.45)" }}>
+              {formatSearchDate(record.searchStartedAt)}
+            </div>
+            {record.hhReconnectRequired && (
+              <Tag color="warning" style={{ marginTop: 4, fontSize: 11 }}>
+                Переподключить hh.ru
+              </Tag>
+            )}
+          </div>
+        ),
+      });
+    }
+    if (has("recruiter")) {
+      cols.push({
+        title: "Рекрутер",
+        key: "recruiter",
+        render: (_: unknown, r: Vacancy) => {
+          const names = r.recruiters?.map((x) => x.name) ?? [];
+          return names.length ? names.join(", ") : r.hrName || "—";
+        },
+      });
+    }
+    if (has("status")) {
+      cols.push({
+        title: "Статус",
+        dataIndex: "statusLabel",
+        key: "status",
+        render: (label: string, r: Vacancy) => {
+          const color = r.status === "active" ? "green" : r.status === "paused" ? "orange" : "default";
+          return <Tag color={color}>{label}</Tag>;
+        },
+      });
+    }
+    if (has("candidates")) {
+      cols.push({
+        title: "Кандидаты",
+        key: "candidates",
+        align: "center",
+        render: (_: unknown, r: Vacancy) => r.stageCounts?.reduce((s, sc) => s + sc.count, 0) ?? 0,
+      });
+    }
+    if (has("awaiting")) {
+      cols.push({
+        title: "Ждут решения",
+        dataIndex: "awaitingDecisionCount",
+        key: "awaiting",
+        align: "center",
+        render: (c: number) => c || "",
+      });
+    }
+    if (has("chain")) {
+      cols.push({
+        title: "Откуда → куда",
+        key: "chain",
+        render: (_: unknown, r: Vacancy) => {
+          const src = r.SourceIntegrationVacancy?.integrationType;
+          const sink = r.SinkIntegrationVacancy?.integrationType;
+          if (!src && !sink) return null;
+          return (
+            <span style={{ fontSize: 12, color: "rgba(0,0,0,.45)" }}>
+              {src && <Tag>{src}</Tag>}
+              {src && sink && "→ "}
+              {sink && <Tag>{sink}</Tag>}
+            </span>
+          );
+        },
+      });
+    }
+    if (has("modules")) {
+      cols.push({
+        title: "ИИ-модули",
+        key: "modules",
+        align: "center",
+        render: (_: unknown, r: Vacancy) =>
+          r.interviewsCount > 0 ? (
+            <Tooltip title={`${r.interviewsCount} интервью ИИ`}>
+              <Tag color="purple">{r.interviewsCount}</Tag>
+            </Tooltip>
+          ) : null,
+      });
+    }
+    if (has("plannedHires")) {
+      cols.push({ title: "План", dataIndex: "plannedHires", key: "plannedHires", align: "center" });
+    }
+    if (has("deadline")) {
+      cols.push({
+        title: "Дедлайн",
+        dataIndex: "deadline",
+        key: "deadline",
+        render: (d: string) => (d ? new Date(d).toLocaleDateString("ru") : "—"),
+      });
+    }
+    return cols;
+  };
+
+  const kpiData = kpi as HiringKpi | undefined;
+  const ttf = kpiData?.timeToFill;
+  const tto = kpiData?.timeToOffer;
+  const oa = kpiData?.offerAcceptance;
 
   return (
     <div className={s.page}>
@@ -165,6 +219,24 @@ export default function HomePage() {
                 <span className={s.tileNote}>в работе</span>
               </div>
             </div>
+            <div className={s.tile}>
+              <span className={s.tileNumber} data-tone="lime">
+                {ttf?.medianDays ?? "—"}
+              </span>
+              <div className={s.tileText}>
+                <span className={s.tileTitle}>Дней до найма</span>
+                <span className={s.tileNote}>медиана</span>
+              </div>
+            </div>
+            <div className={s.tile}>
+              <span className={s.tileNumber} data-tone="pink">
+                {oa?.rate != null ? `${Math.round(oa.rate * 100)}%` : "—"}
+              </span>
+              <div className={s.tileText}>
+                <span className={s.tileTitle}>Приём офферов</span>
+                <span className={s.tileNote}>{oa?.accepted ?? 0} принято</span>
+              </div>
+            </div>
           </div>
         }
       />
@@ -177,7 +249,25 @@ export default function HomePage() {
               <Button size="small" type="primary">В работе</Button>
               <Button size="small">На паузе</Button>
               <Button size="small" type="text">Показать закрытые</Button>
-              <Button size="small" type="text">Столбцы</Button>
+              <Dropdown
+                menu={{
+                  items: COLUMN_OPTIONS.map((c) => ({
+                    key: c.key,
+                    label: c.label,
+                  })),
+                  selectable: true,
+                  selectedKeys: Array.from(selectedColumns),
+                  onClick: ({ key }) => {
+                    const next = new Set(selectedColumns);
+                    if (next.has(key)) next.delete(key);
+                    else next.add(key);
+                    setSelectedColumns(next);
+                  },
+                }}
+                trigger={["click"]}
+              >
+                <Button size="small" type="text">Столбцы</Button>
+              </Dropdown>
             </div>
             <span className={s.count} style={{ marginLeft: "auto" }}>
               {items.length} из {total} вакансий
@@ -191,10 +281,11 @@ export default function HomePage() {
                 columns={buildColumns()}
                 dataSource={items}
                 rowKey="id"
-                rowSelection={{
-                  type: "checkbox",
-                  selectedRowKeys: [],
-                }}
+                rowSelection={{ type: "checkbox", selectedRowKeys: [] }}
+                onRow={(record) => ({
+                  onClick: () => router.push(`/vacancy/${record.id}`),
+                  style: { cursor: "pointer" },
+                })}
                 pagination={false}
                 size="middle"
                 scroll={{ x: true }}
@@ -202,13 +293,47 @@ export default function HomePage() {
             )}
           </div>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", paddingTop: 12 }}>
-            <Button type="primary">Создать</Button>
+            <Button type="primary" onClick={() => setCreateOpen(true)}>
+              Создать
+            </Button>
             <span style={{ fontSize: 13, color: "rgba(0,0,0,.45)" }}>
               Выбрать на странице ({items.length})
             </span>
           </div>
         </div>
       </section>
+
+      <Modal
+        title="Новая вакансия"
+        open={createOpen}
+        onCancel={() => setCreateOpen(false)}
+        onOk={() => {
+          form.validateFields().then(() => {
+            message.info("Создание вакансии — в разработке");
+            setCreateOpen(false);
+          });
+        }}
+        okText="Создать"
+        cancelText="Отмена"
+      >
+        <Form form={form} layout="vertical" requiredMark={false}>
+          <Form.Item label="Название вакансии" name="title" rules={[{ required: true, message: "Введите название" }]}>
+            <Input placeholder="Например: Frontend разработчик" />
+          </Form.Item>
+          <Form.Item label="Подразделение" name="orgUnit">
+            <Select options={[{ value: "main", label: "Основное" }]} />
+          </Form.Item>
+          <Form.Item label="Планируем найм" name="plannedHires">
+            <Input type="number" min={1} defaultValue={1} />
+          </Form.Item>
+          <Form.Item label="Рекрутер" name="recruiter">
+            <Select
+              options={(facets?.recruiters ?? []).map((r) => ({ value: r.id, label: r.name }))}
+              placeholder="Выберите рекрутера"
+            />
+          </Form.Item>
+        </Form>
+      </Modal>
     </div>
   );
 }

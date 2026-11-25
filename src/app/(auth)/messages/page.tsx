@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { Button, Segmented, Skeleton, Table, Tag } from "antd";
+import { Button, Segmented, Skeleton, Table, Tag, Empty } from "antd";
 import type { ColumnsType } from "antd/es/table";
 import { PageHeader } from "@/components/PageHeader";
 import { appApi } from "@/lib/api";
@@ -18,43 +18,34 @@ interface Conversation {
 }
 
 const columns: ColumnsType<Conversation> = [
-  {
-    title: "Кандидат",
-    dataIndex: "candidateName",
-    key: "candidateName",
-  },
+  { title: "Кандидат", dataIndex: "candidateName", key: "candidateName" },
   {
     title: "Канал",
     dataIndex: "channel",
     key: "channel",
     render: (ch: string) => (ch ? <Tag>{ch}</Tag> : "—"),
   },
-  {
-    title: "Последнее сообщение",
-    dataIndex: "lastMessage",
-    key: "lastMessage",
-    ellipsis: true,
-  },
-  {
-    title: "Ждёт",
-    dataIndex: "waitingSince",
-    key: "waitingSince",
-  },
-  {
-    title: "Действие",
-    dataIndex: "action",
-    key: "action",
-  },
+  { title: "Последнее сообщение", dataIndex: "lastMessage", key: "lastMessage", ellipsis: true },
+  { title: "Ждёт", dataIndex: "waitingSince", key: "waitingSince" },
+  { title: "Действие", dataIndex: "action", key: "action" },
 ];
 
 export default function MessagesPage() {
-  const [tab, setTab] = useState("all");
-  const [subTab, setSubTab] = useState("active");
+  const [tab, setTab] = useState<"all" | "vacancy">("all");
+  const [subTab, setSubTab] = useState<"active" | "archive">("active");
+  const [onlyMine, setOnlyMine] = useState(false);
+  const [showCover, setShowCover] = useState(false);
 
   const { data, isLoading } = useQuery({
-    queryKey: ["conversations-awaiting"],
+    queryKey: ["conversations-awaiting", subTab, onlyMine],
     queryFn: () =>
-      appApi.getConversationsAwaiting({ sort: "longest", page: "1", pageSize: "20" }),
+      appApi.getConversationsAwaiting({
+        sort: "longest",
+        page: "1",
+        pageSize: "20",
+        ...(subTab === "archive" ? { status: "archive" } : {}),
+        ...(onlyMine ? { onlyMine: "true" } : {}),
+      }),
   });
 
   const resp = data as
@@ -89,14 +80,22 @@ export default function MessagesPage() {
             { label: `Архив (${counts.archive})`, value: "archive" },
           ]}
           value={subTab}
-          onChange={(v) => setSubTab(v as string)}
+          onChange={(v) => setSubTab(v as "active" | "archive")}
           size="small"
         />
         <Button size="small">Фильтры</Button>
-        <Button size="small" type="text">
+        <Button
+          size="small"
+          type={onlyMine ? "primary" : "text"}
+          onClick={() => setOnlyMine(!onlyMine)}
+        >
           Только мои вакансии
         </Button>
-        <Button size="small" type="text">
+        <Button
+          size="small"
+          type={showCover ? "primary" : "text"}
+          onClick={() => setShowCover(!showCover)}
+        >
           Показывать сопроводительные
         </Button>
       </div>

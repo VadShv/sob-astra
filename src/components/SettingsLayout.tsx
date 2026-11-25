@@ -70,8 +70,11 @@ export function SettingsLayout({
                       "Учётная запись": "/settings/account",
                       "Уведомления": "/settings/notifications",
                       "Компания": "/settings/company",
+                      "Оформление интервью": "/settings/appearance",
                       "Пользователи": "/settings/users",
+                      "Роли и права": "/settings/roles",
                       "Воронки": "/settings/funnels",
+                      "Шаблоны сообщений": "/settings/templates",
                       "Интеграции": "/settings/integrations",
                     }[item.label] || "/settings"
                   }

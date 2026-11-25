@@ -8,6 +8,14 @@ import { Dropdown, Badge } from "antd";
 import { authApi, appApi, type Vacancy } from "@/lib/api";
 import s from "./sidebar.module.css";
 
+interface Notification {
+  id: string;
+  title: string;
+  body: string;
+  createdAt: string;
+  read: boolean;
+}
+
 interface NavItem {
   href: string;
   label: string;
@@ -114,9 +122,24 @@ export function Sidebar() {
       }),
   });
 
+  const { data: unread } = useQuery({
+    queryKey: ["unread-count"],
+    queryFn: () => appApi.getUnreadCount(),
+    refetchInterval: 30000,
+  });
+
+  const { data: awaiting } = useQuery({
+    queryKey: ["awaiting-count"],
+    queryFn: () => appApi.getAwaitingCount(),
+    refetchInterval: 30000,
+  });
+
   const vacancyItems: Vacancy[] = vacancies?.items ?? [];
   const userName = userResp?.user?.first_name ?? "";
   const userEmail = userResp?.user?.email ?? "";
+  const unreadCount = unread?.count ?? 0;
+  const awaitingCount = awaiting?.count ?? 0;
+  const notifCount = unreadCount + awaitingCount;
 
   const handleLogout = async () => {
     try {
@@ -210,19 +233,32 @@ export function Sidebar() {
         )}
       </div>
       <div className={s.footer}>
-        <span className={s.footerBtn} role="img" aria-label="Лимиты: Вакансий: 1 из 20" tabIndex={0}>
+        <span className={s.footerBtn} role="img" aria-label={`Лимиты: Вакансий: ${vacancyItems.length} из 20`} tabIndex={0}>
           <svg width="18" height="18" viewBox="0 0 18 18" className={s.ring} aria-hidden="true">
             <circle cx="9" cy="9" r="7" className={s.ringTrack} />
-            <circle cx="9" cy="9" r="7" className={s.ringFill} strokeDasharray="43.98" strokeDashoffset="41.78" />
+            <circle cx="9" cy="9" r="7" className={s.ringFill} strokeDasharray="43.98" strokeDashoffset={43.98 * (1 - vacancyItems.length / 20)} />
           </svg>
         </span>
-        <Badge count={0} size="small">
-          <button aria-label="Уведомления" type="button" className={s.footerBtn}>
-            <span role="img" aria-hidden="true" className="anticon">
-              {ICONS.bell}
-            </span>
-          </button>
-        </Badge>
+        <Dropdown
+          menu={{
+            items: notifCount > 0
+              ? [
+                  { key: "awaiting", label: `${awaitingCount} кандидатов ждут ответа`, onClick: () => router.push("/messages") },
+                  ...(unreadCount > 0 ? [{ key: "unread", label: `${unreadCount} непрочитанных уведомлений` }] : []),
+                ]
+              : [{ key: "empty", label: "Нет новых уведомлений", disabled: true }],
+          }}
+          placement="topRight"
+          trigger={["click"]}
+        >
+          <Badge count={notifCount} size="small" offset={[-2, 2]}>
+            <button aria-label="Уведомления" type="button" className={s.footerBtn}>
+              <span role="img" aria-hidden="true" className="anticon">
+                {ICONS.bell}
+              </span>
+            </button>
+          </Badge>
+        </Dropdown>
         <Dropdown menu={{ items: userMenuItems }} placement="topRight" trigger={["click"]}>
           <button aria-label="Меню пользователя" type="button" className={s.footerBtn}>
             <span role="img" aria-hidden="true" className="anticon">

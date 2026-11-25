@@ -194,6 +194,39 @@ export const appApi = {
     const { data } = await apiClient.get("/api/candidate", { params });
     return data;
   },
+  async getCandidateById(id: string): Promise<Candidate> {
+    const { data } = await apiClient.get(`/api/candidate/${id}`);
+    return data;
+  },
+  async getCandidateCandidacies(id: string): Promise<{
+    items: Array<{
+      candidacyId: string;
+      vacancyId: string;
+      vacancyTitle: string;
+      stageName: string;
+      stageType: string;
+      status: string;
+      createdAt: string;
+      updatedAt: string;
+    }>;
+  }> {
+    const { data } = await apiClient.get(`/api/candidate/${id}/candidacies`);
+    return data;
+  },
+  async getCandidateInterviews(id: string): Promise<{
+    items: Array<{
+      interviewId: string;
+      vacancyTitle: string;
+      startedAt: string;
+      finishedAt: string;
+      status: string;
+      score?: number;
+      summary?: string;
+    }>;
+  }> {
+    const { data } = await apiClient.get(`/api/interview/candidate/${id}/list`);
+    return data;
+  },
   async getColdSearches(): Promise<unknown> {
     const { data } = await apiClient.get("/api/cold-search/searches");
     return data;

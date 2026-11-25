@@ -1,9 +1,11 @@
 "use client";
 
 import { use } from "react";
+import { useRouter } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
-import { Skeleton, Tag, Button } from "antd";
+import { Skeleton, Tag, Button, Space, Divider, message } from "antd";
 import { PageHeader } from "@/components/PageHeader";
+import { appApi, type Candidate } from "@/lib/api";
 import s from "./candidate.module.css";
 
 export default function CandidatePage({
@@ -12,14 +14,21 @@ export default function CandidatePage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = use(params);
+  const router = useRouter();
 
   const { data: candidate, isLoading } = useQuery({
     queryKey: ["candidate", id],
-    queryFn: async () => {
-      const resp = await fetch(`/proxy/api/candidate/${id}`, { credentials: "include" });
-      if (!resp.ok) return null;
-      return resp.json();
-    },
+    queryFn: () => appApi.getCandidateById(id),
+  });
+
+  const { data: candidacies } = useQuery({
+    queryKey: ["candidate-candidacies", id],
+    queryFn: () => appApi.getCandidateCandidacies(id),
+  });
+
+  const { data: interviews } = useQuery({
+    queryKey: ["candidate-interviews", id],
+    queryFn: () => appApi.getCandidateInterviews(id),
   });
 
   if (isLoading) {
@@ -42,14 +51,26 @@ export default function CandidatePage({
     );
   }
 
-  const fullName = candidate.fullName ?? `${candidate.firstName ?? ""} ${candidate.lastName ?? ""}`.trim();
-  const initials = fullName.split(" ").map((w: string) => w[0]).join("").toUpperCase().slice(0, 2);
+  const c = candidate as Candidate;
+  const fullName = c.fullName ?? `${c.firstName ?? ""} ${c.lastName ?? ""}`.trim();
+  const initials = fullName.split(" ").map((w) => w[0]).join("").toUpperCase().slice(0, 2);
+  const candidacyItems = ((candidacies as { items?: Record<string, string>[] })?.items ?? []);
+  const interviewItems = ((interviews as { items?: Record<string, unknown>[] })?.items ?? []);
 
   return (
     <div className={s.page}>
       <PageHeader
         title={fullName}
-        actions={<Button type="primary">Редактировать</Button>}
+        actions={
+          <>
+            <Button onClick={() => message.info("Редактирование — в разработке")}>
+              Редактировать
+            </Button>
+            <Button type="primary" onClick={() => message.info("Добавление на вакансию — в разработке")}>
+              Добавить на вакансию
+            </Button>
+          </>
+        }
       />
 
       <div className={s.profile}>
@@ -57,28 +78,96 @@ export default function CandidatePage({
         <div className={s.profileInfo}>
           <div className={s.profileName}>{fullName}</div>
           <div className={s.profileMeta}>
-            {candidate.email && (
-              <span className={s.profileMetaItem}>✉ {candidate.email}</span>
+            {c.email && <span className={s.profileMetaItem}>✉ {c.email}</span>}
+            {c.phone && <span className={s.profileMetaItem}>☎ {c.phone}</span>}
+            {c.passport?.title && (
+              <span className={s.profileMetaItem}>Должность: {c.passport.title}</span>
             )}
-            {candidate.phone && (
-              <span className={s.profileMetaItem}>☎ {candidate.phone}</span>
+            {c.passport?.salary && (
+              <span className={s.profileMetaItem}>
+                Зарплата: {c.passport.salary.toLocaleString("ru")} ₽
+              </span>
             )}
-            {candidate.passport?.title && (
-              <span className={s.profileMetaItem}>Должность: {candidate.passport.title}</span>
+            {c.passport?.area && (
+              <span className={s.profileMetaItem}>Город: {c.passport.area}</span>
             )}
-            {candidate.passport?.salary && (
-              <span className={s.profileMetaItem}>Зарплата: {candidate.passport.salary}</span>
+            {c.passport?.age && (
+              <span className={s.profileMetaItem}>Возраст: {c.passport.age}</span>
             )}
           </div>
+          {c.tags?.length ? (
+            <Space size={4} wrap style={{ marginTop: 8 }}>
+              {c.tags.map((t) => (
+                <Tag key={t.id} color={t.color || "default"}>{t.name}</Tag>
+              ))}
+            </Space>
+          ) : null}
         </div>
       </div>
 
-      <div className={s.panel}>
-        <h3 className={s.panelTitle}>Вакансии</h3>
-        <div className={s.empty}>
-          Кандидат пока не привязан к вакансиям
+      {c.resume?.skills?.length ? (
+        <div className={s.panel}>
+          <h3 className={s.panelTitle}>Навыки</h3>
+          <Space size={4} wrap>
+            {c.resume.skills.map((sk) => (
+              <Tag key={sk}>{sk}</Tag>
+            ))}
+          </Space>
         </div>
+      ) : null}
+
+      <div className={s.panel}>
+        <h3 className={s.panelTitle}>Вакансии ({candidacyItems.length})</h3>
+        {candidacyItems.length === 0 ? (
+          <div className={s.empty}>Кандидат пока не привязан к вакансиям</div>
+        ) : (
+          candidacyItems.map((cyc) => (
+            <div
+              key={cyc.candidacyId}
+              style={{
+                display: "flex",
+                justifyContent: "space-between",
+                alignItems: "center",
+                padding: "10px 0",
+                cursor: "pointer",
+                borderBottom: "1px solid rgba(0,0,0,.06)",
+              }}
+              onClick={() => router.push(`/vacancy/${cyc.vacancyId}`)}
+            >
+              <div>
+                <div style={{ fontWeight: 600 }}>{cyc.vacancyTitle}</div>
+                <div style={{ fontSize: 12, color: "rgba(0,0,0,.45)" }}>
+                  {cyc.stageName} · обновлён {new Date(cyc.updatedAt).toLocaleDateString("ru")}
+                </div>
+              </div>
+              <Tag color={cyc.status === "active" ? "green" : "default"}>{cyc.stageType}</Tag>
+            </div>
+          ))
+        )}
       </div>
+
+      {interviewItems.length > 0 && (
+        <div className={s.panel}>
+          <h3 className={s.panelTitle}>Интервью ИИ ({interviewItems.length})</h3>
+          {          interviewItems.map((iv) => (
+            <div key={iv.interviewId as string} style={{ padding: "10px 0", borderBottom: "1px solid rgba(0,0,0,.06)" }}>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                <span style={{ fontWeight: 600 }}>{iv.vacancyTitle as string}</span>
+                <Tag color="purple">{iv.status as string}</Tag>
+              </div>
+              <div style={{ fontSize: 12, color: "rgba(0,0,0,.45)", marginTop: 4 }}>
+                {iv.startedAt ? new Date(iv.startedAt as string).toLocaleString("ru") : "—"}
+                {iv.score != null && ` · Оценка: ${iv.score}`}
+              </div>
+              {(iv.summary as string) && (
+                <div style={{ fontSize: 13, color: "rgba(0,0,0,.65)", marginTop: 4 }}>
+                  {iv.summary as string}
+                </div>
+              )}
+            </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 }
