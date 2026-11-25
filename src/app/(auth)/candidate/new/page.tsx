@@ -3,14 +3,30 @@
 import { Suspense, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Form, Input, Select, Button, Card, Space, message } from "antd";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { PageHeader } from "@/components/PageHeader";
+import { appApi } from "@/lib/api";
 
 function CandidateCreateForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const qc = useQueryClient();
   const [form] = Form.useForm();
   const [saving, setSaving] = useState(false);
   const backUrl = searchParams.get("back") || "/search";
+
+  const createMut = useMutation({
+    mutationFn: (payload: Record<string, unknown>) => appApi.createCandidate(payload),
+    onSuccess: (resp) => {
+      message.success("Кандидат создан");
+      qc.invalidateQueries({ queryKey: ["candidates"] });
+      router.push(`/candidate/${resp.id}`);
+    },
+    onError: () => {
+      message.error("Не удалось создать кандидата");
+      setSaving(false);
+    },
+  });
 
   return (
     <div style={{ maxWidth: 720, margin: "0 auto" }}>
@@ -23,10 +39,9 @@ function CandidateCreateForm() {
               type="primary"
               loading={saving}
               onClick={() => {
-                form.validateFields().then(() => {
+                form.validateFields().then((values) => {
                   setSaving(true);
-                  message.info("Создание кандидата — в разработке");
-                  setSaving(false);
+                  createMut.mutate(values);
                 });
               }}
             >

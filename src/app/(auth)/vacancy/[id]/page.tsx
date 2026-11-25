@@ -3,7 +3,7 @@
 import { use, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
-import { Skeleton, Tag, Button, Tooltip, message } from "antd";
+import { Skeleton, Tag, Button, message } from "antd";
 import { PageHeader } from "@/components/PageHeader";
 import { appApi, type Vacancy, type VacancyStageCount } from "@/lib/api";
 import s from "./vacancy.module.css";
@@ -22,9 +22,9 @@ export default function VacancyPage({
     queryFn: () => appApi.getVacancyById(id),
   });
 
-  const { data: interviews } = useQuery({
-    queryKey: ["vacancy-interviews", id],
-    queryFn: () => appApi.getVacancyInterviews(id, { hideRejected: "true" }),
+  const { data: candidaciesData } = useQuery({
+    queryKey: ["vacancy-candidacies", id],
+    queryFn: () => appApi.getVacancyCandidacies(id),
   });
 
   if (isLoading || !vacancy) {
@@ -38,12 +38,15 @@ export default function VacancyPage({
 
   const stages: VacancyStageCount[] = vacancy.stageCounts ?? [];
   const totalCount = stages.reduce((sum, st) => sum + st.count, 0);
-  const allCandidacies = interviews?.candidacies ?? [];
+  const allCandidacies = candidaciesData?.items ?? [];
+
+  const filteredCandidacies = activeStage === "all"
+    ? allCandidacies
+    : allCandidacies.filter((c) => c.stageId === activeStage || c.stageType === activeStage);
 
   const allStages = [
     { stageId: "all", name: "Все", count: totalCount, purpose: "all", enabled: true },
     ...stages,
-    { stageId: "rejected", name: "Отказ", count: 0, purpose: "rejected", enabled: true },
   ];
 
   const recruiterNames = vacancy.recruiters?.map((r) => r.name).join(", ") || vacancy.hrName || "—";
@@ -55,12 +58,10 @@ export default function VacancyPage({
         sub={`${vacancy.statusLabel} · ${recruiterNames}`}
         actions={
           <>
-            <Button onClick={() => message.info("Редактирование — в разработке")}>
-              Редактировать
-            </Button>
+            <Button href={`/vacancy/new`}>Редактировать</Button>
             <Button
               type="primary"
-              onClick={() => message.info("Добавление кандидата — в разработке")}
+              onClick={() => router.push("/search")}
             >
               Добавить кандидата
             </Button>
@@ -103,20 +104,21 @@ export default function VacancyPage({
       </div>
 
       <div className={s.panel}>
-        {allCandidacies.length === 0 ? (
+        {filteredCandidacies.length === 0 ? (
           <div style={{ textAlign: "center", padding: "32px", color: "rgba(0,0,0,.45)" }}>
             {activeStage === "all"
               ? "Нет кандидатов на этой вакансии"
               : "Нет кандидатов на этом этапе"}
           </div>
         ) : (
-          allCandidacies.map((c) => {
+          filteredCandidacies.map((c) => {
             const initials = `${c.candidateFirstName?.[0] ?? ""}${c.candidateLastName?.[0] ?? ""}`.toUpperCase();
+            const statusColor = c.status === "active" ? "green" : c.status === "rejected" ? "red" : "blue";
             return (
               <div
                 key={c.candidacyId}
                 className={s.candidateRow}
-                onClick={() => router.push(`/candidate/${c.candidacyId}`)}
+                onClick={() => router.push(`/candidate/${c.candidateId}`)}
                 style={{ cursor: "pointer" }}
               >
                 <div className={s.avatar}>{initials}</div>
@@ -124,14 +126,12 @@ export default function VacancyPage({
                   <div className={s.candidateName}>{c.candidateFullName}</div>
                   <div className={s.candidateMeta}>
                     {c.candidateEmail && <span>{c.candidateEmail}</span>}
-                    {c.vacancy?.board?.integrationType && (
-                      <span>через {c.vacancy.board.integrationType}</span>
-                    )}
+                    <span>обновлён {new Date(c.updatedAt).toLocaleDateString("ru")}</span>
                   </div>
                 </div>
                 <div className={s.candidateStatus}>
-                  <Tag color="blue">новый</Tag>
-                  <span style={{ fontSize: 13, color: "rgba(0,0,0,.65)" }}>Идёт</span>
+                  <Tag color={statusColor}>{c.stageName}</Tag>
+                  <span style={{ fontSize: 13, color: "rgba(0,0,0,.65)" }}>{c.stageType}</span>
                 </div>
               </div>
             );

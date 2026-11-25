@@ -1,8 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import { useQuery } from "@tanstack/react-query";
-import { Button, Segmented, Skeleton, Table, Tag, Empty } from "antd";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { Button, Segmented, Skeleton, Table, Tag, Input, message } from "antd";
 import type { ColumnsType } from "antd/es/table";
 import { PageHeader } from "@/components/PageHeader";
 import { appApi } from "@/lib/api";
@@ -17,24 +17,14 @@ interface Conversation {
   action: string;
 }
 
-const columns: ColumnsType<Conversation> = [
-  { title: "Кандидат", dataIndex: "candidateName", key: "candidateName" },
-  {
-    title: "Канал",
-    dataIndex: "channel",
-    key: "channel",
-    render: (ch: string) => (ch ? <Tag>{ch}</Tag> : "—"),
-  },
-  { title: "Последнее сообщение", dataIndex: "lastMessage", key: "lastMessage", ellipsis: true },
-  { title: "Ждёт", dataIndex: "waitingSince", key: "waitingSince" },
-  { title: "Действие", dataIndex: "action", key: "action" },
-];
-
 export default function MessagesPage() {
+  const qc = useQueryClient();
   const [tab, setTab] = useState<"all" | "vacancy">("all");
   const [subTab, setSubTab] = useState<"active" | "archive">("active");
   const [onlyMine, setOnlyMine] = useState(false);
   const [showCover, setShowCover] = useState(false);
+  const [selectedCandidacy, setSelectedCandidacy] = useState<string | null>(null);
+  const [replyText, setReplyText] = useState("");
 
   const { data, isLoading } = useQuery({
     queryKey: ["conversations-awaiting", subTab, onlyMine],
@@ -48,11 +38,44 @@ export default function MessagesPage() {
       }),
   });
 
+  const { data: messagesData, isLoading: messagesLoading } = useQuery({
+    queryKey: ["conversation-messages", selectedCandidacy],
+    queryFn: () => appApi.getConversationMessages(selectedCandidacy!),
+    enabled: !!selectedCandidacy,
+  });
+
+  const sendMut = useMutation({
+    mutationFn: ({ candidacyId, body }: { candidacyId: string; body: string }) =>
+      appApi.sendMessage(candidacyId, body),
+    onSuccess: () => {
+      message.success("Отправлено");
+      setReplyText("");
+      qc.invalidateQueries({ queryKey: ["conversation-messages", selectedCandidacy] });
+    },
+    onError: () => message.error("Не удалось отправить"),
+  });
+
   const resp = data as
-    | { items?: unknown[]; total?: number; counts?: { active: number; archive: number; calledHr: number } }
+    | { items?: Conversation[]; total?: number; counts?: { active: number; archive: number; calledHr: number } }
     | undefined;
-  const items = (resp?.items ?? []) as Conversation[];
+  const items = resp?.items ?? [];
   const counts = resp?.counts ?? { active: 0, archive: 0, calledHr: 0 };
+  const messages = (messagesData as { items?: Array<{ id: string; body: string; direction: "in" | "out"; createdAt: string; channel: string }> })?.items ?? [];
+
+  const columns: ColumnsType<Conversation> = [
+    { title: "Кандидат", dataIndex: "candidateName", key: "candidateName" },
+    {
+      title: "Канал",
+      dataIndex: "channel",
+      key: "channel",
+      render: (ch: string) => (ch ? <Tag>{ch}</Tag> : "—"),
+    },
+    { title: "Последнее сообщение", dataIndex: "lastMessage", key: "lastMessage", ellipsis: true },
+    { title: "Ждёт", dataIndex: "waitingSince", key: "waitingSince" },
+    { title: "Действие", dataIndex: "action", key: "action" },
+  ];
+
+  const selectedConv = items.find((c) => c.candidacyId === selectedCandidacy);
 
   return (
     <div className={s.page}>
@@ -83,7 +106,7 @@ export default function MessagesPage() {
           onChange={(v) => setSubTab(v as "active" | "archive")}
           size="small"
         />
-        <Button size="small">Фильтры</Button>
+        <Button size="small" onClick={() => message.info("Фильтры — в разработке")}>Фильтры</Button>
         <Button
           size="small"
           type={onlyMine ? "primary" : "text"}
@@ -100,25 +123,92 @@ export default function MessagesPage() {
         </Button>
       </div>
 
-      <div className={s.panel}>
-        {isLoading ? (
-          <Skeleton active />
-        ) : items.length === 0 ? (
-          <div className={s.empty}>
-            <div className={s.emptyTitle}>Никто не ждёт ответа</div>
-            <div className={s.emptyHint}>
-              В очереди — только кандидаты, написавшие за последние 30 дней.
+      <div className={s.panel} style={{ display: "flex", gap: 0 }}>
+        <div style={{ flex: "1 1 55%", borderRight: "1px solid rgba(0,0,0,.06)" }}>
+          {isLoading ? (
+            <Skeleton active />
+          ) : items.length === 0 ? (
+            <div className={s.empty}>
+              <div className={s.emptyTitle}>Никто не ждёт ответа</div>
+              <div className={s.emptyHint}>
+                В очереди — только кандидаты, написавшие за последние 30 дней.
+              </div>
             </div>
-          </div>
-        ) : (
-          <Table<Conversation>
-            columns={columns}
-            dataSource={items}
-            rowKey="candidacyId"
-            pagination={false}
-            size="middle"
-          />
-        )}
+          ) : (
+            <Table<Conversation>
+              columns={columns}
+              dataSource={items}
+              rowKey="candidacyId"
+              onRow={(record) => ({
+                onClick: () => setSelectedCandidacy(record.candidacyId),
+                style: {
+                  cursor: "pointer",
+                  background: record.candidacyId === selectedCandidacy ? "rgba(107,83,213,.06)" : undefined,
+                },
+              })}
+              pagination={false}
+              size="middle"
+            />
+          )}
+        </div>
+        <div style={{ flex: "1 1 45%", padding: 16, display: "flex", flexDirection: "column" }}>
+          {!selectedCandidacy ? (
+            <div style={{ textAlign: "center", color: "rgba(0,0,0,.45)", padding: 48 }}>
+              Выберите кандидата слева, чтобы прочитать переписку
+            </div>
+          ) : messagesLoading ? (
+            <Skeleton active />
+          ) : (
+            <>
+              <div style={{ fontWeight: 600, marginBottom: 12, paddingBottom: 8, borderBottom: "1px solid rgba(0,0,0,.06)" }}>
+                {selectedConv?.candidateName ?? "Переписка"}
+              </div>
+              <div style={{ flex: 1, overflow: "auto", display: "flex", flexDirection: "column", gap: 8 }}>
+                {messages.length === 0 ? (
+                  <div style={{ textAlign: "center", color: "rgba(0,0,0,.45)", padding: 24 }}>
+                    Нет сообщений
+                  </div>
+                ) : (
+                  messages.map((msg) => (
+                    <div
+                      key={msg.id}
+                      style={{
+                        alignSelf: msg.direction === "out" ? "flex-end" : "flex-start",
+                        maxWidth: "80%",
+                        padding: "8px 12px",
+                        borderRadius: 12,
+                        background: msg.direction === "out" ? "#6B53D5" : "#f0f0f0",
+                        color: msg.direction === "out" ? "#fff" : "inherit",
+                      }}
+                    >
+                      <div style={{ fontSize: 13 }}>{msg.body}</div>
+                      <div style={{ fontSize: 11, opacity: 0.6, marginTop: 4 }}>
+                        {new Date(msg.createdAt).toLocaleString("ru")}
+                      </div>
+                    </div>
+                  ))
+                )}
+              </div>
+              <div style={{ display: "flex", gap: 8, marginTop: 12, paddingTop: 8, borderTop: "1px solid rgba(0,0,0,.06)" }}>
+                <Input.TextArea
+                  value={replyText}
+                  onChange={(e) => setReplyText(e.target.value)}
+                  placeholder="Написать ответ…"
+                  rows={2}
+                  style={{ flex: 1 }}
+                />
+                <Button
+                  type="primary"
+                  loading={sendMut.isPending}
+                  disabled={!replyText.trim()}
+                  onClick={() => sendMut.mutate({ candidacyId: selectedCandidacy, body: replyText })}
+                >
+                  Отправить
+                </Button>
+              </div>
+            </>
+          )}
+        </div>
       </div>
     </div>
   );

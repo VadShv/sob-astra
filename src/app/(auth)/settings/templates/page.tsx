@@ -1,8 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import { useQuery } from "@tanstack/react-query";
-import { Button, Table, Tag, Modal, Form, Input, Select, Space, message } from "antd";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { Button, Table, Tag, Modal, Form, Input, Select, Space, message, Popconfirm } from "antd";
 import type { ColumnsType } from "antd/es/table";
 import { SettingsLayout } from "@/components/SettingsLayout";
 import { appApi } from "@/lib/api";
@@ -16,6 +16,7 @@ interface Template {
 }
 
 export default function TemplatesSettingsPage() {
+  const qc = useQueryClient();
   const [createOpen, setCreateOpen] = useState(false);
   const [form] = Form.useForm();
 
@@ -26,7 +27,27 @@ export default function TemplatesSettingsPage() {
 
   const { data: varsResp } = useQuery({
     queryKey: ["message-template-variables"],
-    queryFn: () => appApi.getMessageTemplates(),
+    queryFn: () => appApi.getMessageTemplateVariables(),
+  });
+
+  const createMut = useMutation({
+    mutationFn: (payload: Record<string, unknown>) => appApi.createTemplate(payload),
+    onSuccess: () => {
+      message.success("Шаблон создан");
+      qc.invalidateQueries({ queryKey: ["message-templates"] });
+      setCreateOpen(false);
+      form.resetFields();
+    },
+    onError: () => message.error("Не удалось создать"),
+  });
+
+  const deleteMut = useMutation({
+    mutationFn: (id: string) => appApi.deleteTemplate(id),
+    onSuccess: () => {
+      message.success("Шаблон удалён");
+      qc.invalidateQueries({ queryKey: ["message-templates"] });
+    },
+    onError: () => message.error("Не удалось удалить"),
   });
 
   const templates = ((templatesResp as { items?: Template[] })?.items ?? []) as Template[];
@@ -44,14 +65,14 @@ export default function TemplatesSettingsPage() {
     {
       title: "",
       key: "actions",
-      render: () => (
+      render: (_, record) => (
         <Space>
           <Button type="text" size="small" onClick={() => message.info("Редактирование — в разработке")}>
             Изменить
           </Button>
-          <Button type="text" size="small" danger onClick={() => message.info("Удаление — в разработке")}>
-            Удалить
-          </Button>
+          <Popconfirm title="Удалить шаблон?" onConfirm={() => deleteMut.mutate(record.id)}>
+            <Button type="text" size="small" danger>Удалить</Button>
+          </Popconfirm>
         </Space>
       ),
     },
@@ -77,13 +98,11 @@ export default function TemplatesSettingsPage() {
         open={createOpen}
         onCancel={() => setCreateOpen(false)}
         onOk={() => {
-          form.validateFields().then(() => {
-            message.success("Шаблон создан");
-            setCreateOpen(false);
-          });
+          form.validateFields().then((values) => createMut.mutate(values));
         }}
         okText="Создать"
         cancelText="Отмена"
+        confirmLoading={createMut.isPending}
         width={520}
       >
         <Form form={form} layout="vertical">

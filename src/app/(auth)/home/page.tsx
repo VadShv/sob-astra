@@ -2,9 +2,9 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { useQuery } from "@tanstack/react-query";
 import { Table, Tag, Button, Skeleton, Tooltip, Modal, Form, Input, Select, Dropdown, message } from "antd";
 import type { ColumnsType } from "antd/es/table";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { PageHeader } from "@/components/PageHeader";
 import { authApi, appApi, type Vacancy, type HiringKpi } from "@/lib/api";
 import s from "./home.module.css";
@@ -47,11 +47,14 @@ const COLUMN_OPTIONS = [
 
 export default function HomePage() {
   const router = useRouter();
+  const qc = useQueryClient();
   const [createOpen, setCreateOpen] = useState(false);
   const [selectedColumns, setSelectedColumns] = useState<Set<string>>(
     new Set(COLUMN_OPTIONS.filter((c) => c.default).map((c) => c.key))
   );
   const [form] = Form.useForm();
+  const [statusFilter, setStatusFilter] = useState<string>("active,paused,distribution");
+  const [selectedRowKeys, setSelectedRowKeys] = useState<React.Key[]>([]);
 
   const { data: userResp } = useQuery({
     queryKey: ["auth-me"],
@@ -59,10 +62,10 @@ export default function HomePage() {
   });
 
   const { data: vacancies, isLoading } = useQuery({
-    queryKey: ["vacancies-active"],
+    queryKey: ["vacancies-active", statusFilter],
     queryFn: () =>
       appApi.getVacancies({
-        status: "active,paused,distribution",
+        status: statusFilter,
         showAllVacancies: "true",
         groupMulti: "true",
         page: "1",
@@ -71,8 +74,20 @@ export default function HomePage() {
   });
 
   const { data: facets } = useQuery({
-    queryKey: ["vacancy-facets"],
-    queryFn: () => appApi.getVacancyFacets({ status: "active,paused,distribution" }),
+    queryKey: ["vacancy-facets", statusFilter],
+    queryFn: () => appApi.getVacancyFacets({ status: statusFilter }),
+  });
+
+  const createMut = useMutation({
+    mutationFn: (payload: Record<string, unknown>) => appApi.createVacancy(payload),
+    onSuccess: (resp) => {
+      message.success("Вакансия создана");
+      qc.invalidateQueries({ queryKey: ["vacancies-active"] });
+      setCreateOpen(false);
+      form.resetFields();
+      router.push(`/vacancy/${resp.id}`);
+    },
+    onError: () => message.error("Не удалось создать вакансию"),
   });
 
   const { data: kpi } = useQuery({
@@ -246,9 +261,9 @@ export default function HomePage() {
           <div className={s.blockHead}>
             <h2 className={s.blockTitle}>Вакансии</h2>
             <div className={s.filters}>
-              <Button size="small" type="primary">В работе</Button>
-              <Button size="small">На паузе</Button>
-              <Button size="small" type="text">Показать закрытые</Button>
+              <Button size="small" type={statusFilter === "active,paused,distribution" ? "primary" : "default"} onClick={() => setStatusFilter("active,paused,distribution")}>В работе</Button>
+              <Button size="small" type={statusFilter === "paused" ? "primary" : "default"} onClick={() => setStatusFilter("paused")}>На паузе</Button>
+              <Button size="small" type={statusFilter === "closed" ? "primary" : "text"} onClick={() => setStatusFilter("closed")}>Показать закрытые</Button>
               <Dropdown
                 menu={{
                   items: COLUMN_OPTIONS.map((c) => ({
@@ -281,7 +296,11 @@ export default function HomePage() {
                 columns={buildColumns()}
                 dataSource={items}
                 rowKey="id"
-                rowSelection={{ type: "checkbox", selectedRowKeys: [] }}
+                rowSelection={{
+                  type: "checkbox",
+                  selectedRowKeys,
+                  onChange: (keys) => setSelectedRowKeys(keys),
+                }}
                 onRow={(record) => ({
                   onClick: () => router.push(`/vacancy/${record.id}`),
                   style: { cursor: "pointer" },
@@ -297,7 +316,9 @@ export default function HomePage() {
               Создать
             </Button>
             <span style={{ fontSize: 13, color: "rgba(0,0,0,.45)" }}>
-              Выбрать на странице ({items.length})
+              {selectedRowKeys.length > 0
+                ? `Выбрано: ${selectedRowKeys.length}`
+                : `Выбрать на странице (${items.length})`}
             </span>
           </div>
         </div>
@@ -308,13 +329,11 @@ export default function HomePage() {
         open={createOpen}
         onCancel={() => setCreateOpen(false)}
         onOk={() => {
-          form.validateFields().then(() => {
-            message.info("Создание вакансии — в разработке");
-            setCreateOpen(false);
-          });
+          form.validateFields().then((values) => createMut.mutate(values));
         }}
         okText="Создать"
         cancelText="Отмена"
+        confirmLoading={createMut.isPending}
       >
         <Form form={form} layout="vertical" requiredMark={false}>
           <Form.Item label="Название вакансии" name="title" rules={[{ required: true, message: "Введите название" }]}>

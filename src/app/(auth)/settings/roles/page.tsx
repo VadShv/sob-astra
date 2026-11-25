@@ -1,8 +1,8 @@
 "use client";
 
-import { Table, Tag, Button, Modal, Form, Input, Select, Checkbox, Space, message } from "antd";
+import { Table, Tag, Button, Modal, Form, Input, Select, Checkbox, Space, message, Popconfirm } from "antd";
 import type { ColumnsType } from "antd/es/table";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import { SettingsLayout } from "@/components/SettingsLayout";
 import { appApi } from "@/lib/api";
@@ -28,12 +28,34 @@ const PERMISSIONS = [
 ];
 
 export default function RolesSettingsPage() {
+  const qc = useQueryClient();
   const [createOpen, setCreateOpen] = useState(false);
   const [form] = Form.useForm();
 
   const { data: rolesResp } = useQuery({
     queryKey: ["company-roles"],
     queryFn: () => appApi.getCompanyRoles(),
+  });
+
+  const createMut = useMutation({
+    mutationFn: (payload: { name: string; description?: string; permissions: string[] }) =>
+      appApi.createRole(payload),
+    onSuccess: () => {
+      message.success("Роль создана");
+      qc.invalidateQueries({ queryKey: ["company-roles"] });
+      setCreateOpen(false);
+      form.resetFields();
+    },
+    onError: () => message.error("Не удалось создать роль"),
+  });
+
+  const deleteMut = useMutation({
+    mutationFn: (id: string) => appApi.deleteRole(id),
+    onSuccess: () => {
+      message.success("Роль удалена");
+      qc.invalidateQueries({ queryKey: ["company-roles"] });
+    },
+    onError: () => message.error("Не удалось удалить"),
   });
 
   const roles = ((rolesResp as { items?: Role[] })?.items ?? []) as Role[];
@@ -61,10 +83,15 @@ export default function RolesSettingsPage() {
     {
       title: "",
       key: "actions",
-      render: () => (
-        <Button type="text" size="small" onClick={() => message.info("Редактирование — в разработке")}>
-          Изменить
-        </Button>
+      render: (_, record) => (
+        <Space>
+          <Button type="text" size="small" onClick={() => message.info("Редактирование — в разработке")}>
+            Изменить
+          </Button>
+          <Popconfirm title="Удалить роль?" onConfirm={() => deleteMut.mutate(record.id)}>
+            <Button type="text" size="small" danger>Удалить</Button>
+          </Popconfirm>
+        </Space>
       ),
     },
   ];
@@ -89,13 +116,11 @@ export default function RolesSettingsPage() {
         open={createOpen}
         onCancel={() => setCreateOpen(false)}
         onOk={() => {
-          form.validateFields().then(() => {
-            message.success("Роль создана");
-            setCreateOpen(false);
-          });
+          form.validateFields().then((values) => createMut.mutate(values));
         }}
         okText="Создать"
         cancelText="Отмена"
+        confirmLoading={createMut.isPending}
       >
         <Form form={form} layout="vertical">
           <Form.Item label="Название роли" name="name" rules={[{ required: true }]}>

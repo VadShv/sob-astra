@@ -2,13 +2,14 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { useQuery } from "@tanstack/react-query";
 import { Form, Input, Select, Button, Card, Space, Checkbox, message } from "antd";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { PageHeader } from "@/components/PageHeader";
 import { appApi } from "@/lib/api";
 
 export default function VacancyCreatePage() {
   const router = useRouter();
+  const qc = useQueryClient();
   const [form] = Form.useForm();
   const [saving, setSaving] = useState(false);
 
@@ -20,6 +21,19 @@ export default function VacancyCreatePage() {
   const { data: facets } = useQuery({
     queryKey: ["vacancy-facets"],
     queryFn: () => appApi.getVacancyFacets({ status: "active,paused,distribution" }),
+  });
+
+  const createMut = useMutation({
+    mutationFn: (payload: Record<string, unknown>) => appApi.createVacancy(payload),
+    onSuccess: (resp) => {
+      message.success("Вакансия создана");
+      qc.invalidateQueries({ queryKey: ["vacancies-active"] });
+      router.push(`/vacancy/${resp.id}`);
+    },
+    onError: () => {
+      message.error("Не удалось создать вакансию");
+      setSaving(false);
+    },
   });
 
   const orgUnitItems = ((orgUnits as { items?: { id: string; name: string }[] })?.items ?? []);
@@ -36,10 +50,9 @@ export default function VacancyCreatePage() {
               type="primary"
               loading={saving}
               onClick={() => {
-                form.validateFields().then(() => {
+                form.validateFields().then((values) => {
                   setSaving(true);
-                  message.info("Создание вакансии — в разработке");
-                  setSaving(false);
+                  createMut.mutate(values);
                 });
               }}
             >

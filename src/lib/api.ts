@@ -273,6 +273,25 @@ export const appApi = {
     const { data } = await apiClient.get(`/api/interview/vacancy/${vacancyId}/list`, { params });
     return data;
   },
+  async getVacancyCandidacies(vacancyId: string, params?: Record<string, string>): Promise<{
+    items: Array<{
+      candidacyId: string;
+      candidateId: string;
+      candidateFullName: string;
+      candidateFirstName: string;
+      candidateLastName: string;
+      candidateEmail: string;
+      stageId: string;
+      stageName: string;
+      stageType: string;
+      status: string;
+      updatedAt: string;
+    }>;
+    total?: number;
+  }> {
+    const { data } = await apiClient.get(`/api/vacancy/${vacancyId}/candidacies`, { params });
+    return data;
+  },
   async getVacancyInterviewFacets(vacancyId: string): Promise<unknown> {
     const { data } = await apiClient.get(`/api/interview/vacancy/${vacancyId}/list/facets`);
     return data;
@@ -283,6 +302,176 @@ export const appApi = {
   },
   async getAnalyticsResult(calculationId: string): Promise<unknown> {
     const { data } = await apiClient.get(`/api/analytics/calculations/${calculationId}`);
+    return data;
+  },
+
+  async getCompanyUsers(): Promise<{ items: Array<{ id: string; email: string; name: string; role: string; status: string; lastActiveAt?: string }> }> {
+    const { data } = await apiClient.get("/api/company-users");
+    return data;
+  },
+  async inviteUser(payload: { email: string; role: string }): Promise<unknown> {
+    const { data } = await apiClient.post("/api/company-users/invite", payload);
+    return data;
+  },
+  async removeUser(userId: string): Promise<void> {
+    await apiClient.delete(`/api/company-users/${userId}`);
+  },
+
+  async updateAccount(payload: Record<string, unknown>): Promise<unknown> {
+    const { data } = await apiClient.patch("/api/user", payload);
+    return data;
+  },
+  async updateCompany(payload: Record<string, unknown>): Promise<unknown> {
+    const { data } = await apiClient.patch("/api/company", payload);
+    return data;
+  },
+  async getCompany(): Promise<Record<string, unknown>> {
+    const { data } = await apiClient.get("/api/company");
+    return data;
+  },
+  async getNotificationSettings(): Promise<Record<string, boolean>> {
+    const { data } = await apiClient.get("/api/notification-settings");
+    return data;
+  },
+  async updateNotificationSettings(payload: Record<string, boolean>): Promise<unknown> {
+    const { data } = await apiClient.patch("/api/notification-settings", payload);
+    return data;
+  },
+  async getAppearanceSettings(): Promise<Record<string, unknown>> {
+    const { data } = await apiClient.get("/api/view-settings/interview-appearance");
+    return data;
+  },
+  async updateAppearanceSettings(payload: Record<string, unknown>): Promise<unknown> {
+    const { data } = await apiClient.patch("/api/view-settings/interview-appearance", payload);
+    return data;
+  },
+
+  async createVacancy(payload: Record<string, unknown>): Promise<{ id: string }> {
+    const { data } = await apiClient.post("/api/vacancy", payload);
+    return data;
+  },
+  async updateVacancy(id: string, payload: Record<string, unknown>): Promise<unknown> {
+    const { data } = await apiClient.patch("/api/vacancy", { id, ...payload });
+    return data;
+  },
+  async updateVacancyStatus(id: string, status: string): Promise<unknown> {
+    const { data } = await apiClient.patch("/api/vacancy/status", { id, status });
+    return data;
+  },
+
+  async createCandidate(payload: Record<string, unknown>): Promise<{ id: string }> {
+    const { data } = await apiClient.post("/api/candidate", payload);
+    return data;
+  },
+  async updateCandidate(id: string, payload: Record<string, unknown>): Promise<unknown> {
+    const { data } = await apiClient.patch(`/api/candidate/${id}`, payload);
+    return data;
+  },
+  async addCandidateToVacancy(candidateId: string, vacancyId: string): Promise<unknown> {
+    const { data } = await apiClient.post("/api/candidacy", { candidateId, vacancyId });
+    return data;
+  },
+  async moveCandidacyStage(candidacyId: string, stageId: string): Promise<unknown> {
+    const { data } = await apiClient.patch("/api/candidacy/stage", { candidacyId, stageId });
+    return data;
+  },
+
+  async createRole(payload: { name: string; description?: string; permissions: string[] }): Promise<{ id: string }> {
+    const { data } = await apiClient.post("/api/company-roles", payload);
+    return data;
+  },
+  async updateRole(id: string, payload: Record<string, unknown>): Promise<unknown> {
+    const { data } = await apiClient.patch(`/api/company-roles/${id}`, payload);
+    return data;
+  },
+  async deleteRole(id: string): Promise<void> {
+    await apiClient.delete(`/api/company-roles/${id}`);
+  },
+
+  async createTemplate(payload: Record<string, unknown>): Promise<{ id: string }> {
+    const { data } = await apiClient.post("/api/message-templates", payload);
+    return data;
+  },
+  async updateTemplate(id: string, payload: Record<string, unknown>): Promise<unknown> {
+    const { data } = await apiClient.patch(`/api/message-templates/${id}`, payload);
+    return data;
+  },
+  async deleteTemplate(id: string): Promise<void> {
+    await apiClient.delete(`/api/message-templates/${id}`);
+  },
+  async getMessageTemplateVariables(): Promise<{ variables: string[] }> {
+    const { data } = await apiClient.get("/api/message-templates/variables");
+    return data;
+  },
+
+  async getFunnels(): Promise<{ items: Array<{ id: string; name: string; stages: { id: string; name: string; type: string }[] }> }> {
+    const { data } = await apiClient.get("/api/funnel-templates");
+    return data;
+  },
+  async createFunnel(payload: Record<string, unknown>): Promise<{ id: string }> {
+    const { data } = await apiClient.post("/api/funnel-templates", payload);
+    return data;
+  },
+
+  async getIntegrations(): Promise<Record<string, unknown>> {
+    const { data } = await apiClient.get("/api/integrations");
+    return data;
+  },
+  async connectIntegration(integrationType: string, payload?: Record<string, unknown>): Promise<unknown> {
+    const { data } = await apiClient.post(`/api/integrations/${integrationType}/connect`, payload ?? {});
+    return data;
+  },
+  async disconnectIntegration(integrationType: string): Promise<void> {
+    await apiClient.delete(`/api/integrations/${integrationType}`);
+  },
+
+  async getConversationMessages(candidacyId: string, params?: Record<string, string>): Promise<{
+    items: Array<{ id: string; body: string; direction: "in" | "out"; createdAt: string; channel: string }>;
+  }> {
+    const { data } = await apiClient.get(`/api/conversations/${candidacyId}/messages`, { params });
+    return data;
+  },
+  async sendMessage(candidacyId: string, body: string): Promise<unknown> {
+    const { data } = await apiClient.post(`/api/conversations/${candidacyId}/messages`, { body });
+    return data;
+  },
+
+  async getNotifications(params?: Record<string, string>): Promise<{
+    items: Array<{ id: string; title: string; body: string; createdAt: string; read: boolean; type: string }>;
+  }> {
+    const { data } = await apiClient.get("/api/notifications", { params });
+    return data;
+  },
+  async markNotificationRead(id: string): Promise<void> {
+    await apiClient.patch(`/api/notifications/${id}/read`);
+  },
+
+  async exportAnalyticsExcel(payload: Record<string, unknown>): Promise<{ url: string }> {
+    const { data } = await apiClient.post("/api/analytics/export", payload);
+    return data;
+  },
+  async getAnalyticsSourceBreakdown(params?: Record<string, string>): Promise<{
+    items: Array<{ name: string; count: number; percent: number }>;
+  }> {
+    const { data } = await apiClient.get("/api/analytics/source-breakdown", { params });
+    return data;
+  },
+  async getAnalyticsRejectionReasons(params?: Record<string, string>): Promise<{
+    items: Array<{ reason: string; count: number; stage: string; who: string }>;
+  }> {
+    const { data } = await apiClient.get("/api/analytics/rejection-reasons", { params });
+    return data;
+  },
+  async getAnalyticsTeamFunnels(params?: Record<string, string>): Promise<{
+    items: Array<{
+      recruiterId: string;
+      recruiterName: string;
+      vacancies: number;
+      candidates: number;
+      hired: number;
+    }>;
+  }> {
+    const { data } = await apiClient.get("/api/analytics/team-funnels", { params });
     return data;
   },
 };
