@@ -80,6 +80,7 @@ export default function SearchPage() {
   const [pageSize, setPageSize] = useState(20);
   const [aiResults, setAiResults] = useState<Candidate[] | null>(null);
   const [aiLoading, setAiLoading] = useState(false);
+  const [savedSearchOpen, setSavedSearchOpen] = useState(false);
 
   useEffect(() => {
     const t = setTimeout(() => setDebouncedSearch(search), 400);
@@ -115,6 +116,26 @@ export default function SearchPage() {
     queryFn: () => appApi.getColdSearches(),
   });
 
+  const { data: savedSearches } = useQuery({
+    queryKey: ["saved-searches"],
+    queryFn: () => appApi.getSavedSearches(),
+  });
+
+  const deleteSearchMut = useMutation({
+    mutationFn: (id: string) => appApi.deleteSavedSearch(id),
+    onSuccess: () => {
+      message.success("Поиск удалён");
+      qc.invalidateQueries({ queryKey: ["saved-searches"] });
+    },
+    onError: () => message.error("Не удалось удалить"),
+  });
+
+  const exportMut = useMutation({
+    mutationFn: () => appApi.exportCandidates({ q: debouncedSearch }),
+    onSuccess: (resp) => { if (resp.url) window.open(resp.url, "_blank"); },
+    onError: () => message.error("Не удалось выгрузить"),
+  });
+
   const items = data?.items ?? [];
   const tagValues = (tags as { values?: { code: string; name: string }[] })?.values ?? [];
   const sourceValues = (sources as { values?: { code: string; name: string }[] })?.values ?? [];
@@ -142,7 +163,10 @@ export default function SearchPage() {
             </Tag>
           )}
         </Button>
-        <Button size="large" disabled={coldSearchItems.length === 0}>
+        <Button
+          size="large"
+          onClick={() => setSavedSearchOpen(true)}
+        >
           Поиски {coldSearchItems.length > 0 && `(${coldSearchItems.length})`}
         </Button>
         <Button
@@ -169,6 +193,13 @@ export default function SearchPage() {
           onClick={() => router.push("/candidate/new?back=/search")}
         >
           Добавить кандидата
+        </Button>
+        <Button
+          size="large"
+          loading={exportMut.isPending}
+          onClick={() => exportMut.mutate()}
+        >
+          Экспорт
         </Button>
       </div>
 
@@ -202,7 +233,9 @@ export default function SearchPage() {
             rowKey="candidateId"
             onRow={(record) => ({
               onClick: () => router.push(`/candidate/${record.candidateId}`),
+              onKeyDown: (e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); router.push(`/candidate/${record.candidateId}`); } },
               style: { cursor: "pointer" },
+              tabIndex: 0,
             })}
             pagination={{
               current: page,
@@ -263,6 +296,51 @@ export default function SearchPage() {
           <Button type="primary" block onClick={() => setFilterOpen(false)}>
             Применить
           </Button>
+        </div>
+      </Drawer>
+
+      <Drawer
+        title="Сохранённые поиски"
+        open={savedSearchOpen}
+        onClose={() => setSavedSearchOpen(false)}
+        width={360}
+      >
+        <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+          {((savedSearches as { items?: Array<{ id: string; name: string; query: string; createdAt: string }> })?.items ?? []).length === 0 ? (
+            <div style={{ textAlign: "center", color: "rgba(0,0,0,.45)", padding: 24 }}>
+              Нет сохранённых поисков
+            </div>
+          ) : (
+            (savedSearches as { items?: Array<{ id: string; name: string; query: string; createdAt: string }> })?.items?.map((ss) => (
+              <div key={ss.id} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "8px 12px", borderRadius: 8, background: "rgba(0,0,0,.03)" }}>
+                <div
+                  style={{ cursor: "pointer", flex: 1 }}
+                  onClick={() => { setSearch(ss.query); setSavedSearchOpen(false); }}
+                >
+                  <div style={{ fontWeight: 600 }}>{ss.name}</div>
+                  <div style={{ fontSize: 12, color: "rgba(0,0,0,.45)" }}>{ss.query}</div>
+                </div>
+                <Button type="text" size="small" danger onClick={() => deleteSearchMut.mutate(ss.id)}>
+                  Удалить
+                </Button>
+              </div>
+            ))
+          )}
+          {debouncedSearch && (
+            <Button
+              type="primary"
+              block
+              onClick={async () => {
+                try {
+                  await appApi.createSavedSearch({ name: debouncedSearch, query: debouncedSearch });
+                  message.success("Поиск сохранён");
+                  qc.invalidateQueries({ queryKey: ["saved-searches"] });
+                } catch { message.error("Не удалось сохранить"); }
+              }}
+            >
+              Сохранить текущий поиск
+            </Button>
+          )}
         </div>
       </Drawer>
     </div>

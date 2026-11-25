@@ -15,6 +15,11 @@ export default function CompanySettingsPage() {
     queryFn: () => appApi.getCompany(),
   });
 
+  const { data: regions } = useQuery({
+    queryKey: ["reference-regions"],
+    queryFn: () => appApi.getReferenceDictionary("regions"),
+  });
+
   const mutation = useMutation({
     mutationFn: (values: Record<string, unknown>) => appApi.updateCompany(values),
     onSuccess: () => {
@@ -48,7 +53,7 @@ export default function CompanySettingsPage() {
           </Form.Item>
           <Form.Item label="Регион" name="region">
             <Select
-              options={[
+              options={((regions as { values?: { code: string; name: string }[] })?.values ?? []).map((r) => ({ value: r.code, label: r.name })) || [
                 { value: "moscow", label: "Москва" },
                 { value: "spb", label: "Санкт-Петербург" },
                 { value: "other", label: "Другой" },

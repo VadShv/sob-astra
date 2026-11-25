@@ -26,6 +26,18 @@ export default function UsersSettingsPage() {
     queryFn: () => appApi.getCompanyUsers(),
   });
 
+  const { data: rolesData } = useQuery({
+    queryKey: ["company-roles"],
+    queryFn: () => appApi.getCompanyRoles(),
+  });
+
+  const roleOptions = ((rolesData as { items?: { id: string; name: string }[] })?.items ?? []).map((r) => ({ value: r.id, label: r.name }));
+  const fallbackRoles = [
+    { value: "ROLE_RECRUT", label: "Рекрутер" },
+    { value: "ROLE_HR_ADMIN", label: "HR-администратор" },
+    { value: "ROLE_ADMIN", label: "Администратор" },
+  ];
+
   const inviteMut = useMutation({
     mutationFn: (payload: { email: string; role: string }) => appApi.inviteUser(payload),
     onSuccess: () => {
@@ -77,9 +89,10 @@ export default function UsersSettingsPage() {
       title: "Имя",
       dataIndex: "name",
       key: "name",
+      sorter: true,
       render: (name: string) => name || "—",
     },
-    { title: "Email", dataIndex: "email", key: "email" },
+    { title: "Email", dataIndex: "email", key: "email", sorter: true },
     {
       title: "Роль",
       dataIndex: "role",
@@ -89,11 +102,7 @@ export default function UsersSettingsPage() {
           size="small"
           defaultValue={role}
           style={{ width: 160 }}
-          options={[
-            { value: "ROLE_RECRUT", label: "Рекрутер" },
-            { value: "ROLE_HR_ADMIN", label: "HR-администратор" },
-            { value: "ROLE_ADMIN", label: "Администратор" },
-          ]}
+          options={roleOptions.length > 0 ? roleOptions : fallbackRoles}
           onChange={(newRole) => roleMut.mutate({ userId: record.id, role: newRole })}
         />
       ),
@@ -174,11 +183,7 @@ export default function UsersSettingsPage() {
           </Form.Item>
           <Form.Item label="Роль" name="role" rules={[{ required: true }]}>
             <Select
-              options={[
-                { value: "ROLE_RECRUT", label: "Рекрутер" },
-                { value: "ROLE_HR_ADMIN", label: "HR-администратор" },
-                { value: "ROLE_ADMIN", label: "Администратор" },
-              ]}
+              options={roleOptions.length > 0 ? roleOptions : fallbackRoles}
             />
           </Form.Item>
         </Form>

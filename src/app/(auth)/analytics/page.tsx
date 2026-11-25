@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
-import { Button, Segmented, Skeleton, Table, Tag, message, Modal } from "antd";
+import { Button, Segmented, Skeleton, Table, Tag, message, Modal, Select } from "antd";
 import type { ColumnsType } from "antd/es/table";
 import { PageHeader } from "@/components/PageHeader";
 import { appApi, type HiringKpi } from "@/lib/api";
@@ -63,26 +63,38 @@ function Section({
 export default function AnalyticsPage() {
   const [period, setPeriod] = useState("Текущий квартал");
   const [exportLogOpen, setExportLogOpen] = useState(false);
+  const [recruiterId, setRecruiterId] = useState<string>("");
+  const [vacancyId, setVacancyId] = useState<string>("");
   const range = getPeriodRange(period);
-  const params = { from: range.from, to: range.to, tzOffset: "-180" };
+  const params = { from: range.from, to: range.to, tzOffset: "-180", ...(recruiterId ? { recruiterId } : {}), ...(vacancyId ? { vacancyId } : {}) };
+
+  const { data: facets } = useQuery({
+    queryKey: ["vacancy-facets"],
+    queryFn: () => appApi.getVacancyFacets({ status: "active,paused,distribution" }),
+  });
+
+  const { data: allVacancies } = useQuery({
+    queryKey: ["vacancies-for-filter"],
+    queryFn: () => appApi.getVacancies({ status: "active,paused,distribution", page: "1", pageSize: "100" }),
+  });
 
   const { data: kpi, isLoading } = useQuery({
-    queryKey: ["hiring-kpi", period],
+    queryKey: ["hiring-kpi", period, recruiterId, vacancyId],
     queryFn: () => appApi.getHiringKpi(params),
   });
 
   const { data: sourceData } = useQuery({
-    queryKey: ["analytics-source-breakdown", period],
+    queryKey: ["analytics-source-breakdown", period, recruiterId, vacancyId],
     queryFn: () => appApi.getAnalyticsSourceBreakdown(params),
   });
 
   const { data: rejectionData } = useQuery({
-    queryKey: ["analytics-rejection-reasons", period],
+    queryKey: ["analytics-rejection-reasons", period, recruiterId, vacancyId],
     queryFn: () => appApi.getAnalyticsRejectionReasons(params),
   });
 
   const { data: teamData } = useQuery({
-    queryKey: ["analytics-team-funnels", period],
+    queryKey: ["analytics-team-funnels", period, recruiterId, vacancyId],
     queryFn: () => appApi.getAnalyticsTeamFunnels(params),
   });
 
@@ -151,12 +163,32 @@ export default function AnalyticsPage() {
         }
       />
 
-      <div className={s.filters}>
+      <div className={s.filters} style={{ display: "flex", gap: 12, alignItems: "center", flexWrap: "wrap" }}>
         <Segmented
           options={["Текущий квартал", "Этот месяц", "Этот год"]}
           value={period}
           onChange={(v) => setPeriod(v as string)}
           size="small"
+        />
+        <Select
+          placeholder="Все рекрутеры"
+          allowClear
+          style={{ width: 180 }}
+          options={(facets?.recruiters ?? []).map((r) => ({ value: r.id, label: r.name }))}
+          value={recruiterId || undefined}
+          onChange={(v) => setRecruiterId(v ?? "")}
+          size="small"
+        />
+        <Select
+          placeholder="Все вакансии"
+          allowClear
+          showSearch
+          style={{ width: 220 }}
+          options={(allVacancies?.items ?? []).map((v) => ({ value: v.id, label: v.title }))}
+          value={vacancyId || undefined}
+          onChange={(v) => setVacancyId(v ?? "")}
+          size="small"
+          filterOption={(input, option) => (option?.label ?? "").toLowerCase().includes(input.toLowerCase())}
         />
       </div>
 

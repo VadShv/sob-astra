@@ -340,7 +340,9 @@ export default function HomePage() {
                 }}
                 onRow={(record) => ({
                   onClick: () => router.push(`/vacancy/${record.id}`),
+                  onKeyDown: (e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); router.push(`/vacancy/${record.id}`); } },
                   style: { cursor: "pointer" },
+                  tabIndex: 0,
                 })}
                 pagination={{
                   current: page,

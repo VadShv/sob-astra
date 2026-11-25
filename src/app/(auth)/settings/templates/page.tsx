@@ -68,7 +68,7 @@ export default function TemplatesSettingsPage() {
   const variables = ((varsResp as { variables?: string[] })?.variables ?? []) as string[];
 
   const columns: ColumnsType<Template> = [
-    { title: "Название", dataIndex: "name", key: "name", render: (n: string) => <strong>{n}</strong> },
+    { title: "Название", dataIndex: "name", key: "name", sorter: true, render: (n: string) => <strong>{n}</strong> },
     {
       title: "Канал",
       dataIndex: "channel",

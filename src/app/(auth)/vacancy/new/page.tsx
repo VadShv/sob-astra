@@ -26,6 +26,11 @@ function VacancyForm() {
     queryFn: () => appApi.getVacancyFacets({ status: "active,paused,distribution" }),
   });
 
+  const { data: grades } = useQuery({
+    queryKey: ["reference-grades"],
+    queryFn: () => appApi.getReferenceDictionary("grades"),
+  });
+
   const { data: existingVacancy, isLoading: loadingVacancy } = useQuery({
     queryKey: ["vacancy", editId],
     queryFn: () => appApi.getVacancyById(editId!),
@@ -136,7 +141,7 @@ function VacancyForm() {
           </Form.Item>
           <Form.Item label="Грейд" name="grade">
             <Select
-              options={[
+              options={((grades as { values?: { code: string; name: string }[] })?.values ?? []).map((g) => ({ value: g.code, label: g.name })) || [
                 { value: "junior", label: "Junior" },
                 { value: "middle", label: "Middle" },
                 { value: "senior", label: "Senior" },

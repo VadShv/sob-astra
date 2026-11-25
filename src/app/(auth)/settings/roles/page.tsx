@@ -75,7 +75,7 @@ export default function RolesSettingsPage() {
   const roles = ((rolesResp as { items?: Role[] })?.items ?? []) as Role[];
 
   const columns: ColumnsType<Role> = [
-    { title: "Роль", dataIndex: "name", key: "name", render: (name: string) => <strong>{name}</strong> },
+    { title: "Роль", dataIndex: "name", key: "name", sorter: true, render: (name: string) => <strong>{name}</strong> },
     { title: "Описание", dataIndex: "description", key: "description" },
     {
       title: "Права",
