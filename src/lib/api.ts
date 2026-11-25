@@ -111,6 +111,25 @@ export interface Candidate {
   fullName: string;
   email: string;
   phone: string;
+  passport?: {
+    title?: string;
+    company?: string;
+    salary?: number;
+    area?: string;
+    photoUrl?: string;
+    age?: number;
+  };
+  resume?: {
+    sourceType?: string;
+    candidateSource?: { id: string; name: string };
+    lastPosition?: string;
+    skills?: string[];
+  };
+  processCount?: number;
+  activeProcessCount?: number;
+  foundAwaitingCount?: number;
+  tags?: { id: string; name: string; color?: string }[];
+  createdAt?: string;
 }
 
 export const authApi = {

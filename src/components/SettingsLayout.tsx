@@ -65,7 +65,16 @@ export function SettingsLayout({
                 <a
                   key={item.label}
                   className={`${s.sideItem} ${activeItem === item.label ? s.sideItemActive : ""}`}
-                  href={item.label === "Интеграции" ? "/settings/integrations" : "/settings"}
+                  href={
+                    {
+                      "Учётная запись": "/settings/account",
+                      "Уведомления": "/settings/notifications",
+                      "Компания": "/settings/company",
+                      "Пользователи": "/settings/users",
+                      "Воронки": "/settings/funnels",
+                      "Интеграции": "/settings/integrations",
+                    }[item.label] || "/settings"
+                  }
                 >
                   {item.label}
                 </a>
