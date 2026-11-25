@@ -8,6 +8,7 @@ import { PageHeader } from "@/components/PageHeader";
 import { appApi, type Conversation } from "@/lib/api";
 import { qk } from "@/lib/query-keys";
 import { usePageTitle } from "@/components/usePageTitle";
+import { ErrorState } from "@/components/ErrorState";
 import s from "./messages.module.css";
 
 export default function MessagesPage() {
@@ -24,7 +25,7 @@ export default function MessagesPage() {
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(20);
 
-  const { data, isLoading } = useQuery({
+  const { data, isLoading, isError, refetch } = useQuery({
     queryKey: qk.conversations.awaiting(subTab, onlyMine, channelFilter, page, pageSize),
     queryFn: ({ signal }) =>
       appApi.getConversationsAwaiting({
@@ -139,7 +140,9 @@ export default function MessagesPage() {
 
       <div className={s.panel} style={{ display: "flex", gap: 0 }}>
         <div style={{ flex: "1 1 55%", borderRight: "1px solid rgba(0,0,0,.06)" }}>
-          {isLoading ? (
+          {isError ? (
+            <ErrorState onRetry={() => refetch()} />
+          ) : isLoading ? (
             <Skeleton active />
           ) : items.length === 0 ? (
             <div className={s.empty}>

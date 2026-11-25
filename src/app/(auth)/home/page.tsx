@@ -9,6 +9,7 @@ import { PageHeader } from "@/components/PageHeader";
 import { authApi, appApi, type Vacancy, type HiringKpi } from "@/lib/api";
 import { qk } from "@/lib/query-keys";
 import { usePageTitle } from "@/components/usePageTitle";
+import { ErrorState } from "@/components/ErrorState";
 import s from "./home.module.css";
 
 function getGreeting(): string {
@@ -68,7 +69,7 @@ export default function HomePage() {
     queryFn: () => authApi.me(),
   });
 
-  const { data: vacancies, isLoading } = useQuery({
+  const { data: vacancies, isLoading, isError, refetch } = useQuery({
     queryKey: qk.vacancies.active(statusFilter, page, pageSize, sortBy, sortOrder),
     queryFn: ({ signal }) =>
       appApi.getVacancies({
@@ -331,7 +332,9 @@ export default function HomePage() {
             </span>
           </div>
           <div className={s.tableWrap}>
-            {isLoading ? (
+            {isError ? (
+              <ErrorState onRetry={() => refetch()} />
+            ) : isLoading ? (
               <Skeleton active />
             ) : (
               <Table<Vacancy>

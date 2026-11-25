@@ -11,6 +11,7 @@ import { PageHeader } from "@/components/PageHeader";
 import { appApi, type Candidate } from "@/lib/api";
 import { qk } from "@/lib/query-keys";
 import { usePageTitle } from "@/components/usePageTitle";
+import { ErrorState } from "@/components/ErrorState";
 import s from "./search.module.css";
 
 function buildColumns(): ColumnsType<Candidate> {
@@ -92,7 +93,7 @@ export default function SearchPage() {
 
   useEffect(() => { setPage(1); }, [debouncedSearch, selectedSources, selectedTags, sort]);
 
-  const { data, isLoading } = useQuery({
+  const { data, isLoading, isError, refetch } = useQuery({
     queryKey: qk.candidates.list(debouncedSearch, selectedSources, selectedTags, sort, page, pageSize),
     queryFn: ({ signal }) => {
       const params: Record<string, string> = { page: String(page), pageSize: String(pageSize) };
@@ -231,7 +232,9 @@ export default function SearchPage() {
             <Button size="small" type="text" onClick={() => setAiResults(null)}>Сбросить</Button>
           </div>
         )}
-        {isLoading ? (
+        {isError ? (
+          <ErrorState onRetry={() => refetch()} />
+        ) : isLoading ? (
           <Skeleton active />
         ) : items.length === 0 ? (
           <div style={{ textAlign: "center", padding: 48, color: "rgba(0,0,0,.45)" }}>

@@ -8,6 +8,7 @@ import { PageHeader } from "@/components/PageHeader";
 import { appApi, type HiringKpi } from "@/lib/api";
 import { qk } from "@/lib/query-keys";
 import { usePageTitle } from "@/components/usePageTitle";
+import { ErrorState } from "@/components/ErrorState";
 import s from "./analytics.module.css";
 
 function getPeriodRange(period: string): { from: string; to: string } {
@@ -84,7 +85,7 @@ export default function AnalyticsPage() {
     queryFn: () => appApi.getVacancies({ status: "active,paused,distribution", page: "1", pageSize: "100" }),
   });
 
-  const { data: kpi, isLoading } = useQuery({
+  const { data: kpi, isLoading, isError, refetch } = useQuery({
     queryKey: qk.analytics.kpi(period, recruiterId, vacancyId),
     queryFn: () => appApi.getHiringKpi(params),
     placeholderData: keepPreviousData,
@@ -215,7 +216,9 @@ export default function AnalyticsPage() {
         {isLoading ? "Считаем…" : `${period} · ${ttf?.vacancies ?? 0} вакансий`}
       </div>
 
-      {isLoading ? (
+      {isError ? (
+        <ErrorState onRetry={() => refetch()} />
+      ) : isLoading ? (
         <Skeleton active />
       ) : (
         <>

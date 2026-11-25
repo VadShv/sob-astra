@@ -8,6 +8,7 @@ import { PageHeader } from "@/components/PageHeader";
 import { appApi, type Vacancy, type VacancyStageCount } from "@/lib/api";
 import { qk } from "@/lib/query-keys";
 import { usePageTitle } from "@/components/usePageTitle";
+import { ErrorState } from "@/components/ErrorState";
 import s from "./vacancy.module.css";
 
 export default function VacancyPage({
@@ -21,7 +22,7 @@ export default function VacancyPage({
   const [activeStage, setActiveStage] = useState<string>("all");
   usePageTitle("Вакансия");
 
-  const { data: vacancy, isLoading } = useQuery({
+  const { data: vacancy, isLoading, isError, refetch } = useQuery({
     queryKey: qk.vacancies.detail(id),
     queryFn: () => appApi.getVacancyById(id),
   });
@@ -52,6 +53,15 @@ export default function VacancyPage({
     },
     onError: () => message.error("Не удалось переместить"),
   });
+
+  if (isError) {
+    return (
+      <div className={s.page}>
+        <PageHeader title="Вакансия" />
+        <ErrorState onRetry={() => refetch()} />
+      </div>
+    );
+  }
 
   if (isLoading || !vacancy) {
     return (

@@ -8,6 +8,7 @@ import { PageHeader } from "@/components/PageHeader";
 import { appApi, type Candidate } from "@/lib/api";
 import { qk } from "@/lib/query-keys";
 import { usePageTitle } from "@/components/usePageTitle";
+import { ErrorState } from "@/components/ErrorState";
 import s from "./candidate.module.css";
 
 export default function CandidatePage({
@@ -27,7 +28,7 @@ export default function CandidatePage({
   const [tagName, setTagName] = useState("");
   const [vacancyForm] = Form.useForm();
 
-  const { data: candidate, isLoading } = useQuery({
+  const { data: candidate, isLoading, isError, refetch } = useQuery({
     queryKey: qk.candidates.detail(id),
     queryFn: () => appApi.getCandidateById(id),
   });
@@ -103,6 +104,15 @@ export default function CandidatePage({
     },
     onError: () => message.error("Не удалось добавить"),
   });
+
+  if (isError) {
+    return (
+      <div className={s.page}>
+        <PageHeader title="Кандидат" />
+        <ErrorState onRetry={() => refetch()} />
+      </div>
+    );
+  }
 
   if (isLoading) {
     return (
