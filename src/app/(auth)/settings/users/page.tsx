@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { Table, Button, Tag, Skeleton, Modal, Form, Input, Select, message, Popconfirm } from "antd";
+import { Table, Button, Tag, Skeleton, Modal, Form, Input, Select, message, Popconfirm, Space } from "antd";
 import type { ColumnsType } from "antd/es/table";
 import { SettingsLayout } from "@/components/SettingsLayout";
 import { appApi } from "@/lib/api";
@@ -48,6 +48,30 @@ export default function UsersSettingsPage() {
 
   const users = data?.items ?? [];
 
+  const roleMut = useMutation({
+    mutationFn: ({ userId, role }: { userId: string; role: string }) => appApi.updateUserRole(userId, role),
+    onSuccess: () => {
+      message.success("Роль обновлена");
+      qc.invalidateQueries({ queryKey: ["company-users"] });
+    },
+    onError: () => message.error("Не удалось обновить роль"),
+  });
+
+  const resendMut = useMutation({
+    mutationFn: (userId: string) => appApi.resendInvite(userId),
+    onSuccess: () => message.success("Приглашение отправлено повторно"),
+    onError: () => message.error("Не удалось отправить"),
+  });
+
+  const deactivateMut = useMutation({
+    mutationFn: (userId: string) => appApi.deactivateUser(userId),
+    onSuccess: () => {
+      message.success("Пользователь деактивирован");
+      qc.invalidateQueries({ queryKey: ["company-users"] });
+    },
+    onError: () => message.error("Не удалось деактивировать"),
+  });
+
   const columns: ColumnsType<UserRow> = [
     {
       title: "Имя",
@@ -60,7 +84,19 @@ export default function UsersSettingsPage() {
       title: "Роль",
       dataIndex: "role",
       key: "role",
-      render: (role: string) => <Tag>{role}</Tag>,
+      render: (role: string, record) => (
+        <Select
+          size="small"
+          defaultValue={role}
+          style={{ width: 160 }}
+          options={[
+            { value: "ROLE_RECRUT", label: "Рекрутер" },
+            { value: "ROLE_HR_ADMIN", label: "HR-администратор" },
+            { value: "ROLE_ADMIN", label: "Администратор" },
+          ]}
+          onChange={(newRole) => roleMut.mutate({ userId: record.id, role: newRole })}
+        />
+      ),
     },
     {
       title: "Статус",
@@ -73,15 +109,30 @@ export default function UsersSettingsPage() {
       ),
     },
     {
+      title: "Последняя активность",
+      dataIndex: "lastActiveAt",
+      key: "lastActiveAt",
+      render: (d: string) => d ? new Date(d).toLocaleDateString("ru-RU") : "—",
+    },
+    {
       title: "",
       key: "actions",
       render: (_, record) => (
-        <Popconfirm
-          title="Удалить пользователя?"
-          onConfirm={() => removeMut.mutate(record.id)}
-        >
-          <Button type="text" size="small" danger>Удалить</Button>
-        </Popconfirm>
+        <Space>
+          {record.status !== "active" && (
+            <Button type="text" size="small" onClick={() => resendMut.mutate(record.id)}>
+              Повторить приглашение
+            </Button>
+          )}
+          {record.status === "active" && (
+            <Button type="text" size="small" onClick={() => deactivateMut.mutate(record.id)}>
+              Деактивировать
+            </Button>
+          )}
+          <Popconfirm title="Удалить пользователя?" onConfirm={() => removeMut.mutate(record.id)}>
+            <Button type="text" size="small" danger>Удалить</Button>
+          </Popconfirm>
+        </Space>
       ),
     },
   ];

@@ -3,7 +3,7 @@
 import { use, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { Skeleton, Tag, Button, Space, Divider, message, Modal, Form, Input, Select } from "antd";
+import { Skeleton, Tag, Button, Space, Divider, message, Modal, Form, Input, Select, Upload, Tooltip } from "antd";
 import { PageHeader } from "@/components/PageHeader";
 import { appApi, type Candidate } from "@/lib/api";
 import s from "./candidate.module.css";
@@ -18,6 +18,7 @@ export default function CandidatePage({
   const qc = useQueryClient();
   const [editOpen, setEditOpen] = useState(false);
   const [addVacancyOpen, setAddVacancyOpen] = useState(false);
+  const [noteText, setNoteText] = useState("");
   const [editForm] = Form.useForm();
   const [vacancyForm] = Form.useForm();
 
@@ -39,6 +40,39 @@ export default function CandidatePage({
   const { data: vacancies } = useQuery({
     queryKey: ["vacancies-for-add"],
     queryFn: () => appApi.getVacancies({ status: "active", page: "1", pageSize: "100" }),
+  });
+
+  const { data: notesData } = useQuery({
+    queryKey: ["candidate-notes", id],
+    queryFn: () => appApi.getCandidateNotes(id),
+  });
+
+  const resumeMut = useMutation({
+    mutationFn: (file: File) => appApi.uploadResume(id, file),
+    onSuccess: () => {
+      message.success("Резюме загружено");
+      qc.invalidateQueries({ queryKey: ["candidate", id] });
+    },
+    onError: () => message.error("Не удалось загрузить"),
+  });
+
+  const tagsMut = useMutation({
+    mutationFn: (tags: string[]) => appApi.updateCandidateTags(id, tags),
+    onSuccess: () => {
+      message.success("Метки обновлены");
+      qc.invalidateQueries({ queryKey: ["candidate", id] });
+    },
+    onError: () => message.error("Не удалось обновить"),
+  });
+
+  const noteMut = useMutation({
+    mutationFn: (body: string) => appApi.addCandidateNote(id, body),
+    onSuccess: () => {
+      message.success("Заметка добавлена");
+      setNoteText("");
+      qc.invalidateQueries({ queryKey: ["candidate-notes", id] });
+    },
+    onError: () => message.error("Не удалось добавить"),
   });
 
   const updateMut = useMutation({
@@ -161,6 +195,80 @@ export default function CandidatePage({
           </Space>
         </div>
       ) : null}
+
+      <div className={s.panel}>
+        <h3 className={s.panelTitle}>Резюме</h3>
+        <Space>
+          <Upload
+            maxCount={1}
+            customRequest={async ({ file, onSuccess, onError }) => {
+              try {
+                await resumeMut.mutateAsync(file as File);
+                onSuccess?.({});
+              } catch {
+                onError?.(new Error("Ошибка"));
+              }
+            }}
+          >
+            <Button loading={resumeMut.isPending}>Загрузить резюме</Button>
+          </Upload>
+          {c.resume?.sourceType && (
+            <Tag>Источник: {c.resume.sourceType}</Tag>
+          )}
+        </Space>
+      </div>
+
+      <div className={s.panel}>
+        <h3 className={s.panelTitle}>Метки</h3>
+        <Space size={4} wrap>
+          {c.tags?.map((t) => (
+            <Tag
+              key={t.id}
+              color={t.color || "default"}
+              closable
+              onClose={() => tagsMut.mutate(c.tags!.filter((x) => x.id !== t.id).map((x) => x.id))}
+            >
+              {t.name}
+            </Tag>
+          )) ?? []}
+          <Tooltip title="Добавить метку">
+            <Tag
+              style={{ cursor: "pointer", background: "#fafafa", borderStyle: "dashed" }}
+              onClick={() => {
+                const name = prompt("Название метки:");
+                if (name) tagsMut.mutate([...(c.tags?.map((x) => x.id) ?? []), name]);
+              }}
+            >
+              + Добавить
+            </Tag>
+          </Tooltip>
+        </Space>
+      </div>
+
+      <div className={s.panel}>
+        <h3 className={s.panelTitle}>Заметки</h3>
+        <div style={{ display: "flex", flexDirection: "column", gap: 8, marginBottom: 12 }}>
+          {((notesData as { items?: Array<{ id: string; body: string; author: string; createdAt: string }> })?.items ?? []).map((n) => (
+            <div key={n.id} style={{ padding: "8px 12px", borderRadius: 8, background: "rgba(0,0,0,.03)" }}>
+              <div style={{ fontSize: 13 }}>{n.body}</div>
+              <div style={{ fontSize: 11, color: "rgba(0,0,0,.45)", marginTop: 4 }}>
+                {n.author} · {new Date(n.createdAt).toLocaleString("ru-RU")}
+              </div>
+            </div>
+          ))}
+        </div>
+        <Space.Compact style={{ width: "100%" }}>
+          <Input
+            value={noteText}
+            onChange={(e) => setNoteText(e.target.value)}
+            placeholder="Добавить заметку…"
+            onPressEnter={() => noteText.trim() && noteMut.mutate(noteText)}
+          />
+          <Button type="primary" onClick={() => noteText.trim() && noteMut.mutate(noteText)}>
+            Добавить
+          </Button>
+        </Space.Compact>
+      </div>
 
       <div className={s.panel}>
         <h3 className={s.panelTitle}>Вакансии ({candidacyItems.length})</h3>
