@@ -23,6 +23,8 @@ export default function CandidatePage({
   const [addVacancyOpen, setAddVacancyOpen] = useState(false);
   const [noteText, setNoteText] = useState("");
   const [editForm] = Form.useForm();
+  const [tagModalOpen, setTagModalOpen] = useState(false);
+  const [tagName, setTagName] = useState("");
   const [vacancyForm] = Form.useForm();
 
   const { data: candidate, isLoading } = useQuery({
@@ -237,10 +239,7 @@ export default function CandidatePage({
           <Tooltip title="Добавить метку">
             <Tag
               style={{ cursor: "pointer", background: "#fafafa", borderStyle: "dashed" }}
-              onClick={() => {
-                const name = prompt("Название метки:");
-                if (name) tagsMut.mutate([...(c.tags?.map((x) => x.id) ?? []), name]);
-              }}
+              onClick={() => { setTagName(""); setTagModalOpen(true); }}
             >
               + Добавить
             </Tag>
@@ -367,6 +366,33 @@ export default function CandidatePage({
             />
           </Form.Item>
         </Form>
+      </Modal>
+
+      <Modal
+        title="Новая метка"
+        open={tagModalOpen}
+        onCancel={() => setTagModalOpen(false)}
+        onOk={() => {
+          if (tagName.trim()) {
+            tagsMut.mutate([...(candidate?.tags?.map((x) => x.id) ?? []), tagName.trim()]);
+            setTagModalOpen(false);
+          }
+        }}
+        okText="Добавить"
+        cancelText="Отмена"
+      >
+        <Input
+          value={tagName}
+          onChange={(e) => setTagName(e.target.value)}
+          placeholder="Название метки"
+          autoFocus
+          onPressEnter={() => {
+            if (tagName.trim()) {
+              tagsMut.mutate([...(candidate?.tags?.map((x) => x.id) ?? []), tagName.trim()]);
+              setTagModalOpen(false);
+            }
+          }}
+        />
       </Modal>
     </div>
   );

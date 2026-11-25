@@ -1,7 +1,7 @@
 "use client";
 
-import { useEffect } from "react";
-import { Form, Input, Button, Select, Divider, message, Skeleton, Upload, Switch, Tag, Space, Popconfirm, List } from "antd";
+import { useEffect, useState } from "react";
+import { Form, Input, Button, Select, Divider, message, Skeleton, Upload, Switch, Tag, Space, Popconfirm, List, Modal } from "antd";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { SettingsLayout } from "@/components/SettingsLayout";
 import { authApi, appApi } from "@/lib/api";
@@ -10,6 +10,8 @@ import { qk } from "@/lib/query-keys";
 export default function AccountSettingsPage() {
   const qc = useQueryClient();
   const [form] = Form.useForm();
+  const [tfaModalOpen, setTfaModalOpen] = useState(false);
+  const [tfaCode, setTfaCode] = useState("");
 
   const { data: user, isLoading } = useQuery({
     queryKey: qk.auth.me(),
@@ -191,14 +193,64 @@ export default function AccountSettingsPage() {
                 {tfaStatus?.enabled ? "2FA включена" : "Требуется код из приложения при входе"}
               </div>
             </div>
-            <Popconfirm
-              title={tfaStatus?.enabled ? "Отключить 2FA?" : "Включить 2FA?"}
-              onConfirm={() => tfaMut.mutate({ action: tfaStatus?.enabled ? "disable" : "enable", code: "000000" })}
-            >
-              <Switch checked={tfaStatus?.enabled ?? false} loading={tfaMut.isPending} />
-            </Popconfirm>
+            {tfaStatus?.enabled ? (
+              <Popconfirm
+                title="Отключить 2FA?"
+                onConfirm={() => tfaMut.mutate({ action: "disable" })}
+              >
+                <Switch checked loading={tfaMut.isPending} />
+              </Popconfirm>
+            ) : (
+              <Button type="primary" onClick={() => { setTfaCode(""); setTfaModalOpen(true); }}>
+                Включить 2FA
+              </Button>
+            )}
           </div>
         </div>
+
+        <Modal
+          title="Настройка 2FA"
+          open={tfaModalOpen}
+          onCancel={() => setTfaModalOpen(false)}
+          footer={null}
+        >
+          {tfaStatus?.qrUrl && (
+            <div style={{ textAlign: "center", marginBottom: 16 }}>
+              <img src={tfaStatus.qrUrl} alt="QR-код для 2FA" style={{ maxWidth: 200 }} />
+              <p style={{ fontSize: 13, color: "rgba(0,0,0,.45)", marginTop: 8 }}>
+                Отсканируйте QR-код в приложении-аутентификаторе
+              </p>
+            </div>
+          )}
+          <Form layout="vertical">
+            <Form.Item label="Код из приложения" required>
+              <Input.OTP
+                length={6}
+                value={tfaCode}
+                onChange={setTfaCode}
+              />
+            </Form.Item>
+            <Button
+              type="primary"
+              block
+              disabled={tfaCode.length !== 6}
+              loading={tfaMut.isPending}
+              onClick={() => {
+                tfaMut.mutate(
+                  { action: "enable", code: tfaCode },
+                  {
+                    onSuccess: () => {
+                      setTfaModalOpen(false);
+                      setTfaCode("");
+                    },
+                  }
+                );
+              }}
+            >
+              Подтвердить
+            </Button>
+          </Form>
+        </Modal>
 
         <Divider />
 

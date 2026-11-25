@@ -12,7 +12,7 @@ export function Providers({ children }: { children: ReactNode }) {
         queryCache: new QueryCache({
           onError: (error, query) => {
             const msg = parseApiError(error);
-            if (msg === "Необходима авторизации") return;
+            if (msg === "Необходима авторизация") return;
             console.error("[query]", query.queryKey, msg);
             if (query.state.data === undefined) {
               message.error(msg);

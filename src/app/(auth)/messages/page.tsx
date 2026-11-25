@@ -5,19 +5,10 @@ import { useQuery, useMutation, useQueryClient, keepPreviousData } from "@tansta
 import { Button, Segmented, Skeleton, Table, Tag, Input, message, Drawer, Checkbox, Space } from "antd";
 import type { ColumnsType } from "antd/es/table";
 import { PageHeader } from "@/components/PageHeader";
-import { appApi } from "@/lib/api";
+import { appApi, type Conversation } from "@/lib/api";
 import { qk } from "@/lib/query-keys";
 import { usePageTitle } from "@/components/usePageTitle";
 import s from "./messages.module.css";
-
-interface Conversation {
-  candidacyId: string;
-  candidateName: string;
-  channel: string;
-  lastMessage: string;
-  waitingSince: string;
-  action: string;
-}
 
 export default function MessagesPage() {
   const qc = useQueryClient();
@@ -75,7 +66,7 @@ export default function MessagesPage() {
   const messages = (messagesData as { items?: Array<{ id: string; body: string; direction: "in" | "out"; createdAt: string; channel: string }> })?.items ?? [];
 
   const columns: ColumnsType<Conversation> = [
-    { title: "Кандидат", dataIndex: "candidateName", key: "candidateName" },
+    { title: "Кандидат", dataIndex: "candidateFullName", key: "candidateFullName" },
     ...(tab === "vacancy" ? [{ title: "Вакансия", dataIndex: "vacancyTitle", key: "vacancyTitle", render: (v: string) => v || "—" }] : []),
     {
       title: "Канал",
@@ -83,9 +74,19 @@ export default function MessagesPage() {
       key: "channel",
       render: (ch: string) => (ch ? <Tag>{ch}</Tag> : "—"),
     },
-    { title: "Последнее сообщение", dataIndex: "lastMessage", key: "lastMessage", ellipsis: true },
-    { title: "Ждёт", dataIndex: "waitingSince", key: "waitingSince" },
-    { title: "Действие", dataIndex: "action", key: "action" },
+    { title: "Последнее сообщение", dataIndex: "lastMessageBody", key: "lastMessageBody", ellipsis: true, render: (v: string) => v || "—" },
+    {
+      title: "Ждёт",
+      dataIndex: "lastMessageAt",
+      key: "lastMessageAt",
+      render: (v: string) => v ? new Date(v).toLocaleString("ru-RU", { hour: "2-digit", minute: "2-digit", day: "2-digit", month: "2-digit" }) : "—",
+    },
+    {
+      title: "Статус",
+      dataIndex: "awaiting",
+      key: "awaiting",
+      render: (a: boolean) => (a ? <Tag color="orange">Ждёт ответа</Tag> : <Tag color="green">Ответ дан</Tag>),
+    },
   ];
 
   const selectedConv = items.find((c) => c.candidacyId === selectedCandidacy);
@@ -182,7 +183,7 @@ export default function MessagesPage() {
           ) : (
             <>
               <div style={{ fontWeight: 600, marginBottom: 12, paddingBottom: 8, borderBottom: "1px solid rgba(0,0,0,.06)" }}>
-                {selectedConv?.candidateName ?? "Переписка"}
+                {selectedConv?.candidateFullName ?? "Переписка"}
               </div>
               <div style={{ flex: 1, overflow: "auto", display: "flex", flexDirection: "column", gap: 8 }}>
                 {showCover && messages.length > 0 && (

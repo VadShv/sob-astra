@@ -1,6 +1,6 @@
 import { NextResponse, type NextRequest } from "next/server";
 
-const AUTH_COOKIE = "sobesoSession";
+const AUTH_COOKIE = "sobessoSession";
 const PUBLIC_PATHS = ["/login"];
 
 export function middleware(request: NextRequest) {

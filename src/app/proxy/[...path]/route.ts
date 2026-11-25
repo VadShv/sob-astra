@@ -1,6 +1,7 @@
 import { type NextRequest, NextResponse } from "next/server";
 
 const API_BASE = "https://api.sobesso.ru";
+const ALLOWED_PREFIXES = ["auth/", "api/"];
 
 async function proxyHandler(
   req: NextRequest,
@@ -8,6 +9,10 @@ async function proxyHandler(
 ) {
   const { path } = await params;
   const pathStr = path.join("/");
+  const isAllowed = ALLOWED_PREFIXES.some((p) => pathStr.startsWith(p));
+  if (!isAllowed) {
+    return NextResponse.json({ message: "Forbidden" }, { status: 403 });
+  }
   const url = new URL(req.url);
   const targetUrl = `${API_BASE}/${pathStr}${url.search}`;
 

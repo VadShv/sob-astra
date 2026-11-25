@@ -2,7 +2,10 @@ import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
   images: {
-    unoptimized: true,
+    remotePatterns: [
+      { protocol: "https", hostname: "api.sobesso.ru" },
+      { protocol: "https", hostname: "app.sobesso.ru" },
+    ],
   },
 };
 

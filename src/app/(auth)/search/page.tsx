@@ -143,7 +143,7 @@ export default function SearchPage() {
     onError: () => message.error("Не удалось выгрузить"),
   });
 
-  const items = data?.items ?? [];
+  const items = aiResults ?? data?.items ?? [];
   const tagValues = (tags as { values?: { code: string; name: string }[] })?.values ?? [];
   const sourceValues = (sources as { values?: { code: string; name: string }[] })?.values ?? [];
   const coldSearchItems = (coldSearches as { items?: unknown[] })?.items ?? [];
@@ -225,6 +225,12 @@ export default function SearchPage() {
             {items.length} резюме
           </span>
         </div>
+        {aiResults && (
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8 }}>
+            <Tag color="purple">Результаты AI-поиска</Tag>
+            <Button size="small" type="text" onClick={() => setAiResults(null)}>Сбросить</Button>
+          </div>
+        )}
         {isLoading ? (
           <Skeleton active />
         ) : items.length === 0 ? (

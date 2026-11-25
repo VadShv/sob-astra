@@ -181,6 +181,8 @@ export interface Conversation {
   vacancyTitle: string;
   stageName: string;
   lastMessageAt: string;
+  lastMessageBody?: string;
+  channel?: string;
   awaiting: boolean;
 }
 
