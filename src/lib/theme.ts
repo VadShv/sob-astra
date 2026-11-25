@@ -1,4 +1,5 @@
 import type { ThemeConfig } from "antd";
+import { theme } from "antd";
 
 export const PRIMARY = "#6B53D5";
 export const INK = "#151716";
@@ -92,6 +93,29 @@ export const loginTheme: ThemeConfig = {
       ...baseTheme.components?.Button,
       controlHeightLG: 48,
       paddingInlineLG: 15,
+    },
+  },
+};
+
+export const darkTheme: ThemeConfig = {
+  ...baseTheme,
+  algorithm: theme.darkAlgorithm,
+  token: {
+    ...baseTheme.token,
+    colorBgBase: "#1a1a1e",
+    colorTextBase: "#e8e8e8",
+  },
+  components: {
+    ...baseTheme.components,
+    Segmented: {
+      ...baseTheme.components?.Segmented,
+      trackBg: "#2a2a2e",
+      itemColor: "rgba(232, 232, 232, 0.66)",
+      itemHoverColor: "#e8e8e8",
+      itemHoverBg: "rgba(255, 255, 255, 0.08)",
+      itemActiveBg: "rgba(255, 255, 255, 0.12)",
+      itemSelectedBg: "#e8e8e8",
+      itemSelectedColor: "#1a1a1e",
     },
   },
 };

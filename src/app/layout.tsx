@@ -1,9 +1,8 @@
 import type { Metadata } from "next";
 import { AntdRegistry } from "@ant-design/nextjs-registry";
-import { App, ConfigProvider } from "antd";
-import ruRU from "antd/locale/ru_RU";
+import { App } from "antd";
 import { Providers } from "./providers";
-import { baseTheme } from "@/lib/theme";
+import { ThemeProvider } from "@/components/ThemeProvider";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -23,11 +22,11 @@ export default function RootLayout({
     <html lang="ru">
       <body className="font-[family-name:var(--font-sans)] antialiased">
         <AntdRegistry>
-          <ConfigProvider theme={baseTheme} locale={ruRU}>
+          <ThemeProvider>
             <App>
               <Providers>{children}</Providers>
             </App>
-          </ConfigProvider>
+          </ThemeProvider>
         </AntdRegistry>
       </body>
     </html>
