@@ -157,6 +157,53 @@ export interface Candidate {
   createdAt?: string;
 }
 
+export interface CompanyRole {
+  id: string;
+  name: string;
+  permissions: string[];
+}
+
+export interface OrgUnit {
+  id: string;
+  name: string;
+  parentId?: string;
+}
+
+export interface ReferenceDictionaryItem {
+  id: string;
+  name: string;
+}
+
+export interface Conversation {
+  candidacyId: string;
+  candidateFullName: string;
+  candidateEmail: string;
+  vacancyTitle: string;
+  stageName: string;
+  lastMessageAt: string;
+  awaiting: boolean;
+}
+
+export interface ColdSearch {
+  id: string;
+  query: string;
+  createdAt: string;
+}
+
+export interface AnalyticsResult {
+  calculationId: string;
+  status: string;
+  data: Record<string, unknown>;
+}
+
+export interface SessionInfo {
+  id: string;
+  device: string;
+  ip: string;
+  lastActiveAt: string;
+  current: boolean;
+}
+
 export const authApi = {
   async me(): Promise<{ user: User | null }> {
     const { data } = await apiClient.get("/auth/me");
@@ -194,7 +241,7 @@ export const appApi = {
     const { data } = await apiClient.get("/api/user");
     return data;
   },
-  async getCompanyRoles(): Promise<unknown> {
+  async getCompanyRoles(): Promise<{ items: CompanyRole[] }> {
     const { data } = await apiClient.get("/api/company-roles/me");
     return data;
   },
@@ -255,27 +302,27 @@ export const appApi = {
     const { data } = await apiClient.get(`/api/interview/candidate/${id}/list`);
     return data;
   },
-  async getColdSearches(): Promise<unknown> {
+  async getColdSearches(): Promise<{ items: ColdSearch[] }> {
     const { data } = await apiClient.get("/api/cold-search/searches");
     return data;
   },
-  async getMessageTemplates(): Promise<unknown> {
+  async getMessageTemplates(): Promise<{ variables: string[] }> {
     const { data } = await apiClient.get("/api/message-templates/variables");
     return data;
   },
-  async getConversationsAwaiting(params?: Record<string, string>): Promise<unknown> {
+  async getConversationsAwaiting(params?: Record<string, string>): Promise<{ items: Conversation[]; total?: number }> {
     const { data } = await apiClient.get("/api/conversations/awaiting", { params });
     return data;
   },
-  async getOrgUnits(): Promise<unknown> {
+  async getOrgUnits(): Promise<{ items: OrgUnit[] }> {
     const { data } = await apiClient.get("/api/org-units");
     return data;
   },
-  async getDepartments(): Promise<unknown> {
+  async getDepartments(): Promise<{ items: Array<{ id: string; name: string }> }> {
     const { data } = await apiClient.get("/api/org-units/departments");
     return data;
   },
-  async getReferenceDictionary(code: string): Promise<unknown> {
+  async getReferenceDictionary(code: string): Promise<{ items: ReferenceDictionaryItem[] }> {
     const { data } = await apiClient.get(`/api/reference-dictionary/${code}`);
     return data;
   },
@@ -287,7 +334,7 @@ export const appApi = {
     const { data } = await apiClient.get("/api/notification-types");
     return data;
   },
-  async getViewSettings(key: string): Promise<unknown> {
+  async getViewSettings(key: string): Promise<Record<string, unknown>> {
     const { data } = await apiClient.get(`/api/view-settings/${key}`);
     return data;
   },
@@ -328,15 +375,15 @@ export const appApi = {
     const { data } = await apiClient.get(`/api/vacancy/${vacancyId}/candidacies`, { params });
     return data;
   },
-  async getVacancyInterviewFacets(vacancyId: string): Promise<unknown> {
+  async getVacancyInterviewFacets(vacancyId: string): Promise<{ total: number; statuses: Array<{ value: string; label: string; count: number }> }> {
     const { data } = await apiClient.get(`/api/interview/vacancy/${vacancyId}/list/facets`);
     return data;
   },
-  async getAnalyticsCalculations(payload: unknown): Promise<{ calculationId: string }> {
+  async getAnalyticsCalculations(payload: Record<string, unknown>): Promise<{ calculationId: string }> {
     const { data } = await apiClient.post("/api/analytics/calculations", payload);
     return data;
   },
-  async getAnalyticsResult(calculationId: string): Promise<unknown> {
+  async getAnalyticsResult(calculationId: string): Promise<AnalyticsResult> {
     const { data } = await apiClient.get(`/api/analytics/calculations/${calculationId}`);
     return data;
   },
@@ -345,7 +392,7 @@ export const appApi = {
     const { data } = await apiClient.get("/api/company-users");
     return data;
   },
-  async inviteUser(payload: { email: string; role: string }): Promise<unknown> {
+  async inviteUser(payload: { email: string; role: string }): Promise<{ id: string }> {
     const { data } = await apiClient.post("/api/company-users/invite", payload);
     return data;
   },
@@ -353,11 +400,11 @@ export const appApi = {
     await apiClient.delete(`/api/company-users/${userId}`);
   },
 
-  async updateAccount(payload: Record<string, unknown>): Promise<unknown> {
+  async updateAccount(payload: Record<string, unknown>): Promise<UserDetails> {
     const { data } = await apiClient.patch("/api/user", payload);
     return data;
   },
-  async updateCompany(payload: Record<string, unknown>): Promise<unknown> {
+  async updateCompany(payload: Record<string, unknown>): Promise<Record<string, unknown>> {
     const { data } = await apiClient.patch("/api/company", payload);
     return data;
   },
@@ -369,7 +416,7 @@ export const appApi = {
     const { data } = await apiClient.get("/api/notification-settings");
     return data;
   },
-  async updateNotificationSettings(payload: Record<string, boolean>): Promise<unknown> {
+  async updateNotificationSettings(payload: Record<string, boolean>): Promise<Record<string, boolean>> {
     const { data } = await apiClient.patch("/api/notification-settings", payload);
     return data;
   },
@@ -377,7 +424,7 @@ export const appApi = {
     const { data } = await apiClient.get("/api/view-settings/interview-appearance");
     return data;
   },
-  async updateAppearanceSettings(payload: Record<string, unknown>): Promise<unknown> {
+  async updateAppearanceSettings(payload: Record<string, unknown>): Promise<Record<string, unknown>> {
     const { data } = await apiClient.patch("/api/view-settings/interview-appearance", payload);
     return data;
   },
@@ -394,19 +441,19 @@ export const appApi = {
     const { data } = await apiClient.post("/api/vacancy", payload);
     return data;
   },
-  async updateVacancy(id: string, payload: Record<string, unknown>): Promise<unknown> {
+  async updateVacancy(id: string, payload: Record<string, unknown>): Promise<Vacancy> {
     const { data } = await apiClient.patch("/api/vacancy", { id, ...payload });
     return data;
   },
-  async updateVacancyStatus(id: string, status: string): Promise<unknown> {
+  async updateVacancyStatus(id: string, status: string): Promise<Vacancy> {
     const { data } = await apiClient.patch("/api/vacancy/status", { id, status });
     return data;
   },
-  async bulkUpdateVacancyStatus(ids: string[], status: string): Promise<unknown> {
+  async bulkUpdateVacancyStatus(ids: string[], status: string): Promise<{ updated: number }> {
     const { data } = await apiClient.post("/api/vacancy/bulk-status", { ids, status });
     return data;
   },
-  async bulkDeleteVacancies(ids: string[]): Promise<unknown> {
+  async bulkDeleteVacancies(ids: string[]): Promise<{ deleted: number }> {
     const { data } = await apiClient.post("/api/vacancy/bulk-delete", { ids });
     return data;
   },
@@ -415,15 +462,15 @@ export const appApi = {
     const { data } = await apiClient.post("/api/candidate", payload);
     return data;
   },
-  async updateCandidate(id: string, payload: Record<string, unknown>): Promise<unknown> {
+  async updateCandidate(id: string, payload: Record<string, unknown>): Promise<Candidate> {
     const { data } = await apiClient.patch(`/api/candidate/${id}`, payload);
     return data;
   },
-  async addCandidateToVacancy(candidateId: string, vacancyId: string): Promise<unknown> {
+  async addCandidateToVacancy(candidateId: string, vacancyId: string): Promise<{ candidacyId: string }> {
     const { data } = await apiClient.post("/api/candidacy", { candidateId, vacancyId });
     return data;
   },
-  async moveCandidacyStage(candidacyId: string, stageId: string): Promise<unknown> {
+  async moveCandidacyStage(candidacyId: string, stageId: string): Promise<{ candidacyId: string; stageId: string }> {
     const { data } = await apiClient.patch("/api/candidacy/stage", { candidacyId, stageId });
     return data;
   },
@@ -432,7 +479,7 @@ export const appApi = {
     const { data } = await apiClient.post("/api/company-roles", payload);
     return data;
   },
-  async updateRole(id: string, payload: Record<string, unknown>): Promise<unknown> {
+  async updateRole(id: string, payload: Record<string, unknown>): Promise<{ id: string }> {
     const { data } = await apiClient.patch(`/api/company-roles/${id}`, payload);
     return data;
   },
@@ -444,7 +491,7 @@ export const appApi = {
     const { data } = await apiClient.post("/api/message-templates", payload);
     return data;
   },
-  async updateTemplate(id: string, payload: Record<string, unknown>): Promise<unknown> {
+  async updateTemplate(id: string, payload: Record<string, unknown>): Promise<{ id: string }> {
     const { data } = await apiClient.patch(`/api/message-templates/${id}`, payload);
     return data;
   },
@@ -469,7 +516,7 @@ export const appApi = {
     const { data } = await apiClient.get("/api/integrations");
     return data;
   },
-  async connectIntegration(integrationType: string, payload?: Record<string, unknown>): Promise<unknown> {
+  async connectIntegration(integrationType: string, payload?: Record<string, unknown>): Promise<{ success: boolean }> {
     const { data } = await apiClient.post(`/api/integrations/${integrationType}/connect`, payload ?? {});
     return data;
   },
@@ -480,7 +527,7 @@ export const appApi = {
     const { data } = await apiClient.post(`/api/integrations/${integrationType}/test`, payload ?? {});
     return data;
   },
-  async updateFunnel(id: string, payload: Record<string, unknown>): Promise<unknown> {
+  async updateFunnel(id: string, payload: Record<string, unknown>): Promise<{ id: string }> {
     const { data } = await apiClient.patch(`/api/funnel-templates/${id}`, payload);
     return data;
   },
@@ -494,7 +541,7 @@ export const appApi = {
     const { data } = await apiClient.get(`/api/conversations/${candidacyId}/messages`, { params });
     return data;
   },
-  async sendMessage(candidacyId: string, body: string): Promise<unknown> {
+  async sendMessage(candidacyId: string, body: string): Promise<{ id: string; createdAt: string }> {
     const { data } = await apiClient.post(`/api/conversations/${candidacyId}/messages`, { body });
     return data;
   },
@@ -548,7 +595,7 @@ export const appApi = {
     const { data } = await apiClient.post(`/api/candidate/${candidateId}/notes`, { body });
     return data;
   },
-  async updateCandidateTags(candidateId: string, tags: string[]): Promise<unknown> {
+  async updateCandidateTags(candidateId: string, tags: string[]): Promise<{ tags: Array<{ id: string; name: string }> }> {
     const { data } = await apiClient.patch(`/api/candidate/${candidateId}/tags`, { tags });
     return data;
   },
@@ -560,15 +607,15 @@ export const appApi = {
     });
     return data;
   },
-  async updateUserRole(userId: string, role: string): Promise<unknown> {
+  async updateUserRole(userId: string, role: string): Promise<{ id: string; role: string }> {
     const { data } = await apiClient.patch(`/api/company-users/${userId}/role`, { role });
     return data;
   },
-  async resendInvite(userId: string): Promise<unknown> {
+  async resendInvite(userId: string): Promise<{ success: boolean }> {
     const { data } = await apiClient.post(`/api/company-users/${userId}/resend`);
     return data;
   },
-  async deactivateUser(userId: string): Promise<unknown> {
+  async deactivateUser(userId: string): Promise<{ success: boolean }> {
     const { data } = await apiClient.patch(`/api/company-users/${userId}/deactivate`);
     return data;
   },
@@ -584,14 +631,14 @@ export const appApi = {
     const { data } = await apiClient.get("/api/user/2fa");
     return data;
   },
-  async enable2FA(code: string): Promise<unknown> {
+  async enable2FA(code: string): Promise<{ enabled: boolean }> {
     const { data } = await apiClient.post("/api/user/2fa/enable", { code });
     return data;
   },
   async disable2FA(): Promise<void> {
     await apiClient.delete("/api/user/2fa");
   },
-  async getSessions(): Promise<{ items: Array<{ id: string; device: string; ip: string; lastActiveAt: string; current: boolean }> }> {
+  async getSessions(): Promise<{ items: SessionInfo[] }> {
     const { data } = await apiClient.get("/api/user/sessions");
     return data;
   },

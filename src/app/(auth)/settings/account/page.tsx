@@ -44,8 +44,10 @@ export default function AccountSettingsPage() {
   });
 
   const tfaMut = useMutation({
-    mutationFn: ({ action, code }: { action: "enable" | "disable"; code?: string }) =>
-      action === "enable" ? appApi.enable2FA(code!) : appApi.disable2FA(),
+    mutationFn: async ({ action, code }: { action: "enable" | "disable"; code?: string }) => {
+      if (action === "enable") await appApi.enable2FA(code!);
+      else await appApi.disable2FA();
+    },
     onSuccess: () => {
       message.success("2FA обновлён");
       qc.invalidateQueries({ queryKey: ["2fa-status"] });

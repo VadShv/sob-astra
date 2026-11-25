@@ -1,6 +1,7 @@
 "use client";
 
 import { QueryClient, QueryClientProvider, QueryCache } from "@tanstack/react-query";
+import { message } from "antd";
 import { useState, type ReactNode } from "react";
 import { parseApiError } from "@/lib/api";
 
@@ -9,10 +10,12 @@ export function Providers({ children }: { children: ReactNode }) {
     () =>
       new QueryClient({
         queryCache: new QueryCache({
-          onError: (error) => {
+          onError: (error, query) => {
             const msg = parseApiError(error);
-            if (msg !== "Необходима авторизация") {
-              console.error("[query]", msg);
+            if (msg === "Необходима авторизации") return;
+            console.error("[query]", query.queryKey, msg);
+            if (query.state.data === undefined) {
+              message.error(msg);
             }
           },
         }),
@@ -22,6 +25,9 @@ export function Providers({ children }: { children: ReactNode }) {
             staleTime: 30_000,
             refetchOnMount: true,
             refetchOnWindowFocus: true,
+          },
+          mutations: {
+            retry: 0,
           },
         },
       })
