@@ -1,0 +1,17 @@
+.page{display:flex;flex-direction:column;gap:24px}
+.funnel{display:flex;gap:0;padding:20px 24px;border-radius:18px;background:var(--ats-bg,#fff);overflow-x:auto}
+.stage{display:flex;flex-direction:column;align-items:center;gap:4px;padding:12px 20px;min-width:120px;border-radius:12px;cursor:pointer;transition:background .15s;text-decoration:none;color:inherit}
+.stage:hover{background:var(--ats-fill-2,rgba(0,0,0,.06))}
+.stageActive{background:var(--ats-primary-bg,#f5f0ff)}
+.stageCount{font-size:24px;font-weight:800;color:var(--ats-ink,#151716)}
+.stageActive .stageCount{color:var(--ats-primary,#6b53d5)}
+.stageName{font-size:13px;color:var(--ats-text-2,rgba(0,0,0,.65));white-space:nowrap}
+.stageArrow{display:flex;align-items:center;color:var(--ats-text-3,rgba(0,0,0,.45));font-size:18px}
+.panel{padding:20px 24px;border-radius:18px;background:var(--ats-bg,#fff)}
+.candidateRow{display:flex;align-items:center;gap:12px;padding:12px 0;border-bottom:1px solid var(--ats-border-2,#f0f0f0)}
+.candidateRow:last-child{border-bottom:none}
+.avatar{display:flex;align-items:center;justify-content:center;width:40px;height:40px;border-radius:50%;background:var(--ats-primary-bg,#f5f0ff);color:var(--ats-primary,#6b53d5);font-weight:700;font-size:14px;flex:none}
+.candidateInfo{flex:1;min-width:0}
+.candidateName{font-weight:600;font-size:14px;color:var(--ats-ink,#151716)}
+.candidateMeta{font-size:13px;color:var(--ats-text-2,rgba(0,0,0,.65));display:flex;gap:12px;flex-wrap:wrap}
+.candidateStatus{display:flex;align-items:center;gap:8px}

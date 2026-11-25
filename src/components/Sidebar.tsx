@@ -1,8 +1,11 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { useState } from "react";
+import { useQuery } from "@tanstack/react-query";
+import { Dropdown, Badge } from "antd";
+import { authApi, appApi, type Vacancy } from "@/lib/api";
 import s from "./sidebar.module.css";
 
 interface NavItem {
@@ -64,6 +67,19 @@ const ICONS = {
       <path d="M10.3 21a1.94 1.94 0 0 0 3.4 0" />
     </svg>
   ),
+  logout: (
+    <svg width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+      <path d="m16 17 5-5-5-5" />
+      <path d="M21 12H9" />
+    </svg>
+  ),
+  user: (
+    <svg width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2" />
+      <circle cx="12" cy="7" r="4" />
+    </svg>
+  ),
 };
 
 const NAV_ITEMS: NavItem[] = [
@@ -78,7 +94,52 @@ const NAV_ITEMS: NavItem[] = [
 
 export function Sidebar() {
   const pathname = usePathname();
+  const router = useRouter();
   const [collapsed, setCollapsed] = useState(true);
+
+  const { data: userResp } = useQuery({
+    queryKey: ["auth-me"],
+    queryFn: () => authApi.me(),
+  });
+
+  const { data: vacancies } = useQuery({
+    queryKey: ["sidebar-vacancies"],
+    queryFn: () =>
+      appApi.getVacancies({
+        status: "active,paused,distribution",
+        showAllVacancies: "true",
+        groupMulti: "true",
+        page: "1",
+        pageSize: "20",
+      }),
+  });
+
+  const vacancyItems: Vacancy[] = vacancies?.items ?? [];
+  const userName = userResp?.user?.first_name ?? "";
+  const userEmail = userResp?.user?.email ?? "";
+
+  const handleLogout = async () => {
+    try {
+      await fetch("/proxy/auth/logout", { method: "POST", credentials: "include" });
+    } catch {
+    }
+    router.push("/login");
+  };
+
+  const userMenuItems = [
+    {
+      key: "profile",
+      label: userEmail,
+      disabled: true,
+    },
+    { type: "divider" as const },
+    {
+      key: "logout",
+      label: "Выйти",
+      icon: ICONS.logout,
+      onClick: handleLogout,
+    },
+  ];
 
   return (
     <aside
@@ -121,6 +182,32 @@ export function Sidebar() {
             );
           })}
         </nav>
+
+        {!collapsed && vacancyItems.length > 0 && (
+          <div className={s.vacancyNav}>
+            <div style={{ fontSize: 11, fontWeight: 800, textTransform: "uppercase", letterSpacing: ".08em", color: "rgba(255,255,255,.45)", padding: "0 8px 8px" }}>
+              Мои вакансии
+            </div>
+            {vacancyItems.map((v) => (
+              <Link
+                key={v.id}
+                className={s.vacancyLink}
+                href={`/vacancy/${v.id}`}
+                title={v.title}
+              >
+                {v.title}
+              </Link>
+            ))}
+          </div>
+        )}
+        {!collapsed && vacancyItems.length === 0 && (
+          <div className={s.vacancyNav}>
+            <div style={{ fontSize: 11, fontWeight: 800, textTransform: "uppercase", letterSpacing: ".08em", color: "rgba(255,255,255,.45)", padding: "0 8px" }}>
+              Мои вакансии
+            </div>
+            <p className={s.vacancyNote}>Вы пока не ведёте вакансий</p>
+          </div>
+        )}
       </div>
       <div className={s.footer}>
         <span className={s.footerBtn} role="img" aria-label="Лимиты: Вакансий: 1 из 20" tabIndex={0}>
@@ -129,11 +216,20 @@ export function Sidebar() {
             <circle cx="9" cy="9" r="7" className={s.ringFill} strokeDasharray="43.98" strokeDashoffset="41.78" />
           </svg>
         </span>
-        <button aria-label="Уведомления" type="button" className={s.footerBtn}>
-          <span role="img" aria-hidden="true" className="anticon">
-            {ICONS.bell}
-          </span>
-        </button>
+        <Badge count={0} size="small">
+          <button aria-label="Уведомления" type="button" className={s.footerBtn}>
+            <span role="img" aria-hidden="true" className="anticon">
+              {ICONS.bell}
+            </span>
+          </button>
+        </Badge>
+        <Dropdown menu={{ items: userMenuItems }} placement="topRight" trigger={["click"]}>
+          <button aria-label="Меню пользователя" type="button" className={s.footerBtn}>
+            <span role="img" aria-hidden="true" className="anticon">
+              {ICONS.user}
+            </span>
+          </button>
+        </Dropdown>
       </div>
     </aside>
   );

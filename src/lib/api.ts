@@ -1,6 +1,7 @@
 import axios, { type AxiosInstance } from "axios";
 
-export const API_BASE_URL = "https://api.sobesso.ru";
+export const API_BASE_URL = "/proxy";
+export const REAL_API_BASE_URL = "https://api.sobesso.ru";
 export const APP_BASE_URL = "https://app.sobesso.ru";
 
 export const apiClient: AxiosInstance = axios.create({
@@ -56,13 +57,34 @@ export interface ApiError {
   response?: { status?: number };
 }
 
+export interface VacancyStageCount {
+  stageId: string;
+  name: string;
+  purpose: string;
+  enabled: boolean;
+  count: number;
+}
+
 export interface Vacancy {
   id: string;
   title: string;
   multiVacancy: unknown;
   stageTypes: string[];
   interviewsCount: number;
-  stageCounts: { stageId: string; count: number }[];
+  stageCounts: VacancyStageCount[];
+  awaitingDecisionCount: number;
+  hrName: string;
+  hrId: string;
+  status: string;
+  statusLabel: string;
+  statusUpdatedAt: string;
+  searchStartedAt: string;
+  hiredCount: number;
+  plannedHires: number;
+  hhReconnectRequired: boolean;
+  isConfidential: boolean;
+  orgUnit?: { id: string; name: string };
+  recruiters?: { id: string; name: string }[];
   SourceIntegrationVacancy?: { integrationType: string };
   TransportIntegrationVacancy?: { integrationType: string };
   SinkIntegrationVacancy?: { integrationType: string };
@@ -112,7 +134,7 @@ export const authApi = {
     await apiClient.post("/auth/magic-link", payload);
   },
   hhAuthUrl(): string {
-    return `${API_BASE_URL}/auth/hh`;
+    return `${REAL_API_BASE_URL}/auth/hh`;
   },
 };
 
@@ -179,6 +201,36 @@ export const appApi = {
   },
   async getViewSettings(key: string): Promise<unknown> {
     const { data } = await apiClient.get(`/api/view-settings/${key}`);
+    return data;
+  },
+  async getVacancyById(id: string): Promise<Vacancy> {
+    const { data } = await apiClient.get("/api/vacancy", { params: { id } });
+    return data;
+  },
+  async getVacancyInterviews(vacancyId: string, params?: Record<string, string>): Promise<{
+    candidacies: Array<{
+      candidacyId: string;
+      candidateFullName: string;
+      candidateFirstName: string;
+      candidateLastName: string;
+      candidateEmail: string;
+      interviewId: string;
+      vacancy: { vacancyId: string; title: string; board?: { integrationType: string; externalUrl: string } };
+    }>;
+  }> {
+    const { data } = await apiClient.get(`/api/interview/vacancy/${vacancyId}/list`, { params });
+    return data;
+  },
+  async getVacancyInterviewFacets(vacancyId: string): Promise<unknown> {
+    const { data } = await apiClient.get(`/api/interview/vacancy/${vacancyId}/list/facets`);
+    return data;
+  },
+  async getAnalyticsCalculations(payload: unknown): Promise<{ calculationId: string }> {
+    const { data } = await apiClient.post("/api/analytics/calculations", payload);
+    return data;
+  },
+  async getAnalyticsResult(calculationId: string): Promise<unknown> {
+    const { data } = await apiClient.get(`/api/analytics/calculations/${calculationId}`);
     return data;
   },
 };

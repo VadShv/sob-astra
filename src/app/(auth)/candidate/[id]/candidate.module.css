@@ -1,0 +1,14 @@
+.page{display:flex;flex-direction:column;gap:24px}
+.profile{display:flex;gap:24px;padding:20px 24px;border-radius:18px;background:var(--ats-bg,#fff);flex-wrap:wrap}
+.avatar{display:flex;align-items:center;justify-content:center;width:72px;height:72px;border-radius:50%;background:var(--ats-primary-bg,#f5f0ff);color:var(--ats-primary,#6b53d5);font-weight:700;font-size:28px;flex:none}
+.profileInfo{display:flex;flex-direction:column;gap:4px;flex:1;min-width:200px}
+.profileName{font-size:22px;font-weight:700;color:var(--ats-ink,#151716)}
+.profileMeta{display:flex;gap:16px;flex-wrap:wrap;font-size:14px;color:var(--ats-text-2,rgba(0,0,0,.65))}
+.profileMetaItem{display:flex;align-items:center;gap:6px}
+.panel{padding:20px 24px;border-radius:18px;background:var(--ats-bg,#fff)}
+.panelTitle{margin:0 0 16px;font-size:18px;font-weight:700;color:var(--ats-ink,#151716)}
+.candidacyRow{display:flex;align-items:center;gap:12px;padding:12px 0;border-bottom:1px solid var(--ats-border-2,#f0f0f0)}
+.candidacyRow:last-child{border-bottom:none}
+.candidacyVacancy{flex:1;font-weight:600;font-size:14px;color:var(--ats-ink,#151716)}
+.candidacyStage{font-size:13px;color:var(--ats-text-2,rgba(0,0,0,.65))}
+.empty{text-align:center;padding:32px;color:var(--ats-text-3,rgba(0,0,0,.45))}
