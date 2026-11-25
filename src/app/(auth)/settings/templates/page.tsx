@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { Button, Table, Tag, Modal, Form, Input, Select, Space, message, Popconfirm } from "antd";
+import { Button, Table, Tag, Modal, Form, Input, Select, Space, message, Popconfirm, Skeleton } from "antd";
 import type { ColumnsType } from "antd/es/table";
 import { SettingsLayout } from "@/components/SettingsLayout";
 import { appApi } from "@/lib/api";
@@ -21,7 +21,7 @@ export default function TemplatesSettingsPage() {
   const [editId, setEditId] = useState<string | null>(null);
   const [form] = Form.useForm();
 
-  const { data: templatesResp } = useQuery({
+  const { data: templatesResp, isLoading } = useQuery({
     queryKey: ["message-templates"],
     queryFn: () => appApi.getMessageTemplates(),
   });
@@ -104,13 +104,18 @@ export default function TemplatesSettingsPage() {
           Создать шаблон
         </Button>
       </div>
-      <Table<Template>
-        columns={columns}
-        dataSource={templates}
-        rowKey="id"
-        pagination={false}
-        size="middle"
-      />
+      {isLoading ? (
+        <Skeleton active />
+      ) : (
+        <Table<Template>
+          columns={columns}
+          dataSource={templates}
+          rowKey="id"
+          pagination={false}
+          size="middle"
+          locale={{ emptyText: "Нет шаблонов" }}
+        />
+      )}
       <Modal
         title={editId ? "Редактировать шаблон" : "Новый шаблон"}
         open={createOpen}

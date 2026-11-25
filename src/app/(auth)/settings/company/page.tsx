@@ -2,11 +2,12 @@
 
 import { useEffect } from "react";
 import { Form, Input, Button, Select, message, Skeleton } from "antd";
-import { useQuery, useMutation } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { SettingsLayout } from "@/components/SettingsLayout";
 import { appApi } from "@/lib/api";
 
 export default function CompanySettingsPage() {
+  const qc = useQueryClient();
   const [form] = Form.useForm();
 
   const { data: company, isLoading } = useQuery({
@@ -16,7 +17,10 @@ export default function CompanySettingsPage() {
 
   const mutation = useMutation({
     mutationFn: (values: Record<string, unknown>) => appApi.updateCompany(values),
-    onSuccess: () => message.success("Сохранено"),
+    onSuccess: () => {
+      message.success("Сохранено");
+      qc.invalidateQueries({ queryKey: ["company"] });
+    },
     onError: () => message.error("Не удалось сохранить"),
   });
 

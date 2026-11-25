@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { Button, Segmented, Skeleton, Table, Tag, Input, message } from "antd";
+import { Button, Segmented, Skeleton, Table, Tag, Input, message, Drawer, Checkbox, Space } from "antd";
 import type { ColumnsType } from "antd/es/table";
 import { PageHeader } from "@/components/PageHeader";
 import { appApi } from "@/lib/api";
@@ -25,16 +25,21 @@ export default function MessagesPage() {
   const [showCover, setShowCover] = useState(false);
   const [selectedCandidacy, setSelectedCandidacy] = useState<string | null>(null);
   const [replyText, setReplyText] = useState("");
+  const [filterOpen, setFilterOpen] = useState(false);
+  const [channelFilter, setChannelFilter] = useState<string[]>([]);
+  const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState(20);
 
   const { data, isLoading } = useQuery({
-    queryKey: ["conversations-awaiting", subTab, onlyMine],
+    queryKey: ["conversations-awaiting", subTab, onlyMine, channelFilter, page, pageSize],
     queryFn: () =>
       appApi.getConversationsAwaiting({
         sort: "longest",
-        page: "1",
-        pageSize: "20",
+        page: String(page),
+        pageSize: String(pageSize),
         ...(subTab === "archive" ? { status: "archive" } : {}),
         ...(onlyMine ? { onlyMine: "true" } : {}),
+        ...(channelFilter.length ? { channels: channelFilter.join(",") } : {}),
       }),
     refetchInterval: 10000,
   });
@@ -110,7 +115,7 @@ export default function MessagesPage() {
           onChange={(v) => setSubTab(v as "active" | "archive")}
           size="small"
         />
-        <Button size="small" onClick={() => message.info("Фильтры — в разработке")}>Фильтры</Button>
+        <Button size="small" onClick={() => setFilterOpen(true)}>Фильтры</Button>
         <Button
           size="small"
           type={onlyMine ? "primary" : "text"}
@@ -150,7 +155,13 @@ export default function MessagesPage() {
                   background: record.candidacyId === selectedCandidacy ? "rgba(107,83,213,.06)" : undefined,
                 },
               })}
-              pagination={false}
+              pagination={{
+                current: page,
+                pageSize,
+                total: (resp as { total?: number })?.total ?? items.length,
+                showSizeChanger: true,
+                onChange: (p, ps) => { setPage(p); setPageSize(ps); },
+              }}
               size="middle"
             />
           )}
@@ -230,6 +241,34 @@ export default function MessagesPage() {
           )}
         </div>
       </div>
+
+      <Drawer
+        title="Фильтры"
+        open={filterOpen}
+        onClose={() => setFilterOpen(false)}
+        width={300}
+        extra={<Button onClick={() => setChannelFilter([])}>Сбросить</Button>}
+      >
+        <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+          <div>
+            <h4 style={{ marginBottom: 12 }}>Канал</h4>
+            <Checkbox.Group
+              value={channelFilter}
+              onChange={(vals) => setChannelFilter(vals as string[])}
+            >
+              <Space direction="vertical">
+                <Checkbox value="email">Email</Checkbox>
+                <Checkbox value="telegram">Telegram</Checkbox>
+                <Checkbox value="whatsapp">WhatsApp</Checkbox>
+                <Checkbox value="sms">SMS</Checkbox>
+              </Space>
+            </Checkbox.Group>
+          </div>
+          <Button type="primary" block onClick={() => { setFilterOpen(false); setPage(1); }}>
+            Применить
+          </Button>
+        </div>
+      </Drawer>
     </div>
   );
 }

@@ -46,6 +46,7 @@ export default function CandidatePage({
     onSuccess: () => {
       message.success("Кандидат обновлён");
       qc.invalidateQueries({ queryKey: ["candidate", id] });
+      qc.invalidateQueries({ queryKey: ["candidates"] });
       setEditOpen(false);
     },
     onError: () => message.error("Не удалось сохранить"),
@@ -56,6 +57,8 @@ export default function CandidatePage({
     onSuccess: () => {
       message.success("Кандидат добавлен на вакансию");
       qc.invalidateQueries({ queryKey: ["candidate-candidacies", id] });
+      qc.invalidateQueries({ queryKey: ["vacancy-candidacies"] });
+      qc.invalidateQueries({ queryKey: ["conversations-awaiting"] });
       setAddVacancyOpen(false);
       vacancyForm.resetFields();
     },

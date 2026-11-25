@@ -88,11 +88,37 @@ export default function HomePage() {
     onSuccess: (resp) => {
       message.success("Вакансия создана");
       qc.invalidateQueries({ queryKey: ["vacancies-active"] });
+      qc.invalidateQueries({ queryKey: ["sidebar-vacancies"] });
+      qc.invalidateQueries({ queryKey: ["vacancy-facets"] });
       setCreateOpen(false);
       form.resetFields();
       router.push(`/vacancy/${resp.id}`);
     },
     onError: () => message.error("Не удалось создать вакансию"),
+  });
+
+  const bulkStatusMut = useMutation({
+    mutationFn: ({ ids, status }: { ids: string[]; status: string }) =>
+      appApi.bulkUpdateVacancyStatus(ids, status),
+    onSuccess: () => {
+      message.success("Статус обновлён");
+      setSelectedRowKeys([]);
+      qc.invalidateQueries({ queryKey: ["vacancies-active"] });
+      qc.invalidateQueries({ queryKey: ["sidebar-vacancies"] });
+    },
+    onError: () => message.error("Не удалось обновить статус"),
+  });
+
+  const bulkDeleteMut = useMutation({
+    mutationFn: (ids: string[]) => appApi.bulkDeleteVacancies(ids),
+    onSuccess: () => {
+      message.success("Вакансии удалены");
+      setSelectedRowKeys([]);
+      qc.invalidateQueries({ queryKey: ["vacancies-active"] });
+      qc.invalidateQueries({ queryKey: ["sidebar-vacancies"] });
+      qc.invalidateQueries({ queryKey: ["vacancy-facets"] });
+    },
+    onError: () => message.error("Не удалось удалить"),
   });
 
   const { data: kpi } = useQuery({
@@ -215,7 +241,7 @@ export default function HomePage() {
         title: "Дедлайн",
         dataIndex: "deadline",
         key: "deadline",
-        render: (d: string) => (d ? new Date(d).toLocaleDateString("ru") : "—"),
+        render: (d: string) => (d ? new Date(d).toLocaleDateString("ru-RU") : "—"),
       });
     }
     return cols;
@@ -330,6 +356,7 @@ export default function HomePage() {
                 }}
                 size="middle"
                 scroll={{ x: true }}
+                locale={{ emptyText: "Нет вакансий. Создайте первую!" }}
               />
             )}
           </div>
@@ -340,10 +367,10 @@ export default function HomePage() {
               </Button>
               {selectedRowKeys.length > 0 && (
                 <>
-                  <Button onClick={() => message.info("Пауза — в разработке")}>Пауза</Button>
-                  <Button onClick={() => message.info("Активировать — в разработке")}>Активировать</Button>
-                  <Button onClick={() => message.info("Закрыть — в разработке")}>Закрыть</Button>
-                  <Button danger onClick={() => { setSelectedRowKeys([]); message.info("Удаление — в разработке")}}>Удалить</Button>
+                  <Button onClick={() => bulkStatusMut.mutate({ ids: selectedRowKeys as string[], status: "paused" })}>Пауза</Button>
+                  <Button onClick={() => bulkStatusMut.mutate({ ids: selectedRowKeys as string[], status: "active" })}>Активировать</Button>
+                  <Button onClick={() => bulkStatusMut.mutate({ ids: selectedRowKeys as string[], status: "closed" })}>Закрыть</Button>
+                  <Button danger onClick={() => bulkDeleteMut.mutate(selectedRowKeys as string[])}>Удалить</Button>
                   <Button type="text" onClick={() => setSelectedRowKeys([])}>Снять выделение</Button>
                 </>
               )}

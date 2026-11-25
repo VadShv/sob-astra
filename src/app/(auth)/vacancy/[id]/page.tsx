@@ -34,6 +34,8 @@ export default function VacancyPage({
       message.success("Статус обновлён");
       qc.invalidateQueries({ queryKey: ["vacancy", id] });
       qc.invalidateQueries({ queryKey: ["vacancies-active"] });
+      qc.invalidateQueries({ queryKey: ["sidebar-vacancies"] });
+      qc.invalidateQueries({ queryKey: ["vacancy-facets"] });
     },
     onError: () => message.error("Не удалось изменить статус"),
   });
@@ -82,6 +84,7 @@ export default function VacancyPage({
         actions={
           <>
             <Button href={`/vacancy/new?id=${id}`}>Редактировать</Button>
+            <Button onClick={() => router.push("/search")}>Добавить кандидата</Button>
             {isActive && (
               <Popconfirm title="Поставить на паузу?" onConfirm={() => statusMut.mutate("paused")}>
                 <Button>Пауза</Button>

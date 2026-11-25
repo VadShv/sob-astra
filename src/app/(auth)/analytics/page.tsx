@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
-import { Button, Segmented, Skeleton, Table, Tag, message } from "antd";
+import { Button, Segmented, Skeleton, Table, Tag, message, Modal } from "antd";
 import type { ColumnsType } from "antd/es/table";
 import { PageHeader } from "@/components/PageHeader";
 import { appApi, type HiringKpi } from "@/lib/api";
@@ -62,6 +62,7 @@ function Section({
 
 export default function AnalyticsPage() {
   const [period, setPeriod] = useState("Текущий квартал");
+  const [exportLogOpen, setExportLogOpen] = useState(false);
   const range = getPeriodRange(period);
   const params = { from: range.from, to: range.to, tzOffset: "-180" };
 
@@ -83,6 +84,12 @@ export default function AnalyticsPage() {
   const { data: teamData } = useQuery({
     queryKey: ["analytics-team-funnels", period],
     queryFn: () => appApi.getAnalyticsTeamFunnels(params),
+  });
+
+  const { data: exportLog } = useQuery({
+    queryKey: ["export-log"],
+    queryFn: () => appApi.getExportLog(),
+    enabled: exportLogOpen,
   });
 
   const exportMut = useMutation({
@@ -130,7 +137,7 @@ export default function AnalyticsPage() {
         sub="Дашборд подбора"
         actions={
           <>
-            <Button onClick={() => message.info("Журнал выгрузок — в разработке")}>
+            <Button onClick={() => setExportLogOpen(true)}>
               Журнал выгрузок
             </Button>
             <Button
@@ -261,6 +268,27 @@ export default function AnalyticsPage() {
           />
         </>
       )}
+
+      <Modal
+        title="Журнал выгрузок"
+        open={exportLogOpen}
+        onCancel={() => setExportLogOpen(false)}
+        footer={null}
+        width={600}
+      >
+        <Table
+          dataSource={exportLog?.items ?? []}
+          rowKey="id"
+          pagination={false}
+          size="small"
+          columns={[
+            { title: "Тип", dataIndex: "type", key: "type" },
+            { title: "Дата", dataIndex: "createdAt", key: "createdAt", render: (d: string) => new Date(d).toLocaleString("ru-RU") },
+            { title: "Статус", dataIndex: "status", key: "status", render: (s: string) => <Tag color={s === "done" ? "green" : "default"}>{s}</Tag> },
+          ]}
+          locale={{ emptyText: "Нет выгрузок" }}
+        />
+      </Modal>
     </div>
   );
 }

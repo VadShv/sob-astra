@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import {
   Input, Button, Table, Skeleton, Segmented, Tag, Drawer, Checkbox, Space, message,
 } from "antd";
@@ -69,6 +69,7 @@ function buildColumns(): ColumnsType<Candidate> {
 
 export default function SearchPage() {
   const router = useRouter();
+  const qc = useQueryClient();
   const [filterOpen, setFilterOpen] = useState(false);
   const [search, setSearch] = useState("");
   const [debouncedSearch, setDebouncedSearch] = useState("");
@@ -77,6 +78,8 @@ export default function SearchPage() {
   const [sort, setSort] = useState("recent");
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(20);
+  const [aiResults, setAiResults] = useState<Candidate[] | null>(null);
+  const [aiLoading, setAiLoading] = useState(false);
 
   useEffect(() => {
     const t = setTimeout(() => setDebouncedSearch(search), 400);
@@ -146,7 +149,17 @@ export default function SearchPage() {
           size="large"
           type="primary"
           className={s.aiButton}
-          onClick={() => message.info("AI-поиск — в разработке")}
+          loading={aiLoading}
+          onClick={async () => {
+            if (!debouncedSearch) { message.info("Введите запрос для AI-поиска"); return; }
+            setAiLoading(true);
+            try {
+              const resp = await appApi.searchCandidatesAI({ query: debouncedSearch });
+              setAiResults(resp.items);
+              message.success(`Найдено ${resp.items.length} кандидатов`);
+            } catch { message.error("AI-поиск недоступен"); }
+            setAiLoading(false);
+          }}
         >
           Найти с ИИ
         </Button>

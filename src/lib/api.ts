@@ -394,6 +394,14 @@ export const appApi = {
     const { data } = await apiClient.patch("/api/vacancy/status", { id, status });
     return data;
   },
+  async bulkUpdateVacancyStatus(ids: string[], status: string): Promise<unknown> {
+    const { data } = await apiClient.post("/api/vacancy/bulk-status", { ids, status });
+    return data;
+  },
+  async bulkDeleteVacancies(ids: string[]): Promise<unknown> {
+    const { data } = await apiClient.post("/api/vacancy/bulk-delete", { ids });
+    return data;
+  },
 
   async createCandidate(payload: Record<string, unknown>): Promise<{ id: string }> {
     const { data } = await apiClient.post("/api/candidate", payload);
@@ -484,6 +492,65 @@ export const appApi = {
 
   async exportAnalyticsExcel(payload: Record<string, unknown>): Promise<{ url: string }> {
     const { data } = await apiClient.post("/api/analytics/export", payload);
+    return data;
+  },
+  async getExportLog(): Promise<{ items: Array<{ id: string; type: string; createdAt: string; status: string; url?: string }> }> {
+    const { data } = await apiClient.get("/api/analytics/export-log");
+    return data;
+  },
+  async getSavedSearches(): Promise<{ items: Array<{ id: string; name: string; query: string; createdAt: string }> }> {
+    const { data } = await apiClient.get("/api/saved-searches");
+    return data;
+  },
+  async createSavedSearch(payload: { name: string; query: string }): Promise<{ id: string }> {
+    const { data } = await apiClient.post("/api/saved-searches", payload);
+    return data;
+  },
+  async deleteSavedSearch(id: string): Promise<void> {
+    await apiClient.delete(`/api/saved-searches/${id}`);
+  },
+  async searchCandidatesAI(payload: { query: string }): Promise<{ items: Candidate[]; total?: number }> {
+    const { data } = await apiClient.post("/api/candidate/ai-search", payload);
+    return data;
+  },
+  async exportCandidates(params?: Record<string, string>): Promise<{ url: string }> {
+    const { data } = await apiClient.post("/api/candidate/export", params);
+    return data;
+  },
+  async exportVacancies(params?: Record<string, string>): Promise<{ url: string }> {
+    const { data } = await apiClient.post("/api/vacancy/export", params);
+    return data;
+  },
+  async getCandidateNotes(candidateId: string): Promise<{ items: Array<{ id: string; body: string; author: string; createdAt: string }> }> {
+    const { data } = await apiClient.get(`/api/candidate/${candidateId}/notes`);
+    return data;
+  },
+  async addCandidateNote(candidateId: string, body: string): Promise<{ id: string }> {
+    const { data } = await apiClient.post(`/api/candidate/${candidateId}/notes`, { body });
+    return data;
+  },
+  async updateCandidateTags(candidateId: string, tags: string[]): Promise<unknown> {
+    const { data } = await apiClient.patch(`/api/candidate/${candidateId}/tags`, { tags });
+    return data;
+  },
+  async uploadResume(candidateId: string, file: File): Promise<{ url: string }> {
+    const formData = new FormData();
+    formData.append("file", file);
+    const { data } = await apiClient.post(`/api/candidate/${candidateId}/resume`, formData, {
+      headers: { "Content-Type": "multipart/form-data" },
+    });
+    return data;
+  },
+  async updateUserRole(userId: string, role: string): Promise<unknown> {
+    const { data } = await apiClient.patch(`/api/company-users/${userId}/role`, { role });
+    return data;
+  },
+  async resendInvite(userId: string): Promise<unknown> {
+    const { data } = await apiClient.post(`/api/company-users/${userId}/resend`);
+    return data;
+  },
+  async deactivateUser(userId: string): Promise<unknown> {
+    const { data } = await apiClient.patch(`/api/company-users/${userId}/deactivate`);
     return data;
   },
   async getAnalyticsSourceBreakdown(params?: Record<string, string>): Promise<{

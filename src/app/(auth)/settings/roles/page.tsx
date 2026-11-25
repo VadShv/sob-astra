@@ -1,6 +1,6 @@
 "use client";
 
-import { Table, Tag, Button, Modal, Form, Input, Select, Checkbox, Space, message, Popconfirm } from "antd";
+import { Table, Tag, Button, Modal, Form, Input, Select, Checkbox, Space, message, Popconfirm, Skeleton } from "antd";
 import type { ColumnsType } from "antd/es/table";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
@@ -33,7 +33,7 @@ export default function RolesSettingsPage() {
   const [editId, setEditId] = useState<string | null>(null);
   const [form] = Form.useForm();
 
-  const { data: rolesResp } = useQuery({
+  const { data: rolesResp, isLoading } = useQuery({
     queryKey: ["company-roles"],
     queryFn: () => appApi.getCompanyRoles(),
   });
@@ -122,13 +122,18 @@ export default function RolesSettingsPage() {
           Создать роль
         </Button>
       </div>
-      <Table<Role>
-        columns={columns}
-        dataSource={roles}
-        rowKey="id"
-        pagination={false}
-        size="middle"
-      />
+      {isLoading ? (
+        <Skeleton active />
+      ) : (
+        <Table<Role>
+          columns={columns}
+          dataSource={roles}
+          rowKey="id"
+          pagination={false}
+          size="middle"
+          locale={{ emptyText: "Нет ролей" }}
+        />
+      )}
       <Modal
         title={editId ? "Редактировать роль" : "Новая роль"}
         open={createOpen}

@@ -38,7 +38,12 @@ function VacancyForm() {
       form.setFieldsValue({
         title: v.title,
         orgUnitId: v.orgUnit?.id,
+        recruiterId: v.recruiters?.[0]?.id,
         plannedHires: v.plannedHires,
+        grade: (v as unknown as Record<string, unknown>).grade,
+        salaryFrom: (v as unknown as Record<string, unknown>).salaryFrom,
+        salaryTo: (v as unknown as Record<string, unknown>).salaryTo,
+        description: (v as unknown as Record<string, unknown>).description,
         isConfidential: v.isConfidential,
       });
     }
@@ -64,6 +69,8 @@ function VacancyForm() {
       message.success("Вакансия обновлена");
       qc.invalidateQueries({ queryKey: ["vacancy", editId] });
       qc.invalidateQueries({ queryKey: ["vacancies-active"] });
+      qc.invalidateQueries({ queryKey: ["sidebar-vacancies"] });
+      qc.invalidateQueries({ queryKey: ["vacancy-facets"] });
       router.push(`/vacancy/${editId}`);
     },
     onError: () => {
