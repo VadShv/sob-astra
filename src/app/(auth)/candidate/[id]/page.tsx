@@ -286,7 +286,9 @@ export default function CandidatePage({
                 cursor: "pointer",
                 borderBottom: "1px solid rgba(0,0,0,.06)",
               }}
+              tabIndex={0}
               onClick={() => router.push(`/vacancy/${cyc.vacancyId}`)}
+              onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); router.push(`/vacancy/${cyc.vacancyId}`); } }}
             >
               <div>
                 <div style={{ fontWeight: 600 }}>{cyc.vacancyTitle}</div>

@@ -17,6 +17,7 @@ const DEFAULT_STAGES = [
 export default function FunnelsSettingsPage() {
   const qc = useQueryClient();
   const [createOpen, setCreateOpen] = useState(false);
+  const [editId, setEditId] = useState<string | null>(null);
   const [form] = Form.useForm();
 
   const { data, isLoading } = useQuery({
@@ -44,6 +45,18 @@ export default function FunnelsSettingsPage() {
     onError: () => message.error("Не удалось удалить"),
   });
 
+  const updateMut = useMutation({
+    mutationFn: ({ id, payload }: { id: string; payload: Record<string, unknown> }) =>
+      appApi.updateFunnel(id, payload),
+    onSuccess: () => {
+      message.success("Воронка обновлена");
+      qc.invalidateQueries({ queryKey: ["funnel-templates"] });
+      setCreateOpen(false);
+      form.resetFields();
+    },
+    onError: () => message.error("Не удалось обновить"),
+  });
+
   const funnels = data?.items ?? [];
 
   return (
@@ -53,6 +66,7 @@ export default function FunnelsSettingsPage() {
         <Button type="primary" onClick={() => {
           form.resetFields();
           form.setFieldsValue({ stages: DEFAULT_STAGES });
+          setEditId(null);
           setCreateOpen(true);
         }}>
           Создать воронку
@@ -92,7 +106,14 @@ export default function FunnelsSettingsPage() {
               </div>
               <Space>
                 {i === 0 && <Tag color="green">По умолчанию</Tag>}
-                <Button type="text" size="small" onClick={() => message.info("Редактирование воронки — в разработке")}>Изменить</Button>
+                <Button type="text" size="small" onClick={() => {
+                  form.setFieldsValue({
+                    name: f.name,
+                    stages: f.stages?.map((st) => ({ name: st.name, type: st.type })) ?? [],
+                  });
+                  setEditId(f.id);
+                  setCreateOpen(true);
+                }}>Изменить</Button>
                 <Popconfirm title="Удалить воронку?" onConfirm={() => deleteMut.mutate(f.id)}>
                   <Button type="text" size="small" danger>Удалить</Button>
                 </Popconfirm>
@@ -102,15 +123,18 @@ export default function FunnelsSettingsPage() {
         </div>
       )}
       <Modal
-        title="Новая воронка"
+        title={editId ? "Редактировать воронку" : "Новая воронка"}
         open={createOpen}
-        onCancel={() => setCreateOpen(false)}
+        onCancel={() => { setCreateOpen(false); setEditId(null); }}
         onOk={() => {
-          form.validateFields().then((values) => createMut.mutate(values));
+          form.validateFields().then((values) => {
+            if (editId) updateMut.mutate({ id: editId, payload: values });
+            else createMut.mutate(values);
+          });
         }}
-        okText="Создать"
+        okText={editId ? "Сохранить" : "Создать"}
         cancelText="Отмена"
-        confirmLoading={createMut.isPending}
+        confirmLoading={createMut.isPending || updateMut.isPending}
         width={520}
       >
         <Form form={form} layout="vertical">

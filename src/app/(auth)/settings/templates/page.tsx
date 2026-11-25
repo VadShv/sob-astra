@@ -31,6 +31,19 @@ export default function TemplatesSettingsPage() {
     queryFn: () => appApi.getMessageTemplateVariables(),
   });
 
+  const { data: channelsData } = useQuery({
+    queryKey: ["reference-channels"],
+    queryFn: () => appApi.getReferenceDictionary("channels"),
+  });
+
+  const channelOptions = ((channelsData as { values?: { code: string; name: string }[] })?.values ?? []).map((c) => ({ value: c.code, label: c.name }));
+  const fallbackChannels = [
+    { value: "email", label: "Email" },
+    { value: "telegram", label: "Telegram" },
+    { value: "whatsapp", label: "WhatsApp" },
+    { value: "sms", label: "SMS" },
+  ];
+
   const createMut = useMutation({
     mutationFn: (payload: Record<string, unknown>) => appApi.createTemplate(payload),
     onSuccess: () => {
@@ -137,12 +150,7 @@ export default function TemplatesSettingsPage() {
           </Form.Item>
           <Form.Item label="Канал" name="channel">
             <Select
-              options={[
-                { value: "email", label: "Email" },
-                { value: "telegram", label: "Telegram" },
-                { value: "whatsapp", label: "WhatsApp" },
-                { value: "sms", label: "SMS" },
-              ]}
+              options={channelOptions.length > 0 ? channelOptions : fallbackChannels}
             />
           </Form.Item>
           <Form.Item label="Текст сообщения" name="body" rules={[{ required: true }]}>

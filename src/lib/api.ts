@@ -279,6 +279,14 @@ export const appApi = {
     const { data } = await apiClient.get(`/api/reference-dictionary/${code}`);
     return data;
   },
+  async getPermissions(): Promise<{ items: Array<{ code: string; name: string; description?: string }> }> {
+    const { data } = await apiClient.get("/api/permissions");
+    return data;
+  },
+  async getNotificationTypes(): Promise<{ items: Array<{ code: string; name: string; description: string }> }> {
+    const { data } = await apiClient.get("/api/notification-types");
+    return data;
+  },
   async getViewSettings(key: string): Promise<unknown> {
     const { data } = await apiClient.get(`/api/view-settings/${key}`);
     return data;

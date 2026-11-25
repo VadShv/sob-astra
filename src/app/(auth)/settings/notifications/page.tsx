@@ -6,7 +6,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { SettingsLayout } from "@/components/SettingsLayout";
 import { appApi } from "@/lib/api";
 
-const NOTIFICATION_KEYS = [
+const FALLBACK_NOTIFICATION_KEYS = [
   { key: "newCandidate", title: "Новый кандидат", desc: "Когда кандидат откликается на вакансию" },
   { key: "aiInterview", title: "Интервью ИИ завершено", desc: "Когда ИИ заканчивает интервью с кандидатом" },
   { key: "candidateReply", title: "Ответ кандидата", desc: "Когда кандидат отвечает на сообщение" },
@@ -21,6 +21,15 @@ export default function NotificationsSettingsPage() {
     queryKey: ["notification-settings"],
     queryFn: () => appApi.getNotificationSettings(),
   });
+
+  const { data: typesData } = useQuery({
+    queryKey: ["notification-types"],
+    queryFn: () => appApi.getNotificationTypes(),
+  });
+
+  const NOTIFICATION_KEYS = ((typesData as { items?: Array<{ code: string; name: string; description: string }> })?.items ?? []).length > 0
+    ? ((typesData as { items?: Array<{ code: string; name: string; description: string }> })?.items ?? []).map((t) => ({ key: t.code, title: t.name, desc: t.description }))
+    : FALLBACK_NOTIFICATION_KEYS;
 
   const mutation = useMutation({
     mutationFn: (values: Record<string, boolean>) => appApi.updateNotificationSettings(values),

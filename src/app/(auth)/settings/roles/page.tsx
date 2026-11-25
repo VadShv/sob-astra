@@ -15,7 +15,7 @@ interface Role {
   userCount: number;
 }
 
-const PERMISSIONS = [
+const FALLBACK_PERMISSIONS = [
   { label: "Просмотр вакансий", value: "vacancy:read" },
   { label: "Создание вакансий", value: "vacancy:create" },
   { label: "Редактирование вакансий", value: "vacancy:update" },
@@ -32,6 +32,14 @@ export default function RolesSettingsPage() {
   const [createOpen, setCreateOpen] = useState(false);
   const [editId, setEditId] = useState<string | null>(null);
   const [form] = Form.useForm();
+
+  const { data: permissionsData } = useQuery({
+    queryKey: ["permissions"],
+    queryFn: () => appApi.getPermissions(),
+  });
+
+  const permissionOptions = ((permissionsData as { items?: Array<{ code: string; name: string }> })?.items ?? []).map((p) => ({ label: p.name, value: p.code }));
+  const PERMISSIONS = permissionOptions.length > 0 ? permissionOptions : FALLBACK_PERMISSIONS;
 
   const { data: rolesResp, isLoading } = useQuery({
     queryKey: ["company-roles"],
