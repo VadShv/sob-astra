@@ -1,6 +1,7 @@
 "use client";
 
-import { Button, Skeleton, message, Popconfirm } from "antd";
+import { useState } from "react";
+import { Button, Skeleton, message, Popconfirm, Modal, Form, Input } from "antd";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { SettingsLayout } from "@/components/SettingsLayout";
 import { appApi, authApi } from "@/lib/api";
@@ -120,6 +121,22 @@ export default function IntegrationsPage() {
     onError: () => message.error("Не удалось отключить"),
   });
 
+  const [configOpen, setConfigOpen] = useState(false);
+  const [configType, setConfigType] = useState<string>("");
+  const [configForm] = Form.useForm();
+  const [testing, setTesting] = useState(false);
+
+  const testMut = useMutation({
+    mutationFn: ({ type, payload }: { type: string; payload: Record<string, unknown> }) =>
+      appApi.testIntegration(type, payload),
+    onSuccess: (resp) => {
+      if (resp.success) message.success("Соединение успешно");
+      else message.error(resp.message || "Не удалось подключиться");
+      setTesting(false);
+    },
+    onError: () => { message.error("Не удалось проверить"); setTesting(false); },
+  });
+
   const integrationsData = integrations as Record<string, { connected?: boolean; account?: string }> | undefined;
 
   const mergeStatus = (cards: IntegrationCard[]): IntegrationCard[] =>
@@ -146,6 +163,12 @@ export default function IntegrationsPage() {
   const handleConnect = (card: IntegrationCard) => {
     if (card.oauthUrl) {
       window.location.href = card.oauthUrl;
+      return;
+    }
+    if (card.integrationType === "imap" || card.integrationType === "exchange") {
+      setConfigType(card.integrationType);
+      configForm.resetFields();
+      setConfigOpen(true);
       return;
     }
     connectMut.mutate({ type: card.integrationType });
@@ -195,6 +218,68 @@ export default function IntegrationsPage() {
           </div>
         </div>
       )}
+
+      <Modal
+        title={configType === "imap" ? "Подключение IMAP/SMTP" : "Подключение Exchange"}
+        open={configOpen}
+        onCancel={() => setConfigOpen(false)}
+        onOk={() => {
+          configForm.validateFields().then((values) => {
+            connectMut.mutate({ type: configType, payload: values });
+            setConfigOpen(false);
+          });
+        }}
+        okText="Подключить"
+        cancelText="Отмена"
+        confirmLoading={connectMut.isPending}
+        footer={(_, { OkBtn, CancelBtn }) => (
+          <>
+            <CancelBtn />
+            <Button
+              loading={testing}
+              onClick={() => {
+                configForm.validateFields().then((values) => {
+                  setTesting(true);
+                  testMut.mutate({ type: configType, payload: values });
+                });
+              }}
+            >
+              Проверить соединение
+            </Button>
+            <OkBtn />
+          </>
+        )}
+      >
+        <Form form={configForm} layout="vertical">
+          {configType === "imap" && (
+            <>
+              <Form.Item label="IMAP сервер" name="imapHost" rules={[{ required: true }]}>
+                <Input placeholder="imap.example.ru" />
+              </Form.Item>
+              <Form.Item label="IMAP порт" name="imapPort" initialValue={993}>
+                <Input type="number" />
+              </Form.Item>
+              <Form.Item label="SMTP сервер" name="smtpHost" rules={[{ required: true }]}>
+                <Input placeholder="smtp.example.ru" />
+              </Form.Item>
+              <Form.Item label="SMTP порт" name="smtpPort" initialValue={465}>
+                <Input type="number" />
+              </Form.Item>
+            </>
+          )}
+          {configType === "exchange" && (
+            <Form.Item label="URL сервера Exchange" name="serverUrl" rules={[{ required: true }]}>
+              <Input placeholder="https://exchange.example.ru/EWS/Exchange.asmx" />
+            </Form.Item>
+          )}
+          <Form.Item label="Логин / Email" name="login" rules={[{ required: true }]}>
+            <Input placeholder="user@example.ru" />
+          </Form.Item>
+          <Form.Item label="Пароль" name="password" rules={[{ required: true }]}>
+            <Input.Password />
+          </Form.Item>
+        </Form>
+      </Modal>
     </SettingsLayout>
   );
 }

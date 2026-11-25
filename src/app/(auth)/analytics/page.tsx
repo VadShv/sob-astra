@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
-import { Button, Segmented, Skeleton, Table, Tag, message, Modal, Select } from "antd";
+import { Button, Segmented, Skeleton, Table, Tag, message, Modal, Select, DatePicker } from "antd";
 import type { ColumnsType } from "antd/es/table";
 import { PageHeader } from "@/components/PageHeader";
 import { appApi, type HiringKpi } from "@/lib/api";
@@ -65,7 +65,10 @@ export default function AnalyticsPage() {
   const [exportLogOpen, setExportLogOpen] = useState(false);
   const [recruiterId, setRecruiterId] = useState<string>("");
   const [vacancyId, setVacancyId] = useState<string>("");
-  const range = getPeriodRange(period);
+  const [customRange, setCustomRange] = useState<[string, string] | null>(null);
+  const range = customRange
+    ? { from: new Date(customRange[0]).toISOString(), to: new Date(customRange[1]).toISOString() }
+    : getPeriodRange(period);
   const params = { from: range.from, to: range.to, tzOffset: "-180", ...(recruiterId ? { recruiterId } : {}), ...(vacancyId ? { vacancyId } : {}) };
 
   const { data: facets } = useQuery({
@@ -165,11 +168,20 @@ export default function AnalyticsPage() {
 
       <div className={s.filters} style={{ display: "flex", gap: 12, alignItems: "center", flexWrap: "wrap" }}>
         <Segmented
-          options={["Текущий квартал", "Этот месяц", "Этот год"]}
+          options={["Текущий квартал", "Этот месяц", "Этот год", "Свой период"]}
           value={period}
-          onChange={(v) => setPeriod(v as string)}
+          onChange={(v) => { setPeriod(v as string); if (v !== "Свой период") setCustomRange(null); }}
           size="small"
         />
+        {period === "Свой период" && (
+          <DatePicker.RangePicker
+            onChange={(_, dateStrings) => {
+              if (dateStrings[0] && dateStrings[1]) setCustomRange([dateStrings[0], dateStrings[1]]);
+            }}
+            size="small"
+            format="DD.MM.YYYY"
+          />
+        )}
         <Select
           placeholder="Все рекрутеры"
           allowClear
@@ -246,6 +258,49 @@ export default function AnalyticsPage() {
                       </span>
                     </div>
                   ))}
+                </div>
+              )
+            }
+          />
+
+          <Section
+            title="Эффективность"
+            desc="Конверсия кандидатов по рекрутерам"
+            tableColumns={[
+              { title: "Рекрутер", dataIndex: "recruiterName", key: "recruiterName" },
+              { title: "Вакансий", dataIndex: "vacancies", key: "vacancies", align: "center" as const },
+              { title: "Кандидатов", dataIndex: "candidates", key: "candidates", align: "center" as const },
+              { title: "Нанято", dataIndex: "hired", key: "hired", align: "center" as const },
+              {
+                title: "Конверсия",
+                key: "conversion",
+                align: "center" as const,
+                render: (_: unknown, r: Record<string, unknown>) => {
+                  const candidates = r.candidates as number ?? 0;
+                  const hired = r.hired as number ?? 0;
+                  const rate = candidates > 0 ? Math.round((hired / candidates) * 100) : 0;
+                  return <Tag color={rate > 10 ? "green" : rate > 0 ? "orange" : "default"}>{rate}%</Tag>;
+                },
+              },
+            ]}
+            tableData={team as unknown as Record<string, unknown>[]}
+            diagram={
+              team.length === 0 ? (
+                <div style={{ textAlign: "center", padding: 24, color: "rgba(0,0,0,.45)" }}>
+                  Нет данных за период
+                </div>
+              ) : (
+                <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+                  {team.map((t) => {
+                    const rate = t.candidates > 0 ? Math.round((t.hired / t.candidates) * 100) : 0;
+                    return (
+                      <div key={t.recruiterId} style={{ display: "flex", alignItems: "center", gap: 12, padding: "8px 0", borderBottom: "1px solid rgba(0,0,0,.06)" }}>
+                        <span style={{ flex: 1, fontWeight: 600 }}>{t.recruiterName}</span>
+                        <span style={{ fontSize: 13, color: "rgba(0,0,0,.45)" }}>{t.candidates} канд.</span>
+                        <Tag color={rate > 10 ? "green" : rate > 0 ? "orange" : "default"}>{rate}%</Tag>
+                      </div>
+                    );
+                  })}
                 </div>
               )
             }

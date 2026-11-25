@@ -150,10 +150,12 @@ export default function MessagesPage() {
               rowKey="candidacyId"
               onRow={(record) => ({
                 onClick: () => setSelectedCandidacy(record.candidacyId),
+                onKeyDown: (e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); setSelectedCandidacy(record.candidacyId); } },
                 style: {
                   cursor: "pointer",
                   background: record.candidacyId === selectedCandidacy ? "rgba(107,83,213,.06)" : undefined,
                 },
+                tabIndex: 0,
               })}
               pagination={{
                 current: page,

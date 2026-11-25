@@ -35,6 +35,15 @@ export default function FunnelsSettingsPage() {
     onError: () => message.error("Не удалось создать"),
   });
 
+  const deleteMut = useMutation({
+    mutationFn: (id: string) => appApi.deleteFunnel(id),
+    onSuccess: () => {
+      message.success("Воронка удалена");
+      qc.invalidateQueries({ queryKey: ["funnel-templates"] });
+    },
+    onError: () => message.error("Не удалось удалить"),
+  });
+
   const funnels = data?.items ?? [];
 
   return (
@@ -84,7 +93,7 @@ export default function FunnelsSettingsPage() {
               <Space>
                 {i === 0 && <Tag color="green">По умолчанию</Tag>}
                 <Button type="text" size="small" onClick={() => message.info("Редактирование воронки — в разработке")}>Изменить</Button>
-                <Popconfirm title="Удалить воронку?" onConfirm={() => message.info("Удаление — в разработке")}>
+                <Popconfirm title="Удалить воронку?" onConfirm={() => deleteMut.mutate(f.id)}>
                   <Button type="text" size="small" danger>Удалить</Button>
                 </Popconfirm>
               </Space>

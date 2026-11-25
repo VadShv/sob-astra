@@ -468,6 +468,17 @@ export const appApi = {
   async disconnectIntegration(integrationType: string): Promise<void> {
     await apiClient.delete(`/api/integrations/${integrationType}`);
   },
+  async testIntegration(integrationType: string, payload?: Record<string, unknown>): Promise<{ success: boolean; message?: string }> {
+    const { data } = await apiClient.post(`/api/integrations/${integrationType}/test`, payload ?? {});
+    return data;
+  },
+  async updateFunnel(id: string, payload: Record<string, unknown>): Promise<unknown> {
+    const { data } = await apiClient.patch(`/api/funnel-templates/${id}`, payload);
+    return data;
+  },
+  async deleteFunnel(id: string): Promise<void> {
+    await apiClient.delete(`/api/funnel-templates/${id}`);
+  },
 
   async getConversationMessages(candidacyId: string, params?: Record<string, string>): Promise<{
     items: Array<{ id: string; body: string; direction: "in" | "out"; createdAt: string; channel: string }>;
