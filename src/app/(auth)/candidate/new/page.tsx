@@ -3,7 +3,7 @@
 import { Suspense, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Form, Input, Select, Button, Card, Space, message } from "antd";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQueryClient, useQuery } from "@tanstack/react-query";
 import { PageHeader } from "@/components/PageHeader";
 import { appApi } from "@/lib/api";
 
@@ -14,6 +14,13 @@ function CandidateCreateForm() {
   const [form] = Form.useForm();
   const [saving, setSaving] = useState(false);
   const backUrl = searchParams.get("back") || "/search";
+
+  const { data: sources } = useQuery({
+    queryKey: ["candidate-sources"],
+    queryFn: () => appApi.getReferenceDictionary("candidateSources"),
+  });
+
+  const sourceOptions = ((sources as { values?: { code: string; name: string }[] })?.values ?? []).map((s) => ({ value: s.code, label: s.name }));
 
   const createMut = useMutation({
     mutationFn: (payload: Record<string, unknown>) => appApi.createCandidate(payload),
@@ -93,7 +100,7 @@ function CandidateCreateForm() {
           </Form.Item>
           <Form.Item label="Источник" name="source">
             <Select
-              options={[
+              options={sourceOptions.length > 0 ? sourceOptions : [
                 { value: "manual", label: "Добавлен вручную" },
                 { value: "hh", label: "hh.ru" },
                 { value: "referral", label: "Реферал" },

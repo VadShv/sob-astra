@@ -83,6 +83,11 @@ export default function HomePage() {
     queryFn: () => appApi.getVacancyFacets({ status: statusFilter }),
   });
 
+  const { data: orgUnits } = useQuery({
+    queryKey: ["org-units"],
+    queryFn: () => appApi.getOrgUnits(),
+  });
+
   const createMut = useMutation({
     mutationFn: (payload: Record<string, unknown>) => appApi.createVacancy(payload),
     onSuccess: (resp) => {
@@ -400,7 +405,10 @@ export default function HomePage() {
             <Input placeholder="Например: Frontend разработчик" />
           </Form.Item>
           <Form.Item label="Подразделение" name="orgUnit">
-            <Select options={[{ value: "main", label: "Основное" }]} />
+            <Select
+              options={((orgUnits as { items?: { id: string; name: string }[] })?.items ?? []).map((u) => ({ value: u.id, label: u.name }))}
+              placeholder="Выберите подразделение"
+            />
           </Form.Item>
           <Form.Item label="Планируем найм" name="plannedHires">
             <Input type="number" min={1} defaultValue={1} />
