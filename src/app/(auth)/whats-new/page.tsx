@@ -1,6 +1,7 @@
 "use client";
 
 import { PageHeader } from "@/components/PageHeader";
+import { usePageTitle } from "@/components/usePageTitle";
 import { Tag } from "antd";
 
 const UPDATES = [
@@ -37,6 +38,7 @@ const UPDATES = [
 ];
 
 export default function WhatsNewPage() {
+  usePageTitle("Что нового");
   return (
     <div style={{ maxWidth: 720, margin: "0 auto", padding: "24px 0" }}>
       <PageHeader title="Что нового" sub="Обновления и улучшения" />

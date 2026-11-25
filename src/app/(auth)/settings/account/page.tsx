@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect } from "react";
-import { Form, Input, Button, Select, Divider, message, Skeleton } from "antd";
+import { Form, Input, Button, Select, Divider, message, Skeleton, Upload, Switch, Tag, Space, Popconfirm, List } from "antd";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { SettingsLayout } from "@/components/SettingsLayout";
 import { authApi, appApi } from "@/lib/api";
@@ -24,6 +24,44 @@ export default function AccountSettingsPage() {
     onError: () => message.error("Не удалось сохранить"),
   });
 
+  const { data: tfaStatus } = useQuery({
+    queryKey: ["2fa-status"],
+    queryFn: () => appApi.get2FAStatus(),
+  });
+
+  const { data: sessionsData } = useQuery({
+    queryKey: ["user-sessions"],
+    queryFn: () => appApi.getSessions(),
+  });
+
+  const avatarMut = useMutation({
+    mutationFn: (file: File) => appApi.uploadAvatar(file),
+    onSuccess: () => {
+      message.success("Аватар загружен");
+      qc.invalidateQueries({ queryKey: ["auth-me"] });
+    },
+    onError: () => message.error("Не удалось загрузить"),
+  });
+
+  const tfaMut = useMutation({
+    mutationFn: ({ action, code }: { action: "enable" | "disable"; code?: string }) =>
+      action === "enable" ? appApi.enable2FA(code!) : appApi.disable2FA(),
+    onSuccess: () => {
+      message.success("2FA обновлён");
+      qc.invalidateQueries({ queryKey: ["2fa-status"] });
+    },
+    onError: () => message.error("Не удалось обновить"),
+  });
+
+  const revokeMut = useMutation({
+    mutationFn: (sessionId: string) => appApi.revokeSession(sessionId),
+    onSuccess: () => {
+      message.success("Сессия завершена");
+      qc.invalidateQueries({ queryKey: ["user-sessions"] });
+    },
+    onError: () => message.error("Не удалось завершить"),
+  });
+
   useEffect(() => {
     if (user?.user) {
       form.setFieldsValue({
@@ -41,6 +79,7 @@ export default function AccountSettingsPage() {
       {isLoading ? (
         <Skeleton active />
       ) : (
+        <>
         <Form
           form={form}
           layout="vertical"
@@ -117,6 +156,71 @@ export default function AccountSettingsPage() {
             </Button>
           </Form.Item>
         </Form>
+
+        <Divider />
+
+        <div style={{ maxWidth: 480 }}>
+          <h3 style={{ fontSize: 16, fontWeight: 600, marginBottom: 16 }}>Аватар</h3>
+          <Upload
+            maxCount={1}
+            listType="picture-card"
+            customRequest={async ({ file, onSuccess, onError }) => {
+              try {
+                await avatarMut.mutateAsync(file as File);
+                onSuccess?.({});
+              } catch {
+                onError?.(new Error("Ошибка"));
+              }
+            }}
+          >
+            <div style={{ color: "rgba(0,0,0,.45)" }}>Загрузить</div>
+          </Upload>
+        </div>
+
+        <Divider />
+
+        <div style={{ maxWidth: 480 }}>
+          <h3 style={{ fontSize: 16, fontWeight: 600, marginBottom: 16 }}>Двухфакторная аутентификация</h3>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+            <div>
+              <div style={{ fontWeight: 500 }}>Защита аккаунта</div>
+              <div style={{ fontSize: 13, color: "rgba(0,0,0,.45)" }}>
+                {tfaStatus?.enabled ? "2FA включена" : "Требуется код из приложения при входе"}
+              </div>
+            </div>
+            <Popconfirm
+              title={tfaStatus?.enabled ? "Отключить 2FA?" : "Включить 2FA?"}
+              onConfirm={() => tfaMut.mutate({ action: tfaStatus?.enabled ? "disable" : "enable", code: "000000" })}
+            >
+              <Switch checked={tfaStatus?.enabled ?? false} loading={tfaMut.isPending} />
+            </Popconfirm>
+          </div>
+        </div>
+
+        <Divider />
+
+        <div style={{ maxWidth: 480 }}>
+          <h3 style={{ fontSize: 16, fontWeight: 600, marginBottom: 16 }}>Активные сессии</h3>
+          <List
+            dataSource={sessionsData?.items ?? []}
+            locale={{ emptyText: "Нет активных сессий" }}
+            renderItem={(session) => (
+              <List.Item
+                actions={
+                  session.current
+                    ? undefined
+                    : [<Popconfirm key="revoke" title="Завершить сессию?" onConfirm={() => revokeMut.mutate(session.id)}><Button type="text" size="small" danger>Завершить</Button></Popconfirm>]
+                }
+              >
+                <List.Item.Meta
+                  title={<Space>{session.device}{session.current && <Tag color="green">Текущая</Tag>}</Space>}
+                  description={`${session.ip} · ${new Date(session.lastActiveAt).toLocaleString("ru-RU")}`}
+                />
+              </List.Item>
+            )}
+          />
+        </div>
+        </>
       )}
     </SettingsLayout>
   );

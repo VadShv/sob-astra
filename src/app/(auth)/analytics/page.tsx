@@ -6,6 +6,7 @@ import { Button, Segmented, Skeleton, Table, Tag, message, Modal, Select, DatePi
 import type { ColumnsType } from "antd/es/table";
 import { PageHeader } from "@/components/PageHeader";
 import { appApi, type HiringKpi } from "@/lib/api";
+import { usePageTitle } from "@/components/usePageTitle";
 import s from "./analytics.module.css";
 
 function getPeriodRange(period: string): { from: string; to: string } {
@@ -62,6 +63,7 @@ function Section({
 
 export default function AnalyticsPage() {
   const [period, setPeriod] = useState("Текущий квартал");
+  usePageTitle("Аналитика найма");
   const [exportLogOpen, setExportLogOpen] = useState(false);
   const [recruiterId, setRecruiterId] = useState<string>("");
   const [vacancyId, setVacancyId] = useState<string>("");

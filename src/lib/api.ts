@@ -572,6 +572,32 @@ export const appApi = {
     const { data } = await apiClient.patch(`/api/company-users/${userId}/deactivate`);
     return data;
   },
+  async uploadAvatar(file: File): Promise<{ url: string }> {
+    const formData = new FormData();
+    formData.append("file", file);
+    const { data } = await apiClient.post("/api/user/avatar", formData, {
+      headers: { "Content-Type": "multipart/form-data" },
+    });
+    return data;
+  },
+  async get2FAStatus(): Promise<{ enabled: boolean; qrUrl?: string }> {
+    const { data } = await apiClient.get("/api/user/2fa");
+    return data;
+  },
+  async enable2FA(code: string): Promise<unknown> {
+    const { data } = await apiClient.post("/api/user/2fa/enable", { code });
+    return data;
+  },
+  async disable2FA(): Promise<void> {
+    await apiClient.delete("/api/user/2fa");
+  },
+  async getSessions(): Promise<{ items: Array<{ id: string; device: string; ip: string; lastActiveAt: string; current: boolean }> }> {
+    const { data } = await apiClient.get("/api/user/sessions");
+    return data;
+  },
+  async revokeSession(sessionId: string): Promise<void> {
+    await apiClient.delete(`/api/user/sessions/${sessionId}`);
+  },
   async getAnalyticsSourceBreakdown(params?: Record<string, string>): Promise<{
     items: Array<{ name: string; count: number; percent: number }>;
   }> {

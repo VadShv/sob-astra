@@ -6,6 +6,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Skeleton, Tag, Button, Dropdown, message, Popconfirm } from "antd";
 import { PageHeader } from "@/components/PageHeader";
 import { appApi, type Vacancy, type VacancyStageCount } from "@/lib/api";
+import { usePageTitle } from "@/components/usePageTitle";
 import s from "./vacancy.module.css";
 
 export default function VacancyPage({
@@ -17,6 +18,7 @@ export default function VacancyPage({
   const router = useRouter();
   const qc = useQueryClient();
   const [activeStage, setActiveStage] = useState<string>("all");
+  usePageTitle("Вакансия");
 
   const { data: vacancy, isLoading } = useQuery({
     queryKey: ["vacancy", id],

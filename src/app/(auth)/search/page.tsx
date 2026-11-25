@@ -9,6 +9,7 @@ import {
 import type { ColumnsType } from "antd/es/table";
 import { PageHeader } from "@/components/PageHeader";
 import { appApi, type Candidate } from "@/lib/api";
+import { usePageTitle } from "@/components/usePageTitle";
 import s from "./search.module.css";
 
 function buildColumns(): ColumnsType<Candidate> {
@@ -70,6 +71,7 @@ function buildColumns(): ColumnsType<Candidate> {
 export default function SearchPage() {
   const router = useRouter();
   const qc = useQueryClient();
+  usePageTitle("Поиск кандидатов");
   const [filterOpen, setFilterOpen] = useState(false);
   const [search, setSearch] = useState("");
   const [debouncedSearch, setDebouncedSearch] = useState("");

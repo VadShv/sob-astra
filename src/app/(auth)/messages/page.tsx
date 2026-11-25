@@ -6,6 +6,7 @@ import { Button, Segmented, Skeleton, Table, Tag, Input, message, Drawer, Checkb
 import type { ColumnsType } from "antd/es/table";
 import { PageHeader } from "@/components/PageHeader";
 import { appApi } from "@/lib/api";
+import { usePageTitle } from "@/components/usePageTitle";
 import s from "./messages.module.css";
 
 interface Conversation {
@@ -19,6 +20,7 @@ interface Conversation {
 
 export default function MessagesPage() {
   const qc = useQueryClient();
+  usePageTitle("Сообщения");
   const [tab, setTab] = useState<"all" | "vacancy">("all");
   const [subTab, setSubTab] = useState<"active" | "archive">("active");
   const [onlyMine, setOnlyMine] = useState(false);

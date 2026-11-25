@@ -7,6 +7,7 @@ import type { ColumnsType } from "antd/es/table";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { PageHeader } from "@/components/PageHeader";
 import { authApi, appApi, type Vacancy, type HiringKpi } from "@/lib/api";
+import { usePageTitle } from "@/components/usePageTitle";
 import s from "./home.module.css";
 
 function getGreeting(): string {
@@ -48,6 +49,7 @@ const COLUMN_OPTIONS = [
 export default function HomePage() {
   const router = useRouter();
   const qc = useQueryClient();
+  usePageTitle("Главная");
   const [createOpen, setCreateOpen] = useState(false);
   const [selectedColumns, setSelectedColumns] = useState<Set<string>>(
     new Set(COLUMN_OPTIONS.filter((c) => c.default).map((c) => c.key))

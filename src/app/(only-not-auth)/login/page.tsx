@@ -16,6 +16,7 @@ import ruRU from "antd/locale/ru_RU";
 import { HhIcon } from "@/components/HhIcon";
 import { loginTheme } from "@/lib/theme";
 import { authApi, type ApiError, type Challenge } from "@/lib/api";
+import { usePageTitle } from "@/components/usePageTitle";
 import s from "./login.module.css";
 
 const ERROR_MESSAGES: Record<string, string> = {
@@ -103,6 +104,7 @@ export default function LoginPage() {
   const queryClient = useQueryClient();
   const { message } = App.useApp();
   const [form] = Form.useForm();
+  usePageTitle("Вход");
 
   const { data: user } = useQuery({
     queryKey: ["user"],

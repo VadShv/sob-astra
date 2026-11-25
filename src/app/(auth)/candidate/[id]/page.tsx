@@ -6,6 +6,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Skeleton, Tag, Button, Space, Divider, message, Modal, Form, Input, Select, Upload, Tooltip } from "antd";
 import { PageHeader } from "@/components/PageHeader";
 import { appApi, type Candidate } from "@/lib/api";
+import { usePageTitle } from "@/components/usePageTitle";
 import s from "./candidate.module.css";
 
 export default function CandidatePage({
@@ -17,6 +18,7 @@ export default function CandidatePage({
   const router = useRouter();
   const qc = useQueryClient();
   const [editOpen, setEditOpen] = useState(false);
+  usePageTitle("Кандидат");
   const [addVacancyOpen, setAddVacancyOpen] = useState(false);
   const [noteText, setNoteText] = useState("");
   const [editForm] = Form.useForm();
