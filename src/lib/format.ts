@@ -61,3 +61,9 @@ export function formatToday(): string {
 export function getInitials(firstName?: string, lastName?: string): string {
   return `${firstName?.[0] ?? ""}${lastName?.[0] ?? ""}`.toUpperCase();
 }
+
+export function usePageTitle(title: string): void {
+  if (typeof window !== "undefined") {
+    document.title = `${title} — Собесо`;
+  }
+}
