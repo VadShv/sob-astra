@@ -37,6 +37,7 @@ export default function RolesSettingsPage() {
   const { data: permissionsData } = useQuery({
     queryKey: qk.settings.permissions(),
     queryFn: () => appApi.getPermissions(),
+    staleTime: 300_000,
   });
 
   const permissionOptions = ((permissionsData as { items?: Array<{ code: string; name: string }> })?.items ?? []).map((p) => ({ label: p.name, value: p.code }));

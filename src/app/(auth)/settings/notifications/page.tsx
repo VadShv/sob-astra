@@ -26,6 +26,7 @@ export default function NotificationsSettingsPage() {
   const { data: typesData } = useQuery({
     queryKey: qk.notifications.types(),
     queryFn: () => appApi.getNotificationTypes(),
+    staleTime: 300_000,
   });
 
   const NOTIFICATION_KEYS = ((typesData as { items?: Array<{ code: string; name: string; description: string }> })?.items ?? []).length > 0

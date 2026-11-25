@@ -19,6 +19,7 @@ export default function CompanySettingsPage() {
   const { data: regions } = useQuery({
     queryKey: qk.reference.regions(),
     queryFn: () => appApi.getReferenceDictionary("regions"),
+    staleTime: 300_000,
   });
 
   const mutation = useMutation({

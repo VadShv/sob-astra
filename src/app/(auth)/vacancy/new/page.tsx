@@ -20,6 +20,7 @@ function VacancyForm() {
   const { data: orgUnits } = useQuery({
     queryKey: qk.reference.orgUnits(),
     queryFn: () => appApi.getOrgUnits(),
+    staleTime: 300_000,
   });
 
   const { data: facets } = useQuery({
@@ -30,6 +31,7 @@ function VacancyForm() {
   const { data: grades } = useQuery({
     queryKey: qk.reference.grades(),
     queryFn: () => appApi.getReferenceDictionary("grades"),
+    staleTime: 300_000,
   });
 
   const { data: existingVacancy, isLoading: loadingVacancy } = useQuery({

@@ -108,16 +108,19 @@ export default function SearchPage() {
   const { data: tags } = useQuery({
     queryKey: qk.candidates.tags(),
     queryFn: () => appApi.getReferenceDictionary("candidateTags"),
+    staleTime: 300_000,
   });
 
   const { data: sources } = useQuery({
     queryKey: qk.candidates.sources(),
     queryFn: () => appApi.getReferenceDictionary("candidateSources"),
+    staleTime: 300_000,
   });
 
   const { data: coldSearches } = useQuery({
     queryKey: qk.search.cold(),
     queryFn: () => appApi.getColdSearches(),
+    staleTime: 300_000,
   });
 
   const { data: savedSearches } = useQuery({

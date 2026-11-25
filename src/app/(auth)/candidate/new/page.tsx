@@ -19,6 +19,7 @@ function CandidateCreateForm() {
   const { data: sources } = useQuery({
     queryKey: qk.candidates.sources(),
     queryFn: () => appApi.getReferenceDictionary("candidateSources"),
+    staleTime: 300_000,
   });
 
   const sourceOptions = ((sources as { values?: { code: string; name: string }[] })?.values ?? []).map((s) => ({ value: s.code, label: s.name }));

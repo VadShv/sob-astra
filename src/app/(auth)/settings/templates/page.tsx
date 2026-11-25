@@ -35,6 +35,7 @@ export default function TemplatesSettingsPage() {
   const { data: channelsData } = useQuery({
     queryKey: qk.reference.channels(),
     queryFn: () => appApi.getReferenceDictionary("channels"),
+    staleTime: 300_000,
   });
 
   const channelOptions = ((channelsData as { values?: { code: string; name: string }[] })?.values ?? []).map((c) => ({ value: c.code, label: c.name }));

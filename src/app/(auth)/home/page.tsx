@@ -90,6 +90,7 @@ export default function HomePage() {
   const { data: orgUnits } = useQuery({
     queryKey: qk.reference.orgUnits(),
     queryFn: () => appApi.getOrgUnits(),
+    staleTime: 300_000,
   });
 
   const createMut = useMutation({
