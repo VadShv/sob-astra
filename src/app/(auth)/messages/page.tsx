@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient, keepPreviousData } from "@tanstack/react-query";
 import { Button, Segmented, Skeleton, Table, Tag, Input, message, Drawer, Checkbox, Space } from "antd";
 import type { ColumnsType } from "antd/es/table";
 import { PageHeader } from "@/components/PageHeader";
@@ -34,7 +34,7 @@ export default function MessagesPage() {
 
   const { data, isLoading } = useQuery({
     queryKey: ["conversations-awaiting", subTab, onlyMine, channelFilter, page, pageSize],
-    queryFn: () =>
+    queryFn: ({ signal }) =>
       appApi.getConversationsAwaiting({
         sort: "longest",
         page: String(page),
@@ -42,8 +42,9 @@ export default function MessagesPage() {
         ...(subTab === "archive" ? { status: "archive" } : {}),
         ...(onlyMine ? { onlyMine: "true" } : {}),
         ...(channelFilter.length ? { channels: channelFilter.join(",") } : {}),
-      }),
+      }, signal),
     refetchInterval: 10000,
+    placeholderData: keepPreviousData,
   });
 
   const { data: messagesData, isLoading: messagesLoading } = useQuery({

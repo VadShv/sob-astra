@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { useQuery, useMutation } from "@tanstack/react-query";
+import { useQuery, useMutation, keepPreviousData } from "@tanstack/react-query";
 import { Button, Segmented, Skeleton, Table, Tag, message, Modal, Select, DatePicker } from "antd";
 import type { ColumnsType } from "antd/es/table";
 import { PageHeader } from "@/components/PageHeader";
@@ -86,21 +86,25 @@ export default function AnalyticsPage() {
   const { data: kpi, isLoading } = useQuery({
     queryKey: ["hiring-kpi", period, recruiterId, vacancyId],
     queryFn: () => appApi.getHiringKpi(params),
+    placeholderData: keepPreviousData,
   });
 
   const { data: sourceData } = useQuery({
     queryKey: ["analytics-source-breakdown", period, recruiterId, vacancyId],
     queryFn: () => appApi.getAnalyticsSourceBreakdown(params),
+    placeholderData: keepPreviousData,
   });
 
   const { data: rejectionData } = useQuery({
     queryKey: ["analytics-rejection-reasons", period, recruiterId, vacancyId],
     queryFn: () => appApi.getAnalyticsRejectionReasons(params),
+    placeholderData: keepPreviousData,
   });
 
   const { data: teamData } = useQuery({
     queryKey: ["analytics-team-funnels", period, recruiterId, vacancyId],
     queryFn: () => appApi.getAnalyticsTeamFunnels(params),
+    placeholderData: keepPreviousData,
   });
 
   const { data: exportLog } = useQuery({

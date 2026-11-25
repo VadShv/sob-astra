@@ -253,8 +253,8 @@ export const appApi = {
     const { data } = await apiClient.get("/api/conversations/awaiting/count");
     return data;
   },
-  async getVacancies(params?: Record<string, string>): Promise<{ items: Vacancy[]; total?: number }> {
-    const { data } = await apiClient.get("/api/vacancy/all", { params });
+  async getVacancies(params?: Record<string, string>, signal?: AbortSignal): Promise<{ items: Vacancy[]; total?: number }> {
+    const { data } = await apiClient.get("/api/vacancy/all", { params, signal });
     return data;
   },
   async getVacancyFacets(params?: Record<string, string>): Promise<VacancyFacets> {
@@ -265,8 +265,8 @@ export const appApi = {
     const { data } = await apiClient.get("/api/analytics/hiring-kpi", { params });
     return data;
   },
-  async getCandidates(params?: Record<string, string>): Promise<{ items: Candidate[]; total?: number }> {
-    const { data } = await apiClient.get("/api/candidate", { params });
+  async getCandidates(params?: Record<string, string>, signal?: AbortSignal): Promise<{ items: Candidate[]; total?: number }> {
+    const { data } = await apiClient.get("/api/candidate", { params, signal });
     return data;
   },
   async getCandidateById(id: string): Promise<Candidate> {
@@ -310,8 +310,8 @@ export const appApi = {
     const { data } = await apiClient.get("/api/message-templates/variables");
     return data;
   },
-  async getConversationsAwaiting(params?: Record<string, string>): Promise<{ items: Conversation[]; total?: number }> {
-    const { data } = await apiClient.get("/api/conversations/awaiting", { params });
+  async getConversationsAwaiting(params?: Record<string, string>, signal?: AbortSignal): Promise<{ items: Conversation[]; total?: number }> {
+    const { data } = await apiClient.get("/api/conversations/awaiting", { params, signal });
     return data;
   },
   async getOrgUnits(): Promise<{ items: OrgUnit[] }> {

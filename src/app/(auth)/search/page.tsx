@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient, keepPreviousData } from "@tanstack/react-query";
 import {
   Input, Button, Table, Skeleton, Segmented, Tag, Drawer, Checkbox, Space, message,
 } from "antd";
@@ -93,14 +93,15 @@ export default function SearchPage() {
 
   const { data, isLoading } = useQuery({
     queryKey: ["candidates", debouncedSearch, selectedSources, selectedTags, sort, page, pageSize],
-    queryFn: () => {
+    queryFn: ({ signal }) => {
       const params: Record<string, string> = { page: String(page), pageSize: String(pageSize) };
       if (debouncedSearch) params.q = debouncedSearch;
       if (selectedSources.length) params.sources = selectedSources.join(",");
       if (selectedTags.length) params.tags = selectedTags.join(",");
       if (sort === "old") params.sortBy = "createdAt";
-      return appApi.getCandidates(params);
+      return appApi.getCandidates(params, signal);
     },
+    placeholderData: keepPreviousData,
   });
 
   const { data: tags } = useQuery({

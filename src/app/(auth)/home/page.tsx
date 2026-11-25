@@ -4,7 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Table, Tag, Button, Skeleton, Tooltip, Modal, Form, Input, Select, Dropdown, message } from "antd";
 import type { ColumnsType } from "antd/es/table";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient, keepPreviousData } from "@tanstack/react-query";
 import { PageHeader } from "@/components/PageHeader";
 import { authApi, appApi, type Vacancy, type HiringKpi } from "@/lib/api";
 import { usePageTitle } from "@/components/usePageTitle";
@@ -69,7 +69,7 @@ export default function HomePage() {
 
   const { data: vacancies, isLoading } = useQuery({
     queryKey: ["vacancies-active", statusFilter, page, pageSize, sortBy, sortOrder],
-    queryFn: () =>
+    queryFn: ({ signal }) =>
       appApi.getVacancies({
         status: statusFilter,
         showAllVacancies: "true",
@@ -77,7 +77,8 @@ export default function HomePage() {
         page: String(page),
         pageSize: String(pageSize),
         ...(sortBy ? { sortBy, sortOrder } : {}),
-      }),
+      }, signal),
+    placeholderData: keepPreviousData,
   });
 
   const { data: facets } = useQuery({
