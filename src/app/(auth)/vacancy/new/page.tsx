@@ -48,10 +48,10 @@ function VacancyForm() {
         orgUnitId: v.orgUnit?.id,
         recruiterId: v.recruiters?.[0]?.id,
         plannedHires: v.plannedHires,
-        grade: (v as unknown as Record<string, unknown>).grade,
-        salaryFrom: (v as unknown as Record<string, unknown>).salaryFrom,
-        salaryTo: (v as unknown as Record<string, unknown>).salaryTo,
-        description: (v as unknown as Record<string, unknown>).description,
+        grade: v.grade,
+        salaryFrom: v.salaryFrom,
+        salaryTo: v.salaryTo,
+        description: v.description,
         isConfidential: v.isConfidential,
       });
     }
@@ -139,7 +139,7 @@ function VacancyForm() {
               placeholder="Выберите рекрутера"
             />
           </Form.Item>
-          <Form.Item label="Планируем найм" name="plannedHires" initialValue={1}>
+          <Form.Item label="Планируем найм" name="plannedHires" initialValue={1} rules={[{ required: true, message: "Введите количество" }, { type: "number", min: 1, message: "Минимум 1" }]}>
             <Input type="number" min={1} />
           </Form.Item>
           <Form.Item label="Грейд" name="grade">

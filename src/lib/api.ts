@@ -113,6 +113,14 @@ export interface Vacancy {
   SourceIntegrationVacancy?: { integrationType: string };
   TransportIntegrationVacancy?: { integrationType: string };
   SinkIntegrationVacancy?: { integrationType: string };
+  grade?: string;
+  salaryFrom?: number;
+  salaryTo?: number;
+  description?: string;
+  deadline?: string;
+  city?: string;
+  experience?: string;
+  employmentType?: string;
 }
 
 export interface VacancyFacets {

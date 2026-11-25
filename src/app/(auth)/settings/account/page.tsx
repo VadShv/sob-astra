@@ -118,10 +118,10 @@ export default function AccountSettingsPage() {
             <Input disabled />
           </Form.Item>
           <Divider />
-          <Form.Item label="Текущий пароль" name="currentPassword">
+          <Form.Item label="Текущий пароль" name="currentPassword" dependencies={["newPassword"]} rules={[({ getFieldValue }) => ({ validator(_, value) { if (getFieldValue("newPassword") && !value) return Promise.reject(new Error("Введите текущий пароль")); return Promise.resolve(); } })]}>
             <Input.Password placeholder="Введите текущий пароль" />
           </Form.Item>
-          <Form.Item label="Новый пароль" name="newPassword">
+          <Form.Item label="Новый пароль" name="newPassword" rules={[{ min: 8, message: "Минимум 8 символов" }, { pattern: /^(?=.*[a-zA-Z])(?=.*\d).+$/, message: "Нужны буквы и цифры" }]}>
             <Input.Password placeholder="Введите новый пароль" />
           </Form.Item>
           <Form.Item label="Повторите новый пароль" name="confirmPassword" dependencies={["newPassword"]}

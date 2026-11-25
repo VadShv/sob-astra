@@ -47,10 +47,10 @@ export default function CompanySettingsPage() {
           style={{ maxWidth: 480 }}
           onFinish={(values) => mutation.mutate(values)}
         >
-          <Form.Item label="Название компании" name="name">
+          <Form.Item label="Название компании" name="name" rules={[{ required: true, message: "Введите название" }]}>
             <Input placeholder="Название компании" />
           </Form.Item>
-          <Form.Item label="ИНН" name="inn">
+          <Form.Item label="ИНН" name="inn" rules={[{ pattern: /^\d{10}(\d{2})?$/, message: "ИНН — 10 или 12 цифр" }]}>
             <Input placeholder="ИНН" />
           </Form.Item>
           <Form.Item label="Регион" name="region">
@@ -62,11 +62,11 @@ export default function CompanySettingsPage() {
               ]}
             />
           </Form.Item>
-          <Form.Item label="Сайт" name="website">
+          <Form.Item label="Сайт" name="website" rules={[{ type: "url", message: "Введите корректный URL" }]}>
             <Input placeholder="https://company.ru" />
           </Form.Item>
-          <Form.Item label="Описание" name="description">
-            <Input.TextArea rows={3} placeholder="Описание компании" />
+          <Form.Item label="Описание" name="description" rules={[{ max: 1000, message: "Не более 1000 символов" }]}>
+            <Input.TextArea rows={3} placeholder="Описание компании" showCount maxLength={1000} />
           </Form.Item>
           <Form.Item>
             <Button type="primary" htmlType="submit" loading={mutation.isPending}>
