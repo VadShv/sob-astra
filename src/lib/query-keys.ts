@@ -107,4 +107,7 @@ export const qk = {
   mailbox: {
     connection: () => ["mailbox-connection"] as const,
   },
+  audit: {
+    list: (params?: Record<string, string>) => ["audit-log", params] as const,
+  },
 } as const;

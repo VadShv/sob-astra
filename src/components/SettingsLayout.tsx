@@ -39,6 +39,7 @@ const SECTIONS: SettingsSection[] = [
     items: [
       { label: "Шаблоны сообщений", desc: "Шаблоны сообщений кандидату" },
       { label: "Внешний API", desc: "API-токены и webhooks для интеграций" },
+      { label: "Журнал действий", desc: "История изменений и действий пользователей" },
     ],
   },
   {
@@ -81,6 +82,7 @@ export function SettingsLayout({
                       "Справочники": "/settings/dictionaries",
                       "Шаблоны сообщений": "/settings/templates",
                       "Внешний API": "/settings/api",
+                      "Журнал действий": "/settings/audit-log",
                       "Интеграции": "/settings/integrations",
                     }[item.label] || "/settings"
                   }

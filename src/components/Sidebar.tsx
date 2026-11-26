@@ -77,6 +77,28 @@ const ICONS = {
       <path d="M10.3 21a1.94 1.94 0 0 0 3.4 0" />
     </svg>
   ),
+  calendar: (
+    <svg width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M8 2v4" />
+      <path d="M16 2v4" />
+      <rect width="18" height="18" x="3" y="4" rx="2" />
+      <path d="M3 10h18" />
+    </svg>
+  ),
+  checkSquare: (
+    <svg width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M9 11l3 3L22 4" />
+      <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11" />
+    </svg>
+  ),
+  clipboard: (
+    <svg width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <rect width="8" height="4" x="8" y="2" rx="1" ry="1" />
+      <path d="M4 6a2 2 0 0 0-2 2v13a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2" />
+      <path d="M9 14h6" />
+      <path d="M9 18h6" />
+    </svg>
+  ),
   logout: (
     <svg width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
       <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
@@ -94,12 +116,13 @@ const ICONS = {
 
 const NAV_ITEMS: NavItem[] = [
   { href: "/home", label: "Главная", icon: ICONS.home },
+  { href: "/onboarding", label: "Онбординг", icon: ICONS.checkSquare },
   { href: "/search", label: "Поиск", icon: ICONS.search },
   { href: "/messages", label: "Сообщения", icon: ICONS.messages },
   { href: "/analytics", label: "Аналитика", icon: ICONS.chart },
-  { href: "/calendar", label: "Календарь", icon: ICONS.bell },
-  { href: "/tasks", label: "Задачи", icon: ICONS.bell },
-  { href: "/requisitions", label: "Заявки", icon: ICONS.bell },
+  { href: "/calendar", label: "Календарь", icon: ICONS.calendar },
+  { href: "/tasks", label: "Задачи", icon: ICONS.checkSquare },
+  { href: "/requisitions", label: "Заявки", icon: ICONS.clipboard },
   { href: "/notifications", label: "Уведомления", icon: ICONS.bell },
   { href: "/settings/integrations", label: "Интеграции", icon: ICONS.plug },
   { href: "/settings", label: "Настройки", icon: ICONS.settings },

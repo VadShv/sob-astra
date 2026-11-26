@@ -17,6 +17,7 @@ const HREFS: Record<string, string> = {
   "Справочники": "/settings/dictionaries",
   "Шаблоны сообщений": "/settings/templates",
   "Внешний API": "/settings/api",
+  "Журнал действий": "/settings/audit-log",
   "Интеграции": "/settings/integrations",
 };
 

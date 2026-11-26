@@ -395,6 +395,9 @@ export const appApi = {
     const { data } = await apiClient.get(`/api/view-settings/${key}`);
     return data;
   },
+  async updateViewSettings(key: string, payload: Record<string, unknown>): Promise<void> {
+    await apiClient.put(`/api/view-settings/${key}`, payload);
+  },
   async getVacancyById(id: string): Promise<Vacancy> {
     const { data } = await apiClient.get("/api/vacancy", { params: { id } });
     return data;
@@ -873,5 +876,26 @@ export const appApi = {
   },
   async resumeMailbox(): Promise<void> {
     await apiClient.post("/api/mailbox/connection/resume");
+  },
+
+  async getAuditLog(params?: { page?: string; pageSize?: string; entity?: string; userId?: string }): Promise<{
+    items: Array<{
+      id: string;
+      action: string;
+      entity: string;
+      entityId: string;
+      entityName?: string;
+      userId: string;
+      userName: string;
+      details?: Record<string, unknown>;
+      createdAt: string;
+      ip?: string;
+    }>;
+    total: number;
+    page: number;
+    pageSize: number;
+  }> {
+    const { data } = await apiClient.get("/api/audit-log", { params });
+    return data;
   },
 };
