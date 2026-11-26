@@ -1,8 +1,9 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Skeleton, Card, Tag, Select, Empty, Descriptions, Avatar } from "antd";
+import { useSearchParams } from "next/navigation";
 import { PageHeader } from "@/components/PageHeader";
 import { ErrorState } from "@/components/ErrorState";
 import { appApi } from "@/lib/api";
@@ -12,7 +13,15 @@ import s from "./compare.module.css";
 
 export default function ComparePage() {
   usePageTitle("Сравнение кандидатов");
+  const searchParams = useSearchParams();
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
+
+  useEffect(() => {
+    const ids = searchParams.get("ids");
+    if (ids) {
+      setSelectedIds(ids.split(",").filter(Boolean).slice(0, 4));
+    }
+  }, [searchParams]);
 
   const { data: candidatesData } = useQuery({
     queryKey: qk.candidates.list(),

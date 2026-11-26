@@ -85,6 +85,7 @@ export default function SearchPage() {
   const [aiResults, setAiResults] = useState<Candidate[] | null>(null);
   const [aiLoading, setAiLoading] = useState(false);
   const [savedSearchOpen, setSavedSearchOpen] = useState(false);
+  const [selectedIds, setSelectedIds] = useState<string[]>([]);
 
   useEffect(() => {
     const t = setTimeout(() => setDebouncedSearch(search), 400);
@@ -209,6 +210,15 @@ export default function SearchPage() {
         >
           Экспорт
         </Button>
+        {selectedIds.length >= 2 && (
+          <Button
+            size="large"
+            type="primary"
+            onClick={() => router.push(`/candidate/compare?ids=${selectedIds.join(",")}`)}
+          >
+            Сравнить ({selectedIds.length})
+          </Button>
+        )}
       </div>
 
       <div className={s.results}>
@@ -247,6 +257,11 @@ export default function SearchPage() {
             columns={buildColumns()}
             dataSource={items}
             rowKey="candidateId"
+            rowSelection={{
+              selectedRowKeys: selectedIds,
+              onChange: (keys) => setSelectedIds(keys as string[]),
+              getCheckboxProps: () => ({ onClick: (e) => e.stopPropagation() }),
+            }}
             onRow={(record) => ({
               onClick: () => router.push(`/candidate/${record.candidateId}`),
               onKeyDown: (e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); router.push(`/candidate/${record.candidateId}`); } },
