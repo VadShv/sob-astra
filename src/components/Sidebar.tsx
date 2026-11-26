@@ -124,6 +124,7 @@ const NAV_ITEMS: NavItem[] = [
   { href: "/tasks", label: "Задачи", icon: ICONS.checkSquare },
   { href: "/requisitions", label: "Заявки", icon: ICONS.clipboard },
   { href: "/notifications", label: "Уведомления", icon: ICONS.bell },
+  { href: "/activity", label: "Лента активности", icon: ICONS.chart },
   { href: "/settings/integrations", label: "Интеграции", icon: ICONS.plug },
   { href: "/settings", label: "Настройки", icon: ICONS.settings },
   { href: "/whats-new", label: "Что нового", icon: ICONS.megaphone },

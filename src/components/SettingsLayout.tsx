@@ -32,6 +32,7 @@ const SECTIONS: SettingsSection[] = [
     items: [
       { label: "Воронки", desc: "Каталог этапов и шаблоны воронок" },
       { label: "Справочники", desc: "Справочные значения: регионы, грейды, источники" },
+      { label: "Кастомные поля", desc: "Дополнительные поля для вакансий и кандидатов" },
     ],
   },
   {
@@ -39,6 +40,7 @@ const SECTIONS: SettingsSection[] = [
     items: [
       { label: "Шаблоны сообщений", desc: "Шаблоны сообщений кандидату" },
       { label: "Внешний API", desc: "API-токены и webhooks для интеграций" },
+      { label: "Логи вебхуков", desc: "История вызовов вебхуков" },
       { label: "Журнал действий", desc: "История изменений и действий пользователей" },
     ],
   },
@@ -80,8 +82,10 @@ export function SettingsLayout({
                       "Команды": "/settings/teams",
                       "Воронки": "/settings/funnels",
                       "Справочники": "/settings/dictionaries",
+                      "Кастомные поля": "/settings/custom-fields",
                       "Шаблоны сообщений": "/settings/templates",
                       "Внешний API": "/settings/api",
+                      "Логи вебхуков": "/settings/webhook-logs",
                       "Журнал действий": "/settings/audit-log",
                       "Интеграции": "/settings/integrations",
                     }[item.label] || "/settings"

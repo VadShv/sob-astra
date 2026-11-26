@@ -122,4 +122,13 @@ export const qk = {
     list: (vacancyId: string, params?: Record<string, string>) => ["offers", vacancyId, params] as const,
     detail: (id: string) => ["offer", id] as const,
   },
+  customFields: {
+    list: (entity?: string) => ["custom-fields", entity] as const,
+  },
+  webhookLogs: {
+    list: (params?: Record<string, string>) => ["webhook-logs", params] as const,
+  },
+  activityFeed: {
+    list: (params?: Record<string, string>) => ["activity-feed", params] as const,
+  },
 } as const;

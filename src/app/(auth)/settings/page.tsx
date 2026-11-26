@@ -15,8 +15,10 @@ const HREFS: Record<string, string> = {
   "Команды": "/settings/teams",
   "Воронки": "/settings/funnels",
   "Справочники": "/settings/dictionaries",
+  "Кастомные поля": "/settings/custom-fields",
   "Шаблоны сообщений": "/settings/templates",
   "Внешний API": "/settings/api",
+  "Логи вебхуков": "/settings/webhook-logs",
   "Журнал действий": "/settings/audit-log",
   "Интеграции": "/settings/integrations",
 };

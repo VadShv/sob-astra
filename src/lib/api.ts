@@ -1064,4 +1064,70 @@ export const appApi = {
   async withdrawOffer(id: string): Promise<void> {
     await apiClient.post(`/api/offer/${id}/withdraw`);
   },
+
+  async getCustomFields(entity?: string): Promise<{
+    items: Array<{
+      id: string;
+      name: string;
+      type: string;
+      entity: string;
+      options?: string[];
+      required: boolean;
+      createdAt: string;
+    }>;
+  }> {
+    const { data } = await apiClient.get("/api/custom-fields", {
+      params: entity ? { entity } : undefined,
+    });
+    return data;
+  },
+  async createCustomField(payload: {
+    name: string;
+    type: string;
+    entity: string;
+    options?: string[];
+    required?: boolean;
+  }): Promise<{ id: string }> {
+    const { data } = await apiClient.post("/api/custom-fields", payload);
+    return data;
+  },
+  async deleteCustomField(id: string): Promise<void> {
+    await apiClient.delete(`/api/custom-fields/${id}`);
+  },
+
+  async getWebhookLogs(params?: { page?: string; pageSize?: string }): Promise<{
+    items: Array<{
+      id: string;
+      hookId: string;
+      hookUrl: string;
+      event: string;
+      status: number;
+      requestBody?: string;
+      responseBody?: string;
+      durationMs: number;
+      createdAt: string;
+    }>;
+    total: number;
+  }> {
+    const { data } = await apiClient.get("/api/settings/external-api/hooks/logs", { params });
+    return data;
+  },
+
+  async getActivityFeed(params?: { page?: string; pageSize?: string; vacancyId?: string }): Promise<{
+    items: Array<{
+      id: string;
+      type: string;
+      description: string;
+      userId: string;
+      userName: string;
+      entityType: string;
+      entityId: string;
+      entityName?: string;
+      createdAt: string;
+    }>;
+    total: number;
+  }> {
+    const { data } = await apiClient.get("/api/activity-feed", { params });
+    return data;
+  },
 };
