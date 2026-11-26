@@ -11,6 +11,8 @@ Sobesso ATS clone — Next.js 15 + Ant Design 5 + React Query 5 + TypeScript.
 - **Build:** `bun run build` (includes type check + lint)
 - **Type check:** `bun run typecheck`
 - **Lint:** `bun run lint`
+- **Unit tests:** `bun run test` (vitest, 70 tests)
+- **E2E tests:** `bun run test:e2e` (Playwright, requires `bun run test:e2e:install` first)
 
 Always run `bun run build` after changes to verify types and lint pass.
 

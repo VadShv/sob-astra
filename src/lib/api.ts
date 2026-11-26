@@ -10,6 +10,17 @@ export const apiClient: AxiosInstance = axios.create({
   headers: { "Content-Type": "application/json" },
 });
 
+apiClient.interceptors.request.use((config) => {
+  const method = (config.method ?? "get").toLowerCase();
+  if (["post", "put", "patch", "delete"].includes(method) && typeof document !== "undefined") {
+    const match = document.cookie.match(/(?:^|;\s*)csrfToken=([^;]+)/);
+    if (match?.[1]) {
+      config.headers["X-CSRF-Token"] = match[1];
+    }
+  }
+  return config;
+});
+
 apiClient.interceptors.response.use(
   (response) => response,
   (error: AxiosError<{ message?: string; attemptsLeft?: number; retryAfterSeconds?: number }>) => {

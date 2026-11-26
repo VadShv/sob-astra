@@ -2,6 +2,7 @@ import { type NextRequest, NextResponse } from "next/server";
 
 const API_BASE = "https://api.sobesso.ru";
 const ALLOWED_PREFIXES = ["auth/", "api/"];
+const MUTATING_METHODS = new Set(["POST", "PUT", "PATCH", "DELETE"]);
 
 async function proxyHandler(
   req: NextRequest,
@@ -13,6 +14,15 @@ async function proxyHandler(
   if (!isAllowed) {
     return NextResponse.json({ message: "Forbidden" }, { status: 403 });
   }
+
+  if (MUTATING_METHODS.has(req.method)) {
+    const csrfHeader = req.headers.get("x-csrf-token");
+    const csrfCookie = req.cookies.get("csrfToken")?.value;
+    if (!csrfHeader || !csrfCookie || csrfHeader !== csrfCookie) {
+      return NextResponse.json({ message: "CSRF token mismatch" }, { status: 403 });
+    }
+  }
+
   const url = new URL(req.url);
   const targetUrl = `${API_BASE}/${pathStr}${url.search}`;
 
