@@ -1,10 +1,8 @@
-const isDev = process.env.NODE_ENV === "development";
-
 export const logger = {
   error(...args: unknown[]) {
-    if (isDev) console.error(...args);
+    if (process.env.NODE_ENV === "development") console.error(...args);
   },
   warn(...args: unknown[]) {
-    if (isDev) console.warn(...args);
+    if (process.env.NODE_ENV === "development") console.warn(...args);
   },
 };

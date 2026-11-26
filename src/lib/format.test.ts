@@ -93,21 +93,36 @@ describe("formatPercent", () => {
 });
 
 describe("getGreeting", () => {
-  beforeEach(() => vi.useFakeTimers());
-  afterEach(() => vi.useRealTimers());
+  const RealDate = globalThis.Date;
+
+  afterEach(() => {
+    globalThis.Date = RealDate;
+  });
 
   it("returns a non-empty string", () => {
-    vi.setSystemTime(new Date(2026, 0, 1, 12));
+    globalThis.Date = class extends RealDate {
+      constructor() {
+        super(2026, 0, 1, 12);
+      }
+    } as DateConstructor;
     expect(getGreeting()).toBeTruthy();
   });
 
   it("returns morning greeting at 8am", () => {
-    vi.setSystemTime(new Date(2026, 0, 1, 8));
+    globalThis.Date = class extends RealDate {
+      constructor() {
+        super(2026, 0, 1, 8);
+      }
+    } as DateConstructor;
     expect(getGreeting()).toBe("доброе утро!");
   });
 
   it("returns evening greeting at 20:00", () => {
-    vi.setSystemTime(new Date(2026, 0, 1, 20));
+    globalThis.Date = class extends RealDate {
+      constructor() {
+        super(2026, 0, 1, 20);
+      }
+    } as DateConstructor;
     expect(getGreeting()).toBe("добрый вечер!");
   });
 });
