@@ -2,7 +2,7 @@ import { NextResponse, type NextRequest } from "next/server";
 
 const AUTH_COOKIE = "sobessoSession";
 const CSRF_COOKIE = "csrfToken";
-const PUBLIC_PATHS = ["/login"];
+const PUBLIC_PATHS = ["/login", "/reset-password"];
 
 function isPublicPath(pathname: string): boolean {
   return (

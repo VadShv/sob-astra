@@ -1764,4 +1764,57 @@ export const appApi = {
   async submitQuestionnaire(token: string, answers: Record<string, unknown>): Promise<void> {
     await apiClient.post(`/api/public/questionnaire/${token}/submit`, { answers });
   },
+
+  async getCandidateMessages(token: string): Promise<{
+    messages: Array<{
+      id: string;
+      body: string;
+      direction: "in" | "out";
+      channel: string;
+      createdAt: string;
+      attachments?: Array<{ id: string; name: string; url: string }>;
+    }>;
+  }> {
+    const { data } = await apiClient.get(`/api/public/portal/${token}/messages`);
+    return data;
+  },
+  async sendCandidateMessage(token: string, body: string): Promise<void> {
+    await apiClient.post(`/api/public/portal/${token}/messages`, { body });
+  },
+
+  async getCandidateDocumentsByToken(token: string): Promise<{
+    items: Array<{
+      id: string;
+      name: string;
+      type: string;
+      size: number;
+      uploadedAt: string;
+      url?: string;
+    }>;
+  }> {
+    const { data } = await apiClient.get(`/api/public/portal/${token}/documents`);
+    return data;
+  },
+  async uploadCandidateDocumentByToken(token: string, file: File): Promise<{ id: string; url: string }> {
+    const formData = new FormData();
+    formData.append("file", file);
+    const { data } = await apiClient.post(`/api/public/portal/${token}/documents`, formData, {
+      headers: { "Content-Type": "multipart/form-data" },
+    });
+    return data;
+  },
+  async deleteCandidateDocumentByToken(token: string, documentId: string): Promise<void> {
+    await apiClient.delete(`/api/public/portal/${token}/documents/${documentId}`);
+  },
+
+  async withdrawApplication(token: string, candidacyId: string, reason?: string): Promise<void> {
+    await apiClient.post(`/api/public/portal/${token}/withdraw`, { candidacyId, reason });
+  },
+
+  async requestPasswordReset(email: string): Promise<void> {
+    await apiClient.post("/api/public/reset-password", { email });
+  },
+  async resetPassword(token: string, newPassword: string): Promise<void> {
+    await apiClient.post(`/api/public/reset-password/${token}`, { newPassword });
+  },
 };

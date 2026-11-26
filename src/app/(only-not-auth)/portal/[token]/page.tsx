@@ -1,8 +1,8 @@
 "use client";
 
-import { use } from "react";
-import { useQuery } from "@tanstack/react-query";
-import { Card, Tag, Skeleton, Avatar, Empty, Button, Descriptions, Timeline } from "antd";
+import { use, useState } from "react";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { Card, Tag, Skeleton, Avatar, Empty, Button, Descriptions, Timeline, Popconfirm, message } from "antd";
 import { ErrorState } from "@/components/ErrorState";
 import { appApi } from "@/lib/api";
 import { usePageTitle } from "@/components/usePageTitle";
@@ -18,7 +18,17 @@ export default function CandidatePortalPage({
   params: Promise<{ token: string }>;
 }) {
   const { token } = use(params);
+  const qc = useQueryClient();
   usePageTitle("Мой кабинет · Собесо");
+
+  const withdrawMut = useMutation({
+    mutationFn: ({ candidacyId }: { candidacyId: string }) => appApi.withdrawApplication(token, candidacyId),
+    onSuccess: () => {
+      message.success("Заявка отозвана");
+      qc.invalidateQueries({ queryKey: ["candidate-portal", token] });
+    },
+    onError: () => message.error("Не удалось отозвать"),
+  });
 
   const { data, isLoading, isError, refetch } = useQuery({
     queryKey: ["candidate-portal", token],
@@ -51,6 +61,13 @@ export default function CandidatePortalPage({
           <h1>{data.candidate.fullName}</h1>
           <p style={{ color: "rgba(0,0,0,.45)" }}>{data.candidate.email}</p>
         </div>
+      </div>
+
+      <div style={{ display: "flex", gap: 8, marginBottom: 16 }}>
+        <Button href={`/portal/${token}/messages`}>
+          Сообщения {data.unreadMessages > 0 && `(${data.unreadMessages})`}
+        </Button>
+        <Button href={`/portal/${token}/documents`}>Документы</Button>
       </div>
 
       {data.activeOffer && (
@@ -105,6 +122,14 @@ export default function CandidatePortalPage({
                 <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
                   {app.stageName && <Tag>{app.stageName}</Tag>}
                   <Tag color={STATUS_COLORS[app.status] || "default"}>{app.status}</Tag>
+                  {app.status === "active" && (
+                    <Popconfirm
+                      title="Отозвать заявку?"
+                      onConfirm={() => withdrawMut.mutate({ candidacyId: app.candidacyId })}
+                    >
+                      <Button size="small" type="link" danger>Отозвать</Button>
+                    </Popconfirm>
+                  )}
                 </div>
               </div>
             </div>

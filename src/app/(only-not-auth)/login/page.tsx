@@ -430,8 +430,13 @@ export default function LoginPage() {
                   className={s.modeSwitch}
                   onClick={() => switchMode(mode === "password" ? "link" : "password")}
                 >
-                  {mode === "password" ? "Войти по ссылке из письма" : "Войти по паролю"}
+                  {mode === "password" ? "Войти по ссылке из письма" : "Войти по паролу"}
                 </Button>
+                {mode === "password" && (
+                  <Button type="link" block href="/reset-password" style={{ marginTop: 8 }}>
+                    Забыли пароль?
+                  </Button>
+                )}
               </Form>
             </div>
           </section>
