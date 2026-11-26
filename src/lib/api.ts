@@ -1628,4 +1628,140 @@ export const appApi = {
     const { data } = await apiClient.post(`/api/public/vacancy/${vacancyId}/apply`, payload);
     return data;
   },
+
+  async getCandidatePortal(token: string): Promise<{
+    candidate: {
+      fullName: string;
+      email: string;
+      phone?: string;
+      avatarUrl?: string;
+    };
+    applications: Array<{
+      candidacyId: string;
+      vacancyTitle: string;
+      companyName: string;
+      status: string;
+      stageName?: string;
+      appliedAt: string;
+      updatedAt: string;
+    }>;
+    upcomingInterviews: Array<{
+      id: string;
+      vacancyTitle: string;
+      type: string;
+      format: string;
+      scheduledAt: string;
+      durationMin: number;
+      location?: string;
+      meetingLink?: string;
+      interviewerNames: string[];
+    }>;
+    activeOffer?: {
+      id: string;
+      vacancyTitle: string;
+      salaryFrom?: number;
+      salaryTo?: number;
+      currency?: string;
+      startDate?: string;
+      deadline?: string;
+      conditions?: string;
+      benefits?: string;
+    };
+    unreadMessages: number;
+  }> {
+    const { data } = await apiClient.get(`/api/public/portal/${token}`);
+    return data;
+  },
+
+  async getInterviewSlots(token: string): Promise<{
+    interview: {
+      type: string;
+      format: string;
+      durationMin: number;
+      vacancyTitle: string;
+      companyName: string;
+      interviewerNames: string[];
+    };
+    slots: Array<{
+      id: string;
+      start: string;
+      available: boolean;
+    }>;
+    expiresAt: string;
+  }> {
+    const { data } = await apiClient.get(`/api/public/interview/${token}/slots`);
+    return data;
+  },
+  async bookInterviewSlot(token: string, slotId: string): Promise<void> {
+    await apiClient.post(`/api/public/interview/${token}/book`, { slotId });
+  },
+  async cancelInterviewByCandidate(token: string): Promise<void> {
+    await apiClient.post(`/api/public/interview/${token}/cancel`);
+  },
+
+  async getOfferByToken(token: string): Promise<{
+    offer: {
+      id: string;
+      vacancyTitle: string;
+      companyName: string;
+      companyLogoUrl?: string;
+      salaryFrom?: number;
+      salaryTo?: number;
+      currency?: string;
+      startDate?: string;
+      deadline?: string;
+      conditions?: string;
+      benefits?: string;
+      body?: string;
+    };
+    candidateName: string;
+    status: string;
+    expiresAt: string;
+  }> {
+    const { data } = await apiClient.get(`/api/public/offer/${token}`);
+    return data;
+  },
+  async acceptOfferByToken(token: string): Promise<void> {
+    await apiClient.post(`/api/public/offer/${token}/accept`);
+  },
+  async declineOfferByToken(token: string, reason?: string): Promise<void> {
+    await apiClient.post(`/api/public/offer/${token}/decline`, reason ? { reason } : undefined);
+  },
+
+  async getProfileForm(token: string): Promise<{
+    fields: Array<{
+      key: string;
+      label: string;
+      type: "text" | "email" | "phone" | "date" | "textarea" | "select" | "file";
+      required: boolean;
+      options?: string[];
+      value?: string;
+    }>;
+    candidateName: string;
+    vacancyTitle?: string;
+  }> {
+    const { data } = await apiClient.get(`/api/public/profile/${token}`);
+    return data;
+  },
+  async submitProfileForm(token: string, data: Record<string, string>): Promise<void> {
+    await apiClient.post(`/api/public/profile/${token}/submit`, data);
+  },
+
+  async getQuestionnaire(token: string): Promise<{
+    title: string;
+    description?: string;
+    questions: Array<{
+      id: string;
+      text: string;
+      type: "text" | "textarea" | "select" | "multiselect" | "number" | "boolean" | "rating";
+      required: boolean;
+      options?: string[];
+    }>;
+  }> {
+    const { data } = await apiClient.get(`/api/public/questionnaire/${token}`);
+    return data;
+  },
+  async submitQuestionnaire(token: string, answers: Record<string, unknown>): Promise<void> {
+    await apiClient.post(`/api/public/questionnaire/${token}/submit`, { answers });
+  },
 };

@@ -5,7 +5,16 @@ const CSRF_COOKIE = "csrfToken";
 const PUBLIC_PATHS = ["/login"];
 
 function isPublicPath(pathname: string): boolean {
-  return PUBLIC_PATHS.includes(pathname) || pathname.startsWith("/invite/") || pathname.startsWith("/jobs");
+  return (
+    PUBLIC_PATHS.includes(pathname) ||
+    pathname.startsWith("/invite/") ||
+    pathname.startsWith("/jobs") ||
+    pathname.startsWith("/portal/") ||
+    pathname.startsWith("/interview/") ||
+    pathname.startsWith("/offer/") ||
+    pathname.startsWith("/profile/") ||
+    pathname.startsWith("/questionnaire/")
+  );
 }
 
 function generateToken(): string {
