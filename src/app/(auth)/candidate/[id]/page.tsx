@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Skeleton, Tag, Button, Space, Divider, message, Modal, Form, Input, Select, Upload, Tooltip } from "antd";
 import { PageHeader } from "@/components/PageHeader";
-import { appApi, type Candidate } from "@/lib/api";
+import { appApi, type Candidate, type CreateCandidatePayload} from "@/lib/api";
 import { qk } from "@/lib/query-keys";
 import { usePageTitle } from "@/components/usePageTitle";
 import { ErrorState } from "@/components/ErrorState";
@@ -82,7 +82,7 @@ export default function CandidatePage({
   });
 
   const updateMut = useMutation({
-    mutationFn: (payload: Record<string, unknown>) => appApi.updateCandidate(id, payload),
+    mutationFn: (payload: Partial<CreateCandidatePayload>) => appApi.updateCandidate(id, payload),
     onSuccess: () => {
       message.success("Кандидат обновлён");
       qc.invalidateQueries({ queryKey: qk.candidates.detail(id) });

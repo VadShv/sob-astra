@@ -4,7 +4,7 @@ import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Button, Tag, Skeleton, Modal, Form, Input, Space, message, Popconfirm } from "antd";
 import { SettingsLayout } from "@/components/SettingsLayout";
-import { appApi } from "@/lib/api";
+import { appApi, type FunnelPayload} from "@/lib/api";
 import { qk } from "@/lib/query-keys";
 import { usePageTitle } from "@/components/usePageTitle";
 import { ErrorState } from "@/components/ErrorState";
@@ -30,7 +30,7 @@ export default function FunnelsSettingsPage() {
   });
 
   const createMut = useMutation({
-    mutationFn: (payload: Record<string, unknown>) => appApi.createFunnel(payload),
+    mutationFn: (payload: FunnelPayload) => appApi.createFunnel(payload),
     onSuccess: () => {
       message.success("Воронка создана");
       qc.invalidateQueries({ queryKey: qk.settings.funnels() });

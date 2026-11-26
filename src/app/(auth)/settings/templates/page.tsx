@@ -5,7 +5,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Button, Table, Tag, Modal, Form, Input, Select, Space, message, Popconfirm, Skeleton } from "antd";
 import type { ColumnsType } from "antd/es/table";
 import { SettingsLayout } from "@/components/SettingsLayout";
-import { appApi } from "@/lib/api";
+import { appApi, type TemplatePayload} from "@/lib/api";
 import { qk } from "@/lib/query-keys";
 import { usePageTitle } from "@/components/usePageTitle";
 import { ErrorState } from "@/components/ErrorState";
@@ -50,7 +50,7 @@ export default function TemplatesSettingsPage() {
   ];
 
   const createMut = useMutation({
-    mutationFn: (payload: Record<string, unknown>) => appApi.createTemplate(payload),
+    mutationFn: (payload: TemplatePayload) => appApi.createTemplate(payload),
     onSuccess: () => {
       message.success("Шаблон создан");
       qc.invalidateQueries({ queryKey: qk.settings.messageTemplates() });

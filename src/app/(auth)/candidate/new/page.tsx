@@ -5,7 +5,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { Form, Input, Select, Button, Card, Space, message } from "antd";
 import { useMutation, useQueryClient, useQuery } from "@tanstack/react-query";
 import { PageHeader } from "@/components/PageHeader";
-import { appApi } from "@/lib/api";
+import { appApi, type CreateCandidatePayload} from "@/lib/api";
 import { qk } from "@/lib/query-keys";
 import { usePageTitle } from "@/components/usePageTitle";
 
@@ -26,7 +26,7 @@ function CandidateCreateForm() {
   const sourceOptions = ((sources as { values?: { code: string; name: string }[] })?.values ?? []).map((s) => ({ value: s.code, label: s.name }));
 
   const createMut = useMutation({
-    mutationFn: (payload: Record<string, unknown>) => appApi.createCandidate(payload),
+    mutationFn: (payload: CreateCandidatePayload) => appApi.createCandidate(payload),
     onSuccess: (resp) => {
       message.success("Кандидат создан");
       qc.invalidateQueries({ queryKey: qk.candidates.all() });

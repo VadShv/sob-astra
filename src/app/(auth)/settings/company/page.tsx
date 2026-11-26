@@ -4,7 +4,7 @@ import { useEffect } from "react";
 import { Form, Input, Button, Select, message, Skeleton } from "antd";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { SettingsLayout } from "@/components/SettingsLayout";
-import { appApi } from "@/lib/api";
+import { appApi, type Company} from "@/lib/api";
 import { qk } from "@/lib/query-keys";
 import { usePageTitle } from "@/components/usePageTitle";
 
@@ -25,7 +25,7 @@ export default function CompanySettingsPage() {
   });
 
   const mutation = useMutation({
-    mutationFn: (values: Record<string, unknown>) => appApi.updateCompany(values),
+    mutationFn: (values: Partial<Company>) => appApi.updateCompany(values),
     onSuccess: () => {
       message.success("Сохранено");
       qc.invalidateQueries({ queryKey: qk.settings.company() });

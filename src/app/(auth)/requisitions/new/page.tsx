@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { useMutation } from "@tanstack/react-query";
 import { Form, Input, Button, Card, Select, message } from "antd";
 import { PageHeader } from "@/components/PageHeader";
-import { appApi } from "@/lib/api";
+import { appApi, type CreateRequisitionPayload} from "@/lib/api";
 import { qk } from "@/lib/query-keys";
 import { useQueryClient } from "@tanstack/react-query";
 import { usePageTitle } from "@/components/usePageTitle";
@@ -18,7 +18,7 @@ export default function NewRequisitionPage() {
   const [saving, setSaving] = useState(false);
 
   const createMut = useMutation({
-    mutationFn: (payload: Record<string, unknown>) => appApi.createRequisition(payload),
+    mutationFn: (payload: CreateRequisitionPayload) => appApi.createRequisition(payload),
     onSuccess: (resp) => {
       message.success("Заявка создана");
       qc.invalidateQueries({ queryKey: qk.requisitions.all() });

@@ -6,7 +6,7 @@ import { useQuery, useMutation, useQueryClient, keepPreviousData } from "@tansta
 import { Table, Button, Modal, Form, Input, Select, Tag, Skeleton, Segmented, DatePicker, message, Empty } from "antd";
 import type { ColumnsType } from "antd/es/table";
 import { PageHeader } from "@/components/PageHeader";
-import { appApi, type Task } from "@/lib/api";
+import { appApi, type Task, type CreateTaskPayload, type Company} from "@/lib/api";
 import { qk } from "@/lib/query-keys";
 import { usePageTitle } from "@/components/usePageTitle";
 import { ErrorState } from "@/components/ErrorState";
@@ -64,7 +64,7 @@ export default function TasksPage() {
   });
 
   const createMut = useMutation({
-    mutationFn: (payload: Record<string, unknown>) => appApi.createTask(payload),
+    mutationFn: (payload: CreateTaskPayload) => appApi.createTask(payload),
     onSuccess: () => {
       message.success("Задача создана");
       qc.invalidateQueries({ queryKey: qk.tasks.all() });
@@ -183,7 +183,7 @@ export default function TasksPage() {
           form
             .validateFields()
             .then((values) => {
-              const payload: Record<string, unknown> = {
+              const payload: CreateTaskPayload = {
                 title: values.title,
                 description: values.description,
                 type: values.type,

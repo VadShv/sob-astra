@@ -122,7 +122,7 @@ export default function AnalyticsPage() {
   });
 
   const exportMut = useMutation({
-    mutationFn: (payload: Record<string, unknown>) => appApi.exportAnalyticsExcel(payload),
+    mutationFn: (payload: Parameters<typeof appApi.exportAnalyticsExcel>[0]) => appApi.exportAnalyticsExcel(payload),
     onSuccess: (resp) => {
       if (resp.url) window.open(resp.url, "_blank");
       else message.success("Экспорт готовится");

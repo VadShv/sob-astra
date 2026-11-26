@@ -324,6 +324,145 @@ export interface Offer {
   updatedAt: string;
 }
 
+export interface Company {
+  id: string;
+  name: string;
+  inn?: string;
+  ogrn?: string;
+  website?: string;
+  description?: string;
+  region?: string;
+  logoUrl?: string;
+}
+
+export interface AppearanceSettings {
+  primaryColor?: string;
+  interviewPageColor?: string;
+  interviewPageLogoUrl?: string;
+  interviewPageTitle?: string;
+  interviewPageDescription?: string;
+}
+
+export interface CreateVacancyPayload {
+  title: string;
+  orgUnitId?: string;
+  recruiterId?: string;
+  plannedHires: number;
+  grade?: string;
+  salaryFrom?: number;
+  salaryTo?: number;
+  description?: string;
+  isConfidential?: boolean;
+  city?: string;
+  experience?: string;
+  employmentType?: string;
+  deadline?: string;
+  funnelTemplateId?: string;
+}
+
+export interface CreateCandidatePayload {
+  firstName: string;
+  lastName: string;
+  middleName?: string;
+  email?: string;
+  phone?: string;
+  sourceId?: string;
+  position?: string;
+  company?: string;
+  salary?: number;
+  city?: string;
+  note?: string;
+}
+
+export interface FunnelPayload {
+  name: string;
+  stages: Array<{ name: string; type: string }>;
+}
+
+export interface TemplatePayload {
+  name: string;
+  subject?: string;
+  body: string;
+  channel?: string;
+  variables?: string[];
+}
+
+export interface CreateTaskPayload {
+  title: string;
+  description?: string;
+  type: string;
+  deadline?: string;
+  assigneeId?: string;
+  vacancyId?: string;
+  candidateId?: string;
+}
+
+export interface UpdateMeetingPayload {
+  title?: string;
+  startedAt?: string;
+  duration?: number;
+  location?: string;
+  link?: string;
+  type?: string;
+}
+
+export interface CreateRequisitionPayload {
+  title: string;
+  department?: string;
+  position?: string;
+  plannedHires?: number;
+  salaryFrom?: number;
+  salaryTo?: number;
+  justification?: string;
+}
+
+export interface ImapConnectionPayload {
+  host: string;
+  port: number;
+  email: string;
+  password: string;
+  useTls: boolean;
+}
+
+export interface ExchangeConnectionPayload {
+  email: string;
+  password: string;
+  server?: string;
+}
+
+export interface IntegrationPayload {
+  apiKey?: string;
+  clientId?: string;
+  clientSecret?: string;
+  accessToken?: string;
+  refreshToken?: string;
+  [key: string]: unknown;
+}
+
+export interface AnalyticsExportPayload {
+  from?: string;
+  to?: string;
+  tzOffset?: string;
+  period?: string;
+  format?: string;
+  recruiterId?: string;
+  vacancyId?: string;
+  dateFrom?: string;
+  dateTo?: string;
+}
+
+export interface RoleUpdatePayload {
+  name?: string;
+  description?: string;
+  permissions?: string[];
+}
+
+export interface ReferenceDictionaryPayload {
+  code: string;
+  name: string;
+  values?: Array<{ name: string; code?: string }>;
+}
+
 export const authApi = {
   async me(): Promise<{ user: User | null }> {
     const { data } = await apiClient.get("/auth/me");
@@ -505,7 +644,7 @@ export const appApi = {
     const { data } = await apiClient.get(`/api/interview/vacancy/${vacancyId}/list/facets`);
     return data;
   },
-  async getAnalyticsCalculations(payload: Record<string, unknown>): Promise<{ calculationId: string }> {
+  async getAnalyticsCalculations(payload: AnalyticsExportPayload): Promise<{ calculationId: string }> {
     const { data } = await apiClient.post("/api/analytics/calculations", payload);
     return data;
   },
@@ -526,15 +665,15 @@ export const appApi = {
     await apiClient.delete(`/api/company-users/${userId}`);
   },
 
-  async updateAccount(payload: Record<string, unknown>): Promise<UserDetails> {
+  async updateAccount(payload: Partial<CreateCandidatePayload> & { currentPassword?: string; newPassword?: string; locale?: string }): Promise<UserDetails> {
     const { data } = await apiClient.patch("/api/user", payload);
     return data;
   },
-  async updateCompany(payload: Record<string, unknown>): Promise<Record<string, unknown>> {
+  async updateCompany(payload: Partial<Company>): Promise<Company> {
     const { data } = await apiClient.patch("/api/company", payload);
     return data;
   },
-  async getCompany(): Promise<Record<string, unknown>> {
+  async getCompany(): Promise<Company> {
     const { data } = await apiClient.get("/api/company");
     return data;
   },
@@ -546,11 +685,11 @@ export const appApi = {
     const { data } = await apiClient.patch("/api/notification-settings", payload);
     return data;
   },
-  async getAppearanceSettings(): Promise<Record<string, unknown>> {
+  async getAppearanceSettings(): Promise<AppearanceSettings> {
     const { data } = await apiClient.get("/api/view-settings/interview-appearance");
     return data;
   },
-  async updateAppearanceSettings(payload: Record<string, unknown>): Promise<Record<string, unknown>> {
+  async updateAppearanceSettings(payload: Partial<AppearanceSettings>): Promise<AppearanceSettings> {
     const { data } = await apiClient.patch("/api/view-settings/interview-appearance", payload);
     return data;
   },
@@ -563,11 +702,11 @@ export const appApi = {
     return data;
   },
 
-  async createVacancy(payload: Record<string, unknown>): Promise<{ id: string }> {
+  async createVacancy(payload: CreateVacancyPayload): Promise<{ id: string }> {
     const { data } = await apiClient.post("/api/vacancy", payload);
     return data;
   },
-  async updateVacancy(id: string, payload: Record<string, unknown>): Promise<Vacancy> {
+  async updateVacancy(id: string, payload: Partial<CreateVacancyPayload>): Promise<Vacancy> {
     const { data } = await apiClient.patch("/api/vacancy", { id, ...payload });
     return data;
   },
@@ -584,11 +723,11 @@ export const appApi = {
     return data;
   },
 
-  async createCandidate(payload: Record<string, unknown>): Promise<{ id: string }> {
+  async createCandidate(payload: CreateCandidatePayload): Promise<{ id: string }> {
     const { data } = await apiClient.post("/api/candidate", payload);
     return data;
   },
-  async updateCandidate(id: string, payload: Record<string, unknown>): Promise<Candidate> {
+  async updateCandidate(id: string, payload: Partial<CreateCandidatePayload>): Promise<Candidate> {
     const { data } = await apiClient.patch(`/api/candidate/${id}`, payload);
     return data;
   },
@@ -605,7 +744,7 @@ export const appApi = {
     const { data } = await apiClient.post("/api/company-roles", payload);
     return data;
   },
-  async updateRole(id: string, payload: Record<string, unknown>): Promise<{ id: string }> {
+  async updateRole(id: string, payload: RoleUpdatePayload): Promise<{ id: string }> {
     const { data } = await apiClient.put(`/api/company-roles/${id}`, payload);
     return data;
   },
@@ -613,11 +752,11 @@ export const appApi = {
     await apiClient.post(`/api/company-roles/${id}/archive`);
   },
 
-  async createTemplate(payload: Record<string, unknown>): Promise<{ id: string }> {
+  async createTemplate(payload: TemplatePayload): Promise<{ id: string }> {
     const { data } = await apiClient.post("/api/message-templates", payload);
     return data;
   },
-  async updateTemplate(id: string, payload: Record<string, unknown>): Promise<{ id: string }> {
+  async updateTemplate(id: string, payload: Partial<TemplatePayload>): Promise<{ id: string }> {
     const { data } = await apiClient.patch(`/api/message-templates/${id}`, payload);
     return data;
   },
@@ -633,27 +772,34 @@ export const appApi = {
     const { data } = await apiClient.get("/api/funnel-templates");
     return data;
   },
-  async createFunnel(payload: Record<string, unknown>): Promise<{ id: string }> {
+  async createFunnel(payload: FunnelPayload): Promise<{ id: string }> {
     const { data } = await apiClient.post("/api/funnel-templates", payload);
     return data;
   },
 
-  async getIntegrations(): Promise<Record<string, unknown>> {
+  async getIntegrations(): Promise<{
+    items: Array<{
+      type: string;
+      name: string;
+      connected: boolean;
+      config?: Record<string, unknown>;
+    }>;
+  }> {
     const { data } = await apiClient.get("/api/integrations");
     return data;
   },
-  async connectIntegration(integrationType: string, payload?: Record<string, unknown>): Promise<{ success: boolean }> {
+  async connectIntegration(integrationType: string, payload?: IntegrationPayload): Promise<{ success: boolean }> {
     const { data } = await apiClient.post(`/api/integrations/${integrationType}/connect`, payload ?? {});
     return data;
   },
   async disconnectIntegration(integrationType: string): Promise<void> {
     await apiClient.delete(`/api/integrations/${integrationType}`);
   },
-  async testIntegration(integrationType: string, payload?: Record<string, unknown>): Promise<{ success: boolean; message?: string }> {
+  async testIntegration(integrationType: string, payload?: IntegrationPayload): Promise<{ success: boolean; message?: string }> {
     const { data } = await apiClient.post(`/api/integrations/${integrationType}/test`, payload ?? {});
     return data;
   },
-  async updateFunnel(id: string, payload: Record<string, unknown>): Promise<{ id: string }> {
+  async updateFunnel(id: string, payload: Partial<FunnelPayload>): Promise<{ id: string }> {
     const { data } = await apiClient.patch(`/api/funnel-templates/${id}`, payload);
     return data;
   },
@@ -682,7 +828,7 @@ export const appApi = {
     await apiClient.post(`/api/notifications/${id}/read`);
   },
 
-  async exportAnalyticsExcel(payload: Record<string, unknown>): Promise<{ url: string }> {
+  async exportAnalyticsExcel(payload: AnalyticsExportPayload): Promise<{ url: string }> {
     const { data } = await apiClient.post("/api/analytics/export", payload);
     return data;
   },
@@ -800,7 +946,7 @@ export const appApi = {
     const { data } = await apiClient.get("/api/tasks", { params });
     return data;
   },
-  async createTask(payload: Record<string, unknown>): Promise<{ id: string }> {
+  async createTask(payload: CreateTaskPayload): Promise<{ id: string }> {
     const { data } = await apiClient.post("/api/tasks", payload);
     return data;
   },
@@ -835,13 +981,13 @@ export const appApi = {
     const { data } = await apiClient.get(`/api/meetings/${id}`);
     return data;
   },
-  async updateMeeting(id: string, payload: Record<string, unknown>): Promise<void> {
+  async updateMeeting(id: string, payload: UpdateMeetingPayload): Promise<void> {
     await apiClient.patch(`/api/meetings/${id}`, payload);
   },
   async cancelMeeting(id: string): Promise<void> {
     await apiClient.post(`/api/meetings/${id}/cancel`);
   },
-  async setMeetingResult(id: string, payload: Record<string, unknown>): Promise<void> {
+  async setMeetingResult(id: string, payload: { result: string; rating?: number }): Promise<void> {
     await apiClient.post(`/api/meetings/${id}/result`, payload);
   },
   async deleteMeeting(id: string): Promise<void> {
@@ -852,7 +998,7 @@ export const appApi = {
     const { data } = await apiClient.get("/api/requisitions", { params });
     return data;
   },
-  async createRequisition(payload: Record<string, unknown>): Promise<{ id: string }> {
+  async createRequisition(payload: CreateRequisitionPayload): Promise<{ id: string }> {
     const { data } = await apiClient.post("/api/requisitions", payload);
     return data;
   },
@@ -864,7 +1010,7 @@ export const appApi = {
     const { data } = await apiClient.get(`/api/requisitions/${id}`);
     return data;
   },
-  async updateRequisition(id: string, payload: Record<string, unknown>): Promise<void> {
+  async updateRequisition(id: string, payload: Partial<CreateRequisitionPayload>): Promise<void> {
     await apiClient.patch(`/api/requisitions/${id}`, payload);
   },
   async getRequisitionApprovals(id: string): Promise<{ items: Array<{ id: string; approver: string; status: string; createdAt: string }> }> {
@@ -894,11 +1040,11 @@ export const appApi = {
     const { data } = await apiClient.get("/api/reference-dictionary");
     return data;
   },
-  async createReferenceDictionary(payload: Record<string, unknown>): Promise<{ id: string }> {
+  async createReferenceDictionary(payload: ReferenceDictionaryPayload): Promise<{ id: string }> {
     const { data } = await apiClient.post("/api/reference-dictionary", payload);
     return data;
   },
-  async updateReferenceDictionary(id: string, payload: Record<string, unknown>): Promise<void> {
+  async updateReferenceDictionary(id: string, payload: Partial<ReferenceDictionaryPayload>): Promise<void> {
     await apiClient.patch(`/api/reference-dictionary/${id}`, payload);
   },
   async archiveReferenceDictionary(id: string): Promise<void> {
@@ -928,10 +1074,10 @@ export const appApi = {
     const { data } = await apiClient.get("/api/mailbox/connection");
     return data;
   },
-  async connectImap(payload: Record<string, unknown>): Promise<void> {
+  async connectImap(payload: ImapConnectionPayload): Promise<void> {
     await apiClient.post("/api/mailbox/imap/connect", payload);
   },
-  async connectExchange(payload: Record<string, unknown>): Promise<void> {
+  async connectExchange(payload: ExchangeConnectionPayload): Promise<void> {
     await apiClient.post("/api/mailbox/exchange/connect", payload);
   },
   async disconnectMailbox(): Promise<void> {

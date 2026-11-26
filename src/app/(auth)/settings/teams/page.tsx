@@ -6,7 +6,7 @@ import { Skeleton, Table, Button, Modal, Form, Input, message, Tag } from "antd"
 import type { ColumnsType } from "antd/es/table";
 import { SettingsLayout } from "@/components/SettingsLayout";
 import { ErrorState } from "@/components/ErrorState";
-import { appApi } from "@/lib/api";
+import { appApi, type ReferenceDictionaryPayload} from "@/lib/api";
 import { qk } from "@/lib/query-keys";
 import { usePageTitle } from "@/components/usePageTitle";
 
@@ -29,7 +29,7 @@ export default function TeamsSettingsPage() {
   });
 
   const createMut = useMutation({
-    mutationFn: (payload: Record<string, unknown>) => appApi.createReferenceDictionary(payload),
+    mutationFn: (payload: ReferenceDictionaryPayload) => appApi.createReferenceDictionary(payload),
     onSuccess: () => {
       message.success("Команда создана");
       qc.invalidateQueries({ queryKey: qk.teams.list() });

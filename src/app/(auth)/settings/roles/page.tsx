@@ -5,7 +5,7 @@ import type { ColumnsType } from "antd/es/table";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import { SettingsLayout } from "@/components/SettingsLayout";
-import { appApi } from "@/lib/api";
+import { appApi, type Company} from "@/lib/api";
 import { qk } from "@/lib/query-keys";
 import { usePageTitle } from "@/components/usePageTitle";
 import { ErrorState } from "@/components/ErrorState";

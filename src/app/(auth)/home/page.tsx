@@ -6,7 +6,7 @@ import { Table, Tag, Button, Skeleton, Tooltip, Modal, Form, Input, Select, Drop
 import type { ColumnsType } from "antd/es/table";
 import { useQuery, useMutation, useQueryClient, keepPreviousData } from "@tanstack/react-query";
 import { PageHeader } from "@/components/PageHeader";
-import { authApi, appApi, type Vacancy, type HiringKpi } from "@/lib/api";
+import { authApi, appApi, type Vacancy, type HiringKpi, type CreateVacancyPayload} from "@/lib/api";
 import { qk } from "@/lib/query-keys";
 import { usePageTitle } from "@/components/usePageTitle";
 import { ErrorState } from "@/components/ErrorState";
@@ -81,7 +81,7 @@ export default function HomePage() {
   });
 
   const createMut = useMutation({
-    mutationFn: (payload: Record<string, unknown>) => appApi.createVacancy(payload),
+    mutationFn: (payload: CreateVacancyPayload) => appApi.createVacancy(payload),
     onSuccess: (resp) => {
       message.success("Вакансия создана");
       qc.invalidateQueries({ queryKey: qk.vacancies.all() });

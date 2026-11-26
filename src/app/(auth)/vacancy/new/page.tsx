@@ -5,7 +5,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { Form, Input, Select, Button, Card, Space, Checkbox, message, Skeleton } from "antd";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { PageHeader } from "@/components/PageHeader";
-import { appApi, type Vacancy } from "@/lib/api";
+import { appApi, type Vacancy, type CreateVacancyPayload} from "@/lib/api";
 import { qk } from "@/lib/query-keys";
 import { usePageTitle } from "@/components/usePageTitle";
 
@@ -59,7 +59,7 @@ function VacancyForm() {
   }, [existingVacancy, form]);
 
   const createMut = useMutation({
-    mutationFn: (payload: Record<string, unknown>) => appApi.createVacancy(payload),
+    mutationFn: (payload: CreateVacancyPayload) => appApi.createVacancy(payload),
     onSuccess: (resp) => {
       message.success("Вакансия создана");
       qc.invalidateQueries({ queryKey: qk.vacancies.all() });
@@ -73,7 +73,7 @@ function VacancyForm() {
   });
 
   const updateMut = useMutation({
-    mutationFn: (payload: Record<string, unknown>) => appApi.updateVacancy(editId!, payload),
+    mutationFn: (payload: Partial<CreateVacancyPayload>) => appApi.updateVacancy(editId!, payload),
     onSuccess: () => {
       message.success("Вакансия обновлена");
       qc.invalidateQueries({ queryKey: qk.vacancies.detail(editId!) });

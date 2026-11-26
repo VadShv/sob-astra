@@ -52,7 +52,7 @@ export default function CalendarPage() {
   });
 
   const resultMut = useMutation({
-    mutationFn: ({ id, payload }: { id: string; payload: Record<string, unknown> }) =>
+    mutationFn: ({ id, payload }: { id: string; payload: { result: string; rating?: number } }) =>
       appApi.setMeetingResult(id, payload),
     onSuccess: () => {
       message.success("Результат сохранён");

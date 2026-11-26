@@ -5,3 +5,10 @@
 .title{margin:0;font-size:var(--ats-fs-screen,28px);font-weight:var(--ats-fw-screen,800);line-height:1.2}
 .sub{margin:6px 0 0;color:var(--ats-text-2,rgba(0,0,0,.65));font-size:14px}
 .actions{display:flex;flex-wrap:wrap;align-items:center;gap:8px}
+
+@media(max-width:767px){
+  .head[data-panel]{padding:16px}
+  .title{font-size:22px}
+  .titleBox{flex:1 1 100%}
+  .actions{flex:1 1 100%}
+}

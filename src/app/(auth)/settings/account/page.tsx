@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { Form, Input, Button, Select, Divider, message, Skeleton, Upload, Switch, Tag, Space, Popconfirm, List, Modal } from "antd";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { SettingsLayout } from "@/components/SettingsLayout";
-import { authApi, appApi } from "@/lib/api";
+import { authApi, appApi, type CreateCandidatePayload} from "@/lib/api";
 import { qk } from "@/lib/query-keys";
 import { usePageTitle } from "@/components/usePageTitle";
 
@@ -21,7 +21,7 @@ export default function AccountSettingsPage() {
   });
 
   const mutation = useMutation({
-    mutationFn: (values: Record<string, unknown>) => appApi.updateAccount(values),
+    mutationFn: (values: Partial<CreateCandidatePayload> & { currentPassword?: string; newPassword?: string; locale?: string }) => appApi.updateAccount(values),
     onSuccess: () => {
       message.success("Сохранено");
       qc.invalidateQueries({ queryKey: qk.auth.me() });

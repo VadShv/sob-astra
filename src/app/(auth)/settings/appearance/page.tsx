@@ -4,7 +4,7 @@ import { useEffect } from "react";
 import { Form, Input, ColorPicker, Button, Upload, Divider, message, Skeleton } from "antd";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { SettingsLayout } from "@/components/SettingsLayout";
-import { appApi } from "@/lib/api";
+import { appApi, type AppearanceSettings} from "@/lib/api";
 import { qk } from "@/lib/query-keys";
 import { usePageTitle } from "@/components/usePageTitle";
 
@@ -19,7 +19,7 @@ export default function AppearanceSettingsPage() {
   });
 
   const mutation = useMutation({
-    mutationFn: (values: Record<string, unknown>) => appApi.updateAppearanceSettings(values),
+    mutationFn: (values: Partial<AppearanceSettings>) => appApi.updateAppearanceSettings(values),
     onSuccess: () => {
       message.success("Сохранено");
       qc.invalidateQueries({ queryKey: qk.settings.appearance() });
