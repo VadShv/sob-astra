@@ -2,7 +2,7 @@
 
 import { PageHeader } from "@/components/PageHeader";
 import { usePageTitle } from "@/components/usePageTitle";
-import { Tag } from "antd";
+import { Tag, Card } from "antd";
 
 const UPDATES = [
   {
@@ -44,14 +44,7 @@ export default function WhatsNewPage() {
       <PageHeader title="Что нового" sub="Обновления и улучшения" />
       <div style={{ display: "flex", flexDirection: "column", gap: 24 }}>
         {UPDATES.map((u, i) => (
-          <div
-            key={i}
-            style={{
-              background: "#fff",
-              borderRadius: 18,
-              padding: 24,
-            }}
-          >
+          <Card key={i}>
             <div style={{ fontSize: 13, color: "rgba(0,0,0,.45)", marginBottom: 8 }}>
               {u.date}
             </div>
@@ -66,7 +59,7 @@ export default function WhatsNewPage() {
             <p style={{ fontSize: 14, color: "rgba(0,0,0,.65)", lineHeight: 1.6 }}>
               {u.body}
             </p>
-          </div>
+          </Card>
         ))}
       </div>
     </div>
