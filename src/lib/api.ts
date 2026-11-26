@@ -1437,4 +1437,69 @@ export const appApi = {
     const { data } = await apiClient.get(`/api/vacancy/${vacancyId}/analytics`);
     return data;
   },
+
+  async getEmailTemplates(): Promise<{
+    items: Array<{
+      id: string;
+      name: string;
+      subject: string;
+      body: string;
+      variables: string[];
+      createdAt: string;
+    }>;
+  }> {
+    const { data } = await apiClient.get("/api/email-templates");
+    return data;
+  },
+  async renderEmailTemplate(templateId: string, variables: Record<string, string>): Promise<{
+    subject: string;
+    body: string;
+  }> {
+    const { data } = await apiClient.post(`/api/email-templates/${templateId}/render`, { variables });
+    return data;
+  },
+
+  async getConversationDetails(candidacyId: string): Promise<{
+    candidacyId: string;
+    candidateId: string;
+    candidateFullName: string;
+    candidateEmail: string;
+    vacancyTitle: string;
+    channel: string;
+    messages: Array<{
+      id: string;
+      body: string;
+      direction: "in" | "out";
+      channel: string;
+      createdAt: string;
+      attachments?: Array<{ id: string; name: string; url: string }>;
+    }>;
+  }> {
+    const { data } = await apiClient.get(`/api/conversations/${candidacyId}`);
+    return data;
+  },
+  async sendAttachment(candidacyId: string, file: File): Promise<void> {
+    const formData = new FormData();
+    formData.append("file", file);
+    await apiClient.post(`/api/conversations/${candidacyId}/attachments`, formData, {
+      headers: { "Content-Type": "multipart/form-data" },
+    });
+  },
+
+  async connectGoogleCalendar(payload: { code: string }): Promise<void> {
+    await apiClient.post("/api/calendar/google/connect", payload);
+  },
+  async connectOutlookCalendar(payload: { code: string }): Promise<void> {
+    await apiClient.post("/api/calendar/outlook/connect", payload);
+  },
+  async disconnectCalendar(type: string): Promise<void> {
+    await apiClient.delete(`/api/calendar/${type}/disconnect`);
+  },
+  async getCalendarSyncStatus(): Promise<{
+    google: { connected: boolean; email?: string };
+    outlook: { connected: boolean; email?: string };
+  }> {
+    const { data } = await apiClient.get("/api/calendar/sync-status");
+    return data;
+  },
 };

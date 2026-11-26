@@ -20,6 +20,8 @@ const HREFS: Record<string, string> = {
   "Кастомные поля": "/settings/custom-fields",
   "Теги": "/settings/tags",
   "Шаблоны сообщений": "/settings/templates",
+  "Email-шаблоны": "/settings/email-templates",
+  "Синхронизация календарей": "/settings/calendar-sync",
   "Внешний API": "/settings/api",
   "Логи вебхуков": "/settings/webhook-logs",
   "Журнал действий": "/settings/audit-log",

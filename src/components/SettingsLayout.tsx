@@ -42,6 +42,8 @@ const SECTIONS: SettingsSection[] = [
     group: "Инструменты",
     items: [
       { label: "Шаблоны сообщений", desc: "Шаблоны сообщений кандидату" },
+      { label: "Email-шаблоны", desc: "Email-шаблоны с переменными и предпросмотром" },
+      { label: "Синхронизация календарей", desc: "Google и Outlook календари" },
       { label: "Внешний API", desc: "API-токены и webhooks для интеграций" },
       { label: "Логи вебхуков", desc: "История вызовов вебхуков" },
       { label: "Журнал действий", desc: "История изменений и действий пользователей" },
@@ -90,6 +92,8 @@ export function SettingsLayout({
                       "Кастомные поля": "/settings/custom-fields",
                       "Теги": "/settings/tags",
                       "Шаблоны сообщений": "/settings/templates",
+                      "Email-шаблоны": "/settings/email-templates",
+                      "Синхронизация календарей": "/settings/calendar-sync",
                       "Внешний API": "/settings/api",
                       "Логи вебхуков": "/settings/webhook-logs",
                       "Журнал действий": "/settings/audit-log",
