@@ -48,6 +48,7 @@ export const qk = {
     awaiting: () => ["awaiting-count"] as const,
     settings: () => ["notification-settings"] as const,
     types: () => ["notification-types"] as const,
+    list: () => ["notifications"] as const,
   },
   settings: {
     company: () => ["company"] as const,

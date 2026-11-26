@@ -11,12 +11,18 @@ import { usePageTitle } from "@/components/usePageTitle";
 import { ErrorState } from "@/components/ErrorState";
 import s from "./analytics.module.css";
 
+const PERIOD_QUARTER = "Текущий квартал";
+const PERIOD_MONTH = "Этот месяц";
+const PERIOD_YEAR = "Этот год";
+const PERIOD_CUSTOM = "Свой период";
+const PERIOD_OPTIONS = [PERIOD_QUARTER, PERIOD_MONTH, PERIOD_YEAR, PERIOD_CUSTOM];
+
 function getPeriodRange(period: string): { from: string; to: string } {
   const to = new Date();
   const from = new Date();
-  if (period === "Текущий квартал") from.setMonth(from.getMonth() - 3);
-  else if (period === "Этот месяц") from.setMonth(from.getMonth() - 1);
-  else if (period === "Этот год") from.setFullYear(from.getFullYear() - 1);
+  if (period === PERIOD_QUARTER) from.setMonth(from.getMonth() - 3);
+  else if (period === PERIOD_MONTH) from.setMonth(from.getMonth() - 1);
+  else if (period === PERIOD_YEAR) from.setFullYear(from.getFullYear() - 1);
   return { from: from.toISOString(), to: to.toISOString() };
 }
 
@@ -64,7 +70,7 @@ function Section({
 }
 
 export default function AnalyticsPage() {
-  const [period, setPeriod] = useState("Текущий квартал");
+  const [period, setPeriod] = useState(PERIOD_QUARTER);
   usePageTitle("Аналитика найма");
   const [exportLogOpen, setExportLogOpen] = useState(false);
   const [recruiterId, setRecruiterId] = useState<string>("");
@@ -176,12 +182,12 @@ export default function AnalyticsPage() {
 
       <div className={s.filters} style={{ display: "flex", gap: 12, alignItems: "center", flexWrap: "wrap" }}>
         <Segmented
-          options={["Текущий квартал", "Этот месяц", "Этот год", "Свой период"]}
+          options={PERIOD_OPTIONS}
           value={period}
-          onChange={(v) => { setPeriod(v as string); if (v !== "Свой период") setCustomRange(null); }}
+          onChange={(v) => { setPeriod(v as string); if (v !== PERIOD_CUSTOM) setCustomRange(null); }}
           size="small"
         />
-        {period === "Свой период" && (
+        {period === PERIOD_CUSTOM && (
           <DatePicker.RangePicker
             onChange={(_, dateStrings) => {
               if (dateStrings[0] && dateStrings[1]) setCustomRange([dateStrings[0], dateStrings[1]]);

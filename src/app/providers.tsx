@@ -4,6 +4,7 @@ import { QueryClient, QueryClientProvider, QueryCache } from "@tanstack/react-qu
 import { message } from "antd";
 import { useState, type ReactNode } from "react";
 import { parseApiError } from "@/lib/api";
+import { logger } from "@/lib/logger";
 
 export function Providers({ children }: { children: ReactNode }) {
   const [queryClient] = useState(
@@ -13,7 +14,7 @@ export function Providers({ children }: { children: ReactNode }) {
           onError: (error, query) => {
             const msg = parseApiError(error);
             if (msg === "Необходима авторизация") return;
-            console.error("[query]", query.queryKey, msg);
+            logger.error("[query]", query.queryKey, msg);
             if (query.state.data === undefined) {
               message.error(msg);
             }
