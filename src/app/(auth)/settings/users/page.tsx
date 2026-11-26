@@ -7,6 +7,8 @@ import type { ColumnsType } from "antd/es/table";
 import { SettingsLayout } from "@/components/SettingsLayout";
 import { appApi } from "@/lib/api";
 import { qk } from "@/lib/query-keys";
+import { usePageTitle } from "@/components/usePageTitle";
+import { ErrorState } from "@/components/ErrorState";
 
 interface UserRow {
   id: string;
@@ -18,11 +20,12 @@ interface UserRow {
 }
 
 export default function UsersSettingsPage() {
+  usePageTitle("Пользователи · Настройки");
   const qc = useQueryClient();
   const [inviteOpen, setInviteOpen] = useState(false);
   const [form] = Form.useForm();
 
-  const { data, isLoading } = useQuery({
+  const { data, isLoading, isError, refetch } = useQuery({
     queryKey: qk.settings.companyUsers(),
     queryFn: () => appApi.getCompanyUsers(),
   });
@@ -155,7 +158,9 @@ export default function UsersSettingsPage() {
           Пригласить
         </Button>
       </div>
-      {isLoading ? (
+      {isError ? (
+        <ErrorState onRetry={() => refetch()} />
+      ) : isLoading ? (
         <Skeleton active />
       ) : (
         <Table<UserRow>

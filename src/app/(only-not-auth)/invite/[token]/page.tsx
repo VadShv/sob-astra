@@ -4,12 +4,14 @@ import { use, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Form, Input, Button, message, Card } from "antd";
 import { authApi } from "@/lib/api";
+import { usePageTitle } from "@/components/usePageTitle";
 
 export default function InvitePage({
   params,
 }: {
   params: Promise<{ token: string }>;
 }) {
+  usePageTitle("Приглашение");
   const { token } = use(params);
   const router = useRouter();
   const [form] = Form.useForm();

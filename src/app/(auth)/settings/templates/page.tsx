@@ -7,6 +7,8 @@ import type { ColumnsType } from "antd/es/table";
 import { SettingsLayout } from "@/components/SettingsLayout";
 import { appApi } from "@/lib/api";
 import { qk } from "@/lib/query-keys";
+import { usePageTitle } from "@/components/usePageTitle";
+import { ErrorState } from "@/components/ErrorState";
 
 interface Template {
   id: string;
@@ -17,12 +19,13 @@ interface Template {
 }
 
 export default function TemplatesSettingsPage() {
+  usePageTitle("Шаблоны · Настройки");
   const qc = useQueryClient();
   const [createOpen, setCreateOpen] = useState(false);
   const [editId, setEditId] = useState<string | null>(null);
   const [form] = Form.useForm();
 
-  const { data: templatesResp, isLoading } = useQuery({
+  const { data: templatesResp, isLoading, isError, refetch } = useQuery({
     queryKey: qk.settings.messageTemplates(),
     queryFn: () => appApi.getMessageTemplates(),
   });
@@ -119,7 +122,9 @@ export default function TemplatesSettingsPage() {
           Создать шаблон
         </Button>
       </div>
-      {isLoading ? (
+      {isError ? (
+        <ErrorState onRetry={() => refetch()} />
+      ) : isLoading ? (
         <Skeleton active />
       ) : (
         <Table<Template>

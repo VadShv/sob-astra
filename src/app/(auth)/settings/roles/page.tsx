@@ -7,6 +7,8 @@ import { useState } from "react";
 import { SettingsLayout } from "@/components/SettingsLayout";
 import { appApi } from "@/lib/api";
 import { qk } from "@/lib/query-keys";
+import { usePageTitle } from "@/components/usePageTitle";
+import { ErrorState } from "@/components/ErrorState";
 
 interface Role {
   id: string;
@@ -29,6 +31,7 @@ const FALLBACK_PERMISSIONS = [
 ];
 
 export default function RolesSettingsPage() {
+  usePageTitle("Роли и права · Настройки");
   const qc = useQueryClient();
   const [createOpen, setCreateOpen] = useState(false);
   const [editId, setEditId] = useState<string | null>(null);
@@ -43,7 +46,7 @@ export default function RolesSettingsPage() {
   const permissionOptions = ((permissionsData as { items?: Array<{ code: string; name: string }> })?.items ?? []).map((p) => ({ label: p.name, value: p.code }));
   const PERMISSIONS = permissionOptions.length > 0 ? permissionOptions : FALLBACK_PERMISSIONS;
 
-  const { data: rolesResp, isLoading } = useQuery({
+  const { data: rolesResp, isLoading, isError, refetch } = useQuery({
     queryKey: qk.settings.companyRoles(),
     queryFn: () => appApi.getCompanyRoles(),
   });
@@ -132,7 +135,9 @@ export default function RolesSettingsPage() {
           Создать роль
         </Button>
       </div>
-      {isLoading ? (
+      {isError ? (
+        <ErrorState onRetry={() => refetch()} />
+      ) : isLoading ? (
         <Skeleton active />
       ) : (
         <Table<Role>

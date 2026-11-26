@@ -6,6 +6,8 @@ import { Button, Tag, Skeleton, Modal, Form, Input, Space, message, Popconfirm }
 import { SettingsLayout } from "@/components/SettingsLayout";
 import { appApi } from "@/lib/api";
 import { qk } from "@/lib/query-keys";
+import { usePageTitle } from "@/components/usePageTitle";
+import { ErrorState } from "@/components/ErrorState";
 
 const DEFAULT_STAGES = [
   { name: "Отклик", type: "new" },
@@ -16,12 +18,13 @@ const DEFAULT_STAGES = [
 ];
 
 export default function FunnelsSettingsPage() {
+  usePageTitle("Воронки · Настройки");
   const qc = useQueryClient();
   const [createOpen, setCreateOpen] = useState(false);
   const [editId, setEditId] = useState<string | null>(null);
   const [form] = Form.useForm();
 
-  const { data, isLoading } = useQuery({
+  const { data, isLoading, isError, refetch } = useQuery({
     queryKey: qk.settings.funnels(),
     queryFn: () => appApi.getFunnels(),
   });
@@ -73,7 +76,9 @@ export default function FunnelsSettingsPage() {
           Создать воронку
         </Button>
       </div>
-      {isLoading ? (
+      {isError ? (
+        <ErrorState onRetry={() => refetch()} />
+      ) : isLoading ? (
         <Skeleton active />
       ) : funnels.length === 0 ? (
         <div style={{ padding: 20, border: "1px solid #f0f0f0", borderRadius: 12, display: "flex", justifyContent: "space-between", alignItems: "center" }}>

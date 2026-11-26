@@ -6,6 +6,8 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { SettingsLayout } from "@/components/SettingsLayout";
 import { appApi } from "@/lib/api";
 import { qk } from "@/lib/query-keys";
+import { usePageTitle } from "@/components/usePageTitle";
+import { ErrorState } from "@/components/ErrorState";
 
 const FALLBACK_NOTIFICATION_KEYS = [
   { key: "newCandidate", title: "Новый кандидат", desc: "Когда кандидат откликается на вакансию" },
@@ -15,10 +17,11 @@ const FALLBACK_NOTIFICATION_KEYS = [
 ];
 
 export default function NotificationsSettingsPage() {
+  usePageTitle("Уведомления · Настройки");
   const qc = useQueryClient();
   const [form] = Form.useForm();
 
-  const { data: settings, isLoading } = useQuery({
+  const { data: settings, isLoading, isError, refetch } = useQuery({
     queryKey: qk.notifications.settings(),
     queryFn: () => appApi.getNotificationSettings(),
   });
@@ -48,7 +51,9 @@ export default function NotificationsSettingsPage() {
 
   return (
     <SettingsLayout activeItem="Уведомления">
-      {isLoading ? (
+      {isError ? (
+        <ErrorState onRetry={() => refetch()} />
+      ) : isLoading ? (
         <Skeleton active />
       ) : (
         <Form

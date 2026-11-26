@@ -7,6 +7,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { PageHeader } from "@/components/PageHeader";
 import { appApi, type Vacancy } from "@/lib/api";
 import { qk } from "@/lib/query-keys";
+import { usePageTitle } from "@/components/usePageTitle";
 
 function VacancyForm() {
   const router = useRouter();
@@ -182,6 +183,7 @@ function VacancyForm() {
 }
 
 export default function VacancyCreatePage() {
+  usePageTitle("Новая вакансия");
   return (
     <Suspense fallback={<div style={{ padding: 24 }}><Skeleton active /></div>}>
       <VacancyForm />

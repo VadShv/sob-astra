@@ -7,6 +7,7 @@ import { useMutation, useQueryClient, useQuery } from "@tanstack/react-query";
 import { PageHeader } from "@/components/PageHeader";
 import { appApi } from "@/lib/api";
 import { qk } from "@/lib/query-keys";
+import { usePageTitle } from "@/components/usePageTitle";
 
 function CandidateCreateForm() {
   const router = useRouter();
@@ -121,6 +122,7 @@ function CandidateCreateForm() {
 }
 
 export default function CandidateCreatePage() {
+  usePageTitle("Новый кандидат");
   return (
     <Suspense fallback={<div>Загрузка…</div>}>
       <CandidateCreateForm />

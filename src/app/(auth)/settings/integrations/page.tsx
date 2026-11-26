@@ -7,6 +7,8 @@ import { SettingsLayout } from "@/components/SettingsLayout";
 import { appApi, authApi } from "@/lib/api";
 import { qk } from "@/lib/query-keys";
 import s from "./integrations.module.css";
+import { usePageTitle } from "@/components/usePageTitle";
+import { ErrorState } from "@/components/ErrorState";
 
 interface IntegrationCard {
   name: string;
@@ -91,9 +93,10 @@ function IntegrationCardItem({
 }
 
 export default function IntegrationsPage() {
+  usePageTitle("Интеграции · Настройки");
   const qc = useQueryClient();
 
-  const { data: integrations, isLoading } = useQuery({
+  const { data: integrations, isLoading, isError, refetch } = useQuery({
     queryKey: qk.settings.integrations(),
     queryFn: () => appApi.getIntegrations(),
   });
@@ -177,7 +180,9 @@ export default function IntegrationsPage() {
 
   return (
     <SettingsLayout activeItem="Интеграции">
-      {isLoading ? (
+      {isError ? (
+        <ErrorState onRetry={() => refetch()} />
+      ) : isLoading ? (
         <Skeleton active />
       ) : (
         <div className={s.integrations}>
