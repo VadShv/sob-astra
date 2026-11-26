@@ -24,7 +24,12 @@ const HREFS: Record<string, string> = {
   "Синхронизация календарей": "/settings/calendar-sync",
   "Внешний API": "/settings/api",
   "Логи вебхуков": "/settings/webhook-logs",
+  "События вебхуков": "/settings/webhook-events",
   "Журнал действий": "/settings/audit-log",
+  "Биллинг": "/settings/billing",
+  "Воронки талантов": "/settings/pipelines",
+  "GDPR": "/settings/gdpr",
+  "Реферальная программа": "/settings/referral",
   "Интеграции": "/settings/integrations",
 };
 

@@ -46,7 +46,12 @@ const SECTIONS: SettingsSection[] = [
       { label: "Синхронизация календарей", desc: "Google и Outlook календари" },
       { label: "Внешний API", desc: "API-токены и webhooks для интеграций" },
       { label: "Логи вебхуков", desc: "История вызовов вебхуков" },
+      { label: "События вебхуков", desc: "Доступные события для вебхуков" },
       { label: "Журнал действий", desc: "История изменений и действий пользователей" },
+      { label: "Биллинг", desc: "Подписка, тариф и счета" },
+      { label: "Воронки талантов", desc: "Пулы кандидатов" },
+      { label: "GDPR", desc: "Экспорт и удаление данных кандидатов" },
+      { label: "Реферальная программа", desc: "Бонусы за рекомендации сотрудников" },
     ],
   },
   {
@@ -96,7 +101,12 @@ export function SettingsLayout({
                       "Синхронизация календарей": "/settings/calendar-sync",
                       "Внешний API": "/settings/api",
                       "Логи вебхуков": "/settings/webhook-logs",
+                      "События вебхуков": "/settings/webhook-events",
                       "Журнал действий": "/settings/audit-log",
+                      "Биллинг": "/settings/billing",
+                      "Воронки талантов": "/settings/pipelines",
+                      "GDPR": "/settings/gdpr",
+                      "Реферальная программа": "/settings/referral",
                       "Интеграции": "/settings/integrations",
                     }[item.label] || "/settings"
                   }

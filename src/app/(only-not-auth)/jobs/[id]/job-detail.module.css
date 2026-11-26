@@ -1,0 +1,5 @@
+.page{max-width:800px;margin:0 auto;padding:24px}
+.meta{display:flex;gap:8px;flex-wrap:wrap;margin:12px 0}
+.company{margin:16px 0;padding:12px;background:rgba(0,0,0,.02);border-radius:8px}
+.description{margin-top:16px}
+@media(max-width:767px){.page{padding:16px}}

@@ -1502,4 +1502,119 @@ export const appApi = {
     const { data } = await apiClient.get("/api/calendar/sync-status");
     return data;
   },
+
+  async getSubscription(): Promise<{
+    plan: string;
+    status: string;
+    seats: number;
+    usedSeats: number;
+    currentPeriodEnd: string;
+    amount: number;
+    currency: string;
+  }> {
+    const { data } = await apiClient.get("/api/billing/subscription");
+    return data;
+  },
+  async getInvoices(): Promise<{
+    items: Array<{
+      id: string;
+      number: string;
+      amount: number;
+      currency: string;
+      status: string;
+      createdAt: string;
+      pdfUrl?: string;
+    }>;
+  }> {
+    const { data } = await apiClient.get("/api/billing/invoices");
+    return data;
+  },
+
+  async getPipelines(): Promise<{
+    items: Array<{
+      id: string;
+      name: string;
+      description?: string;
+      candidateCount: number;
+      createdAt: string;
+    }>;
+  }> {
+    const { data } = await apiClient.get("/api/pipelines");
+    return data;
+  },
+  async createPipeline(payload: { name: string; description?: string }): Promise<{ id: string }> {
+    const { data } = await apiClient.post("/api/pipelines", payload);
+    return data;
+  },
+
+  async exportCandidateData(candidateId: string): Promise<{ url: string }> {
+    const { data } = await apiClient.post(`/api/candidate/${candidateId}/export-data`);
+    return data;
+  },
+  async deleteCandidateData(candidateId: string): Promise<void> {
+    await apiClient.delete(`/api/candidate/${candidateId}/data`);
+  },
+
+  async getWebhookEventTypes(): Promise<Array<{ value: string; label: string; description?: string }>> {
+    const { data } = await apiClient.get("/api/settings/external-api/hooks/event-types");
+    return data;
+  },
+
+  async getReferralProgram(): Promise<{
+    enabled: boolean;
+    bonusAmount?: number;
+    currency?: string;
+    conditions?: string;
+    referralsCount: number;
+  }> {
+    const { data } = await apiClient.get("/api/referral-program");
+    return data;
+  },
+  async updateReferralProgram(payload: { enabled: boolean; bonusAmount?: number; conditions?: string }): Promise<void> {
+    await apiClient.put("/api/referral-program", payload);
+  },
+
+  async getPublicVacancies(params?: Record<string, string>): Promise<{
+    items: Array<{
+      id: string;
+      title: string;
+      description?: string;
+      city?: string;
+      salaryFrom?: number;
+      salaryTo?: number;
+      employmentType?: string;
+      experience?: string;
+      createdAt: string;
+    }>;
+    total: number;
+  }> {
+    const { data } = await apiClient.get("/api/public/vacancies", { params });
+    return data;
+  },
+  async getPublicVacancyById(id: string): Promise<{
+    id: string;
+    title: string;
+    description?: string;
+    city?: string;
+    salaryFrom?: number;
+    salaryTo?: number;
+    employmentType?: string;
+    experience?: string;
+    company: { name: string; description?: string; logoUrl?: string };
+    createdAt: string;
+  }> {
+    const { data } = await apiClient.get(`/api/public/vacancy/${id}`);
+    return data;
+  },
+  async submitApplication(vacancyId: string, payload: {
+    firstName: string;
+    lastName: string;
+    email: string;
+    phone?: string;
+    coverLetter?: string;
+    resumeUrl?: string;
+  }): Promise<{ candidacyId: string }> {
+    const { data } = await apiClient.post(`/api/public/vacancy/${vacancyId}/apply`, payload);
+    return data;
+  },
 };

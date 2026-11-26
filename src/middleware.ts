@@ -4,7 +4,7 @@ const AUTH_COOKIE = "sobessoSession";
 const PUBLIC_PATHS = ["/login"];
 
 function isPublicPath(pathname: string): boolean {
-  return PUBLIC_PATHS.includes(pathname) || pathname.startsWith("/invite/");
+  return PUBLIC_PATHS.includes(pathname) || pathname.startsWith("/invite/") || pathname.startsWith("/jobs");
 }
 
 export function middleware(request: NextRequest) {

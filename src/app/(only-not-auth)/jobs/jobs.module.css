@@ -1,0 +1,9 @@
+.page{max-width:800px;margin:0 auto;padding:24px}
+.header{display:flex;justify-content:space-between;align-items:center;margin-bottom:24px}
+.list{display:flex;flex-direction:column;gap:16px}
+.card{padding:0}
+.cardHeader{display:flex;justify-content:space-between;align-items:center}
+.cardTitle{margin:0;font-size:18px}
+.cardMeta{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px}
+.cardDesc{margin-top:8px;color:rgba(0,0,0,.65)}
+@media(max-width:767px){.page{padding:16px}.header{flex-direction:column;gap:12px;align-items:flex-start}}
