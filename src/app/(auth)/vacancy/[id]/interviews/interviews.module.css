@@ -1,0 +1,31 @@
+.page {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.facets {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding: 0 4px;
+}
+
+.panel {
+  padding: 20px 24px;
+  border-radius: 18px;
+  background: var(--ats-bg, #fff);
+}
+
+.filters {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  margin-bottom: 16px;
+}
+
+@media (max-width: 767px) {
+  .panel {
+    padding: 16px;
+  }
+}

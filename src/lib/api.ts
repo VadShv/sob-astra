@@ -258,6 +258,72 @@ export interface Requisition {
   updatedAt: string;
 }
 
+export interface Interview {
+  id: string;
+  candidacyId: string;
+  candidateId: string;
+  candidateFullName: string;
+  candidateEmail: string;
+  vacancyId: string;
+  vacancyTitle: string;
+  type: string;
+  format: string;
+  status: string;
+  scheduledAt: string;
+  durationMin: number;
+  location?: string;
+  meetingLink?: string;
+  interviewerIds: string[];
+  interviewerNames: string[];
+  scorecardId?: string;
+  scorecardStatus?: string;
+  feedback?: string;
+  rating?: number;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface Scorecard {
+  id: string;
+  interviewId: string;
+  templateId?: string;
+  status: string;
+  overallRating?: number;
+  recommendation?: string;
+  sections: Array<{
+    id: string;
+    name: string;
+    rating?: number;
+    comment?: string;
+    skills?: Array<{ name: string; rating?: number }>;
+  }>;
+  summary?: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface Offer {
+  id: string;
+  candidacyId: string;
+  candidateId: string;
+  candidateFullName: string;
+  vacancyId: string;
+  vacancyTitle: string;
+  status: string;
+  salaryFrom?: number;
+  salaryTo?: number;
+  currency?: string;
+  startDate?: string;
+  deadline?: string;
+  conditions?: string;
+  benefits?: string;
+  sentAt?: string;
+  respondedAt?: string;
+  response?: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
 export const authApi = {
   async me(): Promise<{ user: User | null }> {
     const { data } = await apiClient.get("/auth/me");
@@ -897,5 +963,105 @@ export const appApi = {
   }> {
     const { data } = await apiClient.get("/api/audit-log", { params });
     return data;
+  },
+
+  async getInterviewById(id: string): Promise<Interview> {
+    const { data } = await apiClient.get(`/api/interview/${id}`);
+    return data;
+  },
+  async createInterview(payload: {
+    candidacyId: string;
+    type: string;
+    format: string;
+    scheduledAt: string;
+    durationMin: number;
+    location?: string;
+    meetingLink?: string;
+    interviewerIds: string[];
+  }): Promise<Interview> {
+    const { data } = await apiClient.post("/api/interview", payload);
+    return data;
+  },
+  async updateInterview(id: string, payload: Partial<{
+    scheduledAt: string;
+    durationMin: number;
+    location: string;
+    meetingLink: string;
+    interviewerIds: string[];
+    status: string;
+  }>): Promise<Interview> {
+    const { data } = await apiClient.put(`/api/interview/${id}`, payload);
+    return data;
+  },
+  async cancelInterview(id: string): Promise<void> {
+    await apiClient.post(`/api/interview/${id}/cancel`);
+  },
+  async getInterviewTypes(): Promise<Array<{ value: string; label: string }>> {
+    const { data } = await apiClient.get("/api/interview/types");
+    return data;
+  },
+  async getInterviewers(vacancyId?: string): Promise<Array<{ id: string; name: string }>> {
+    const { data } = await apiClient.get("/api/interview/interviewers", {
+      params: vacancyId ? { vacancyId } : undefined,
+    });
+    return data;
+  },
+
+  async getScorecard(interviewId: string): Promise<Scorecard> {
+    const { data } = await apiClient.get(`/api/interview/${interviewId}/scorecard`);
+    return data;
+  },
+  async updateScorecard(interviewId: string, payload: Partial<Scorecard>): Promise<Scorecard> {
+    const { data } = await apiClient.put(`/api/interview/${interviewId}/scorecard`, payload);
+    return data;
+  },
+  async getScorecardTemplates(): Promise<Array<{
+    id: string;
+    name: string;
+    sections: Array<{ id: string; name: string; skills?: string[] }>;
+  }>> {
+    const { data } = await apiClient.get("/api/scorecard-templates");
+    return data;
+  },
+
+  async getOffers(vacancyId: string, params?: Record<string, string>): Promise<{
+    items: Offer[];
+    total: number;
+  }> {
+    const { data } = await apiClient.get(`/api/vacancy/${vacancyId}/offers`, { params });
+    return data;
+  },
+  async getOfferById(id: string): Promise<Offer> {
+    const { data } = await apiClient.get(`/api/offer/${id}`);
+    return data;
+  },
+  async createOffer(payload: {
+    candidacyId: string;
+    salaryFrom?: number;
+    salaryTo?: number;
+    currency?: string;
+    startDate?: string;
+    deadline?: string;
+    conditions?: string;
+    benefits?: string;
+  }): Promise<Offer> {
+    const { data } = await apiClient.post("/api/offer", payload);
+    return data;
+  },
+  async updateOffer(id: string, payload: Partial<Offer>): Promise<Offer> {
+    const { data } = await apiClient.put(`/api/offer/${id}`, payload);
+    return data;
+  },
+  async sendOffer(id: string): Promise<void> {
+    await apiClient.post(`/api/offer/${id}/send`);
+  },
+  async acceptOffer(id: string): Promise<void> {
+    await apiClient.post(`/api/offer/${id}/accept`);
+  },
+  async declineOffer(id: string, reason?: string): Promise<void> {
+    await apiClient.post(`/api/offer/${id}/decline`, reason ? { reason } : undefined);
+  },
+  async withdrawOffer(id: string): Promise<void> {
+    await apiClient.post(`/api/offer/${id}/withdraw`);
   },
 };

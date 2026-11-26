@@ -110,4 +110,16 @@ export const qk = {
   audit: {
     list: (params?: Record<string, string>) => ["audit-log", params] as const,
   },
+  interviews: {
+    list: (vacancyId: string, params?: Record<string, string>) => ["interviews", vacancyId, params] as const,
+    detail: (id: string) => ["interview", id] as const,
+    types: () => ["interview-types"] as const,
+    interviewers: (vacancyId?: string) => ["interviewers", vacancyId] as const,
+    scorecard: (interviewId: string) => ["scorecard", interviewId] as const,
+    scorecardTemplates: () => ["scorecard-templates"] as const,
+  },
+  offers: {
+    list: (vacancyId: string, params?: Record<string, string>) => ["offers", vacancyId, params] as const,
+    detail: (id: string) => ["offer", id] as const,
+  },
 } as const;
