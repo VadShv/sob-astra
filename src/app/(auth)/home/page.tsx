@@ -10,22 +10,8 @@ import { authApi, appApi, type Vacancy, type HiringKpi } from "@/lib/api";
 import { qk } from "@/lib/query-keys";
 import { usePageTitle } from "@/components/usePageTitle";
 import { ErrorState } from "@/components/ErrorState";
+import { getGreeting, formatToday } from "@/lib/format";
 import s from "./home.module.css";
-
-function getGreeting(): string {
-  const h = new Date().getHours();
-  if (h >= 5 && h < 12) return "доброе утро!";
-  if (h >= 12 && h < 18) return "добрый день!";
-  if (h >= 18 && h < 23) return "добрый вечер!";
-  return "доброй ночи!";
-}
-
-function formatDate(): string {
-  const days = ["Воскресенье", "Понедельник", "Вторник", "Среда", "Четверг", "Пятница", "Суббота"];
-  const months = ["января", "февраля", "марта", "апреля", "мая", "июня", "июля", "августа", "сентября", "октября", "ноября", "декабря"];
-  const d = new Date();
-  return `${days[d.getDay()]}, ${d.getDate()} ${months[d.getMonth()]} ${d.getFullYear()}`;
-}
 
 function formatSearchDate(dateStr?: string): string {
   if (!dateStr) return "";
@@ -144,7 +130,7 @@ export default function HomePage() {
 
   const userName = userResp?.user?.first_name ?? "";
   const greeting = getGreeting();
-  const dateStr = formatDate();
+  const dateStr = formatToday();
   const items = vacancies?.items ?? [];
   const total = facets?.total ?? items.length;
 

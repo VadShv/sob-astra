@@ -12,3 +12,9 @@
 .candidacyVacancy{flex:1;font-weight:600;font-size:14px;color:var(--ats-ink,#151716)}
 .candidacyStage{font-size:13px;color:var(--ats-text-2,rgba(0,0,0,.65))}
 .empty{text-align:center;padding:32px;color:var(--ats-text-3,rgba(0,0,0,.45))}
+
+@media(max-width:767px){
+  .profile{padding:16px;gap:16px}
+  .panel{padding:16px}
+  .profileName{font-size:18px}
+}

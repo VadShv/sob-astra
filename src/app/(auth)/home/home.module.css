@@ -19,3 +19,9 @@
 .tableWrap{overflow-x:auto}
 .count{color:var(--ats-text-2,rgba(0,0,0,.65));font-size:14px}
 .filters{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+
+@media(max-width:767px){
+  .panel{padding:16px}
+  .blockTitle{font-size:18px}
+  .tiles{gap:8px}
+}

@@ -15,3 +15,11 @@
 .funnelStepNumber{font-size:24px;font-weight:700;color:var(--ats-primary,#6b53d5)}
 .funnelStepLabel{font-size:12px;color:var(--ats-text-2,rgba(0,0,0,.65));text-align:center}
 .funnelArrow{color:var(--ats-text-3,rgba(0,0,0,.45));font-size:20px;align-self:center}
+
+@media(max-width:767px){
+  .kpiSection{padding:16px}
+  .funnelSection{padding:16px}
+  .kpiTitle{font-size:18px}
+  .kpiGrid{grid-template-columns:1fr}
+  .funnelSteps{overflow-x:auto}
+}

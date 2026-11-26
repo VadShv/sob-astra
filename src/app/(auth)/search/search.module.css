@@ -5,3 +5,9 @@
 .resultsHead{display:flex;align-items:center;gap:12px}
 .results{display:flex;flex-direction:column;gap:16px}
 .aiButton{display:inline-flex;align-items:center;gap:8px}
+
+@media(max-width:767px){
+  .searchPanel{padding:16px}
+  .searchInput{min-width:100%;flex-basis:100%}
+  .resultControls{flex-wrap:wrap}
+}

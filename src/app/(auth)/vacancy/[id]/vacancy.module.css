@@ -15,3 +15,9 @@
 .candidateName{font-weight:600;font-size:14px;color:var(--ats-ink,#151716)}
 .candidateMeta{font-size:13px;color:var(--ats-text-2,rgba(0,0,0,.65));display:flex;gap:12px;flex-wrap:wrap}
 .candidateStatus{display:flex;align-items:center;gap:8px}
+
+@media(max-width:767px){
+  .funnel{padding:16px}
+  .panel{padding:16px}
+  .stage{min-width:100px;padding:10px 12px}
+}

@@ -260,7 +260,9 @@ export default function CandidatePage({
       <div className={s.panel}>
         <h3 className={s.panelTitle}>Заметки</h3>
         <div style={{ display: "flex", flexDirection: "column", gap: 8, marginBottom: 12 }}>
-          {((notesData as { items?: Array<{ id: string; body: string; author: string; createdAt: string }> })?.items ?? []).map((n) => (
+          {((notesData as { items?: Array<{ id: string; body: string; author: string; createdAt: string }> })?.items ?? []).length === 0 ? (
+            <div style={{ textAlign: "center", padding: 16, color: "var(--ats-text-3, rgba(0,0,0,.45))" }}>Нет заметок</div>
+          ) : ((notesData as { items?: Array<{ id: string; body: string; author: string; createdAt: string }> })?.items ?? []).map((n) => (
             <div key={n.id} style={{ padding: "8px 12px", borderRadius: 8, background: "rgba(0,0,0,.03)" }}>
               <div style={{ fontSize: 13 }}>{n.body}</div>
               <div style={{ fontSize: 11, color: "rgba(0,0,0,.45)", marginTop: 4 }}>
@@ -347,13 +349,15 @@ export default function CandidatePage({
         confirmLoading={updateMut.isPending}
       >
         <Form form={editForm} layout="vertical">
-          <Form.Item label="Имя" name="firstName"><Input /></Form.Item>
-          <Form.Item label="Фамилия" name="lastName"><Input /></Form.Item>
-          <Form.Item label="Email" name="email" rules={[{ type: "email" }]}><Input /></Form.Item>
+          <Form.Item label="Имя" name="firstName" rules={[{ required: true, message: "Введите имя" }]}><Input /></Form.Item>
+          <Form.Item label="Фамилия" name="lastName" rules={[{ required: true, message: "Введите фамилию" }]}><Input /></Form.Item>
+          <Form.Item label="Email" name="email" rules={[{ type: "email", message: "Некорректный email" }]}><Input /></Form.Item>
           <Form.Item label="Телефон" name="phone"><Input /></Form.Item>
           <Form.Item label="Должность" name="position"><Input /></Form.Item>
-          <Form.Item label="Зарплата" name="salary"><Input type="number" /></Form.Item>
+          <Form.Item label="Компания" name="company"><Input /></Form.Item>
+          <Form.Item label="Зарплата" name="salary"><Input type="number" min={0} /></Form.Item>
           <Form.Item label="Город" name="area"><Input /></Form.Item>
+          <Form.Item label="Комментарий" name="comment"><Input.TextArea rows={2} /></Form.Item>
         </Form>
       </Modal>
 
