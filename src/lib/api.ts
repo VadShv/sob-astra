@@ -214,6 +214,50 @@ export interface SessionInfo {
   current: boolean;
 }
 
+export interface Task {
+  id: string;
+  title: string;
+  description?: string;
+  status: string;
+  type: string;
+  deadline?: string;
+  assignee?: { id: string; name: string };
+  vacancyId?: string;
+  vacancyTitle?: string;
+  candidateId?: string;
+  candidateName?: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface Meeting {
+  id: string;
+  title: string;
+  vacancyTitle?: string;
+  candidateName?: string;
+  startedAt: string;
+  duration?: number;
+  status: string;
+  type?: string;
+  link?: string;
+  result?: string;
+}
+
+export interface Requisition {
+  id: string;
+  title: string;
+  status: string;
+  department?: string;
+  position?: string;
+  plannedHires?: number;
+  salaryFrom?: number;
+  salaryTo?: number;
+  justification?: string;
+  author?: { id: string; name: string };
+  createdAt: string;
+  updatedAt: string;
+}
+
 export const authApi = {
   async me(): Promise<{ user: User | null }> {
     const { data } = await apiClient.get("/auth/me");
@@ -239,6 +283,9 @@ export const authApi = {
   },
   async logout(): Promise<void> {
     await apiClient.post("/auth/logout");
+  },
+  async acceptInvite(token: string, password: string): Promise<void> {
+    await apiClient.post(`/auth/invitations/${token}/accept`, { password });
   },
 };
 
@@ -490,11 +537,11 @@ export const appApi = {
     return data;
   },
   async updateRole(id: string, payload: Record<string, unknown>): Promise<{ id: string }> {
-    const { data } = await apiClient.patch(`/api/company-roles/${id}`, payload);
+    const { data } = await apiClient.put(`/api/company-roles/${id}`, payload);
     return data;
   },
   async deleteRole(id: string): Promise<void> {
-    await apiClient.delete(`/api/company-roles/${id}`);
+    await apiClient.post(`/api/company-roles/${id}/archive`);
   },
 
   async createTemplate(payload: Record<string, unknown>): Promise<{ id: string }> {
@@ -563,7 +610,7 @@ export const appApi = {
     return data;
   },
   async markNotificationRead(id: string): Promise<void> {
-    await apiClient.patch(`/api/notifications/${id}/read`);
+    await apiClient.post(`/api/notifications/${id}/read`);
   },
 
   async exportAnalyticsExcel(payload: Record<string, unknown>): Promise<{ url: string }> {
@@ -626,7 +673,7 @@ export const appApi = {
     return data;
   },
   async deactivateUser(userId: string): Promise<{ success: boolean }> {
-    const { data } = await apiClient.patch(`/api/company-users/${userId}/deactivate`);
+    const { data } = await apiClient.post(`/api/company-users/${userId}/deactivate`);
     return data;
   },
   async uploadAvatar(file: File): Promise<{ url: string }> {
@@ -678,5 +725,153 @@ export const appApi = {
   }> {
     const { data } = await apiClient.get("/api/analytics/team-funnels", { params });
     return data;
+  },
+
+  async getTasks(params?: Record<string, string>): Promise<{ items: Task[]; total?: number }> {
+    const { data } = await apiClient.get("/api/tasks", { params });
+    return data;
+  },
+  async createTask(payload: Record<string, unknown>): Promise<{ id: string }> {
+    const { data } = await apiClient.post("/api/tasks", payload);
+    return data;
+  },
+  async getTaskCount(): Promise<{ count: number }> {
+    const { data } = await apiClient.get("/api/tasks/my-count");
+    return data;
+  },
+  async getTaskTypes(): Promise<{ items: Array<{ id: string; name: string }> }> {
+    const { data } = await apiClient.get("/api/tasks/types");
+    return data;
+  },
+  async getTaskById(id: string): Promise<Task> {
+    const { data } = await apiClient.get(`/api/tasks/${id}`);
+    return data;
+  },
+  async updateTaskDeadline(id: string, deadline: string): Promise<void> {
+    await apiClient.patch(`/api/tasks/${id}/deadline`, { deadline });
+  },
+  async getTaskHistory(id: string): Promise<{ items: Array<{ id: string; action: string; createdAt: string; author: string }> }> {
+    const { data } = await apiClient.get(`/api/tasks/${id}/history`);
+    return data;
+  },
+  async updateTaskStatus(id: string, status: string): Promise<void> {
+    await apiClient.patch(`/api/tasks/${id}/status`, { status });
+  },
+
+  async getMeetings(params?: Record<string, string>): Promise<{ items: Meeting[]; total?: number }> {
+    const { data } = await apiClient.get("/api/meetings", { params });
+    return data;
+  },
+  async getMeetingById(id: string): Promise<Meeting> {
+    const { data } = await apiClient.get(`/api/meetings/${id}`);
+    return data;
+  },
+  async updateMeeting(id: string, payload: Record<string, unknown>): Promise<void> {
+    await apiClient.patch(`/api/meetings/${id}`, payload);
+  },
+  async cancelMeeting(id: string): Promise<void> {
+    await apiClient.post(`/api/meetings/${id}/cancel`);
+  },
+  async setMeetingResult(id: string, payload: Record<string, unknown>): Promise<void> {
+    await apiClient.post(`/api/meetings/${id}/result`, payload);
+  },
+  async deleteMeeting(id: string): Promise<void> {
+    await apiClient.delete(`/api/meetings/${id}`);
+  },
+
+  async getRequisitions(params?: Record<string, string>): Promise<{ items: Requisition[]; total?: number }> {
+    const { data } = await apiClient.get("/api/requisitions", { params });
+    return data;
+  },
+  async createRequisition(payload: Record<string, unknown>): Promise<{ id: string }> {
+    const { data } = await apiClient.post("/api/requisitions", payload);
+    return data;
+  },
+  async getRequisitionSummary(): Promise<{ total: number; pending: number; approved: number; rejected: number }> {
+    const { data } = await apiClient.get("/api/requisitions/summary");
+    return data;
+  },
+  async getRequisitionById(id: string): Promise<Requisition> {
+    const { data } = await apiClient.get(`/api/requisitions/${id}`);
+    return data;
+  },
+  async updateRequisition(id: string, payload: Record<string, unknown>): Promise<void> {
+    await apiClient.patch(`/api/requisitions/${id}`, payload);
+  },
+  async getRequisitionApprovals(id: string): Promise<{ items: Array<{ id: string; approver: string; status: string; createdAt: string }> }> {
+    const { data } = await apiClient.get(`/api/requisitions/${id}/approvals`);
+    return data;
+  },
+  async cancelRequisition(id: string): Promise<void> {
+    await apiClient.post(`/api/requisitions/${id}/cancel`);
+  },
+  async submitRequisition(id: string): Promise<void> {
+    await apiClient.post(`/api/requisitions/${id}/submit`);
+  },
+  async withdrawRequisition(id: string): Promise<void> {
+    await apiClient.post(`/api/requisitions/${id}/withdraw`);
+  },
+
+  async getTeams(): Promise<{ items: Array<{ id: string; name: string; parentId?: string; members?: Array<{ id: string; name: string }> }> }> {
+    const { data } = await apiClient.get("/api/org-units/teams");
+    return data;
+  },
+  async getDepartmentsPick(): Promise<{ items: Array<{ id: string; name: string }> }> {
+    const { data } = await apiClient.get("/api/org-units/departments/pick");
+    return data;
+  },
+
+  async getReferenceDictionaryList(): Promise<{ items: Array<{ id: string; name: string; code: string }> }> {
+    const { data } = await apiClient.get("/api/reference-dictionary");
+    return data;
+  },
+  async createReferenceDictionary(payload: Record<string, unknown>): Promise<{ id: string }> {
+    const { data } = await apiClient.post("/api/reference-dictionary", payload);
+    return data;
+  },
+  async updateReferenceDictionary(id: string, payload: Record<string, unknown>): Promise<void> {
+    await apiClient.patch(`/api/reference-dictionary/${id}`, payload);
+  },
+  async archiveReferenceDictionary(id: string): Promise<void> {
+    await apiClient.post(`/api/reference-dictionary/${id}/archive`);
+  },
+
+  async getExternalApiTokens(): Promise<{ items: Array<{ id: string; name: string; createdAt: string; lastUsedAt?: string }> }> {
+    const { data } = await apiClient.get("/api/settings/external-api/tokens");
+    return data;
+  },
+  async createExternalApiToken(payload: { name: string }): Promise<{ id: string; token: string }> {
+    const { data } = await apiClient.post("/api/settings/external-api/tokens", payload);
+    return data;
+  },
+  async revokeExternalApiToken(id: string): Promise<void> {
+    await apiClient.post(`/api/settings/external-api/tokens/${id}/revoke`);
+  },
+  async getExternalApiHooks(): Promise<{ items: Array<{ id: string; url: string; event: string; createdAt: string }> }> {
+    const { data } = await apiClient.get("/api/settings/external-api/hooks");
+    return data;
+  },
+  async deleteExternalApiHook(id: string): Promise<void> {
+    await apiClient.delete(`/api/settings/external-api/hooks/${id}`);
+  },
+
+  async getMailboxConnection(): Promise<{ connected: boolean; type?: string; email?: string; paused?: boolean }> {
+    const { data } = await apiClient.get("/api/mailbox/connection");
+    return data;
+  },
+  async connectImap(payload: Record<string, unknown>): Promise<void> {
+    await apiClient.post("/api/mailbox/imap/connect", payload);
+  },
+  async connectExchange(payload: Record<string, unknown>): Promise<void> {
+    await apiClient.post("/api/mailbox/exchange/connect", payload);
+  },
+  async disconnectMailbox(): Promise<void> {
+    await apiClient.delete("/api/mailbox/connection");
+  },
+  async pauseMailbox(): Promise<void> {
+    await apiClient.post("/api/mailbox/connection/pause");
+  },
+  async resumeMailbox(): Promise<void> {
+    await apiClient.post("/api/mailbox/connection/resume");
   },
 };

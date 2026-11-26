@@ -12,8 +12,11 @@ const HREFS: Record<string, string> = {
   "Оформление интервью": "/settings/appearance",
   "Пользователи": "/settings/users",
   "Роли и права": "/settings/roles",
+  "Команды": "/settings/teams",
   "Воронки": "/settings/funnels",
+  "Справочники": "/settings/dictionaries",
   "Шаблоны сообщений": "/settings/templates",
+  "Внешний API": "/settings/api",
   "Интеграции": "/settings/integrations",
 };
 

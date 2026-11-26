@@ -74,4 +74,37 @@ export const qk = {
     cold: () => ["cold-searches"] as const,
     saved: () => ["saved-searches"] as const,
   },
+  tasks: {
+    list: (params?: Record<string, string>) => ["tasks", params] as const,
+    all: () => ["tasks"] as const,
+    count: () => ["tasks-count"] as const,
+    types: () => ["tasks-types"] as const,
+    detail: (id: string) => ["task", id] as const,
+    history: (id: string) => ["task-history", id] as const,
+  },
+  meetings: {
+    list: (params?: Record<string, string>) => ["meetings", params] as const,
+    all: () => ["meetings"] as const,
+    detail: (id: string) => ["meeting", id] as const,
+  },
+  requisitions: {
+    list: (params?: Record<string, string>) => ["requisitions", params] as const,
+    all: () => ["requisitions"] as const,
+    summary: () => ["requisitions-summary"] as const,
+    detail: (id: string) => ["requisition", id] as const,
+    approvals: (id: string) => ["requisition-approvals", id] as const,
+  },
+  teams: {
+    list: () => ["teams"] as const,
+  },
+  dictionaries: {
+    list: () => ["reference-dictionaries"] as const,
+  },
+  externalApi: {
+    tokens: () => ["external-api-tokens"] as const,
+    hooks: () => ["external-api-hooks"] as const,
+  },
+  mailbox: {
+    connection: () => ["mailbox-connection"] as const,
+  },
 } as const;

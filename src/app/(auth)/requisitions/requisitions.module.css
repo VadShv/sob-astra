@@ -1,0 +1,5 @@
+.page{display:flex;flex-direction:column;gap:24px}
+.panel{padding:20px 24px;border-radius:18px;background:var(--ats-bg,#fff)}
+.filters{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.tiles{display:flex;flex-wrap:wrap;gap:12px}
+@media(max-width:767px){.panel{padding:16px}}

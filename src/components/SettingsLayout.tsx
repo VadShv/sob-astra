@@ -24,18 +24,21 @@ const SECTIONS: SettingsSection[] = [
       { label: "Оформление интервью", desc: "Цвета и картинки страницы интервью кандидата" },
       { label: "Пользователи", desc: "Приглашения, роли и доступ сотрудников" },
       { label: "Роли и права", desc: "Что может каждая роль и на каких вакансиях" },
+      { label: "Команды", desc: "Подразделения и команды сотрудников" },
     ],
   },
   {
     group: "Процессы найма",
     items: [
       { label: "Воронки", desc: "Каталог этапов и шаблоны воронок" },
+      { label: "Справочники", desc: "Справочные значения: регионы, грейды, источники" },
     ],
   },
   {
     group: "Инструменты",
     items: [
       { label: "Шаблоны сообщений", desc: "Шаблоны сообщений кандидату" },
+      { label: "Внешний API", desc: "API-токены и webhooks для интеграций" },
     ],
   },
   {
@@ -73,8 +76,11 @@ export function SettingsLayout({
                       "Оформление интервью": "/settings/appearance",
                       "Пользователи": "/settings/users",
                       "Роли и права": "/settings/roles",
+                      "Команды": "/settings/teams",
                       "Воронки": "/settings/funnels",
+                      "Справочники": "/settings/dictionaries",
                       "Шаблоны сообщений": "/settings/templates",
+                      "Внешний API": "/settings/api",
                       "Интеграции": "/settings/integrations",
                     }[item.label] || "/settings"
                   }
