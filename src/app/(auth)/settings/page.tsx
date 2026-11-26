@@ -16,6 +16,7 @@ const HREFS: Record<string, string> = {
   "Воронки": "/settings/funnels",
   "Справочники": "/settings/dictionaries",
   "Кастомные поля": "/settings/custom-fields",
+  "Теги": "/settings/tags",
   "Шаблоны сообщений": "/settings/templates",
   "Внешний API": "/settings/api",
   "Логи вебхуков": "/settings/webhook-logs",

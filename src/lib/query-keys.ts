@@ -131,4 +131,13 @@ export const qk = {
   activityFeed: {
     list: (params?: Record<string, string>) => ["activity-feed", params] as const,
   },
+  documents: {
+    list: (candidateId: string) => ["candidate-documents", candidateId] as const,
+  },
+  tags: {
+    list: () => ["tags"] as const,
+  },
+  compare: {
+    candidates: (ids: string[]) => ["compare-candidates", ids] as const,
+  },
 } as const;

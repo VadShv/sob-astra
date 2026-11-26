@@ -1,0 +1,9 @@
+.page{display:flex;flex-direction:column;gap:16px}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:16px;align-items:start}
+.card{padding:0}
+.cardHeader{display:flex;gap:12px;align-items:center;margin-bottom:16px}
+.cardName{font-size:16px;font-weight:600}
+.cardSub{font-size:13px;color:rgba(0,0,0,.45)}
+.skills{display:flex;flex-wrap:wrap;gap:4px;margin-bottom:12px}
+.tags{display:flex;flex-wrap:wrap;gap:4px;margin-bottom:12px}
+@media(max-width:767px){.grid{grid-template-columns:1fr}}

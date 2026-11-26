@@ -168,6 +168,12 @@ export default function CandidatePage({
         }
       />
 
+      <div style={{ display: "flex", gap: 8, marginBottom: 16 }}>
+        <Button size="small" href={`/candidate/${id}/interviews`}>Интервью</Button>
+        <Button size="small" href={`/candidate/${id}/offers`}>Офферы</Button>
+        <Button size="small" href={`/candidate/${id}/documents`}>Документы</Button>
+      </div>
+
       <div className={s.profile}>
         <div className={s.avatar}>{initials}</div>
         <div className={s.profileInfo}>

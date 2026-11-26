@@ -33,6 +33,7 @@ const SECTIONS: SettingsSection[] = [
       { label: "Воронки", desc: "Каталог этапов и шаблоны воронок" },
       { label: "Справочники", desc: "Справочные значения: регионы, грейды, источники" },
       { label: "Кастомные поля", desc: "Дополнительные поля для вакансий и кандидатов" },
+      { label: "Теги", desc: "Теги кандидатов: цвета, категории" },
     ],
   },
   {
@@ -83,6 +84,7 @@ export function SettingsLayout({
                       "Воронки": "/settings/funnels",
                       "Справочники": "/settings/dictionaries",
                       "Кастомные поля": "/settings/custom-fields",
+                      "Теги": "/settings/tags",
                       "Шаблоны сообщений": "/settings/templates",
                       "Внешний API": "/settings/api",
                       "Логи вебхуков": "/settings/webhook-logs",

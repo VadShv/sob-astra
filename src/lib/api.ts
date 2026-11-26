@@ -1276,4 +1276,95 @@ export const appApi = {
     const { data } = await apiClient.get("/api/activity-feed", { params });
     return data;
   },
+
+  async getCandidateOffers(candidateId: string): Promise<{
+    items: Offer[];
+  }> {
+    const { data } = await apiClient.get(`/api/candidate/${candidateId}/offers`);
+    return data;
+  },
+
+  async getCandidateDocuments(candidateId: string): Promise<{
+    items: Array<{
+      id: string;
+      name: string;
+      type: string;
+      size: number;
+      mimeType: string;
+      uploadedAt: string;
+      uploadedBy?: string;
+      url?: string;
+    }>;
+  }> {
+    const { data } = await apiClient.get(`/api/candidate/${candidateId}/documents`);
+    return data;
+  },
+  async uploadCandidateDocument(candidateId: string, file: File): Promise<{ id: string; url: string }> {
+    const formData = new FormData();
+    formData.append("file", file);
+    const { data } = await apiClient.post(`/api/candidate/${candidateId}/documents`, formData, {
+      headers: { "Content-Type": "multipart/form-data" },
+    });
+    return data;
+  },
+  async deleteCandidateDocument(candidateId: string, documentId: string): Promise<void> {
+    await apiClient.delete(`/api/candidate/${candidateId}/documents/${documentId}`);
+  },
+
+  async compareCandidates(candidateIds: string[]): Promise<{
+    candidates: Array<{
+      candidateId: string;
+      fullName: string;
+      email: string;
+      phone: string;
+      position?: string;
+      company?: string;
+      salary?: number;
+      skills?: string[];
+      experience?: string;
+      education?: string;
+      rating?: number;
+      tags?: string[];
+      lastActivity?: string;
+    }>;
+  }> {
+    const { data } = await apiClient.post("/api/candidate/compare", { candidateIds });
+    return data;
+  },
+
+  async getTags(): Promise<{
+    items: Array<{
+      id: string;
+      name: string;
+      color?: string;
+      category?: string;
+      count: number;
+    }>;
+  }> {
+    const { data } = await apiClient.get("/api/tags");
+    return data;
+  },
+  async createTag(payload: { name: string; color?: string; category?: string }): Promise<{ id: string }> {
+    const { data } = await apiClient.post("/api/tags", payload);
+    return data;
+  },
+  async deleteTag(id: string): Promise<void> {
+    await apiClient.delete(`/api/tags/${id}`);
+  },
+
+  async bulkMoveCandidacies(candidacyIds: string[], stageId: string): Promise<void> {
+    await apiClient.post("/api/candidacy/bulk-move", { candidacyIds, stageId });
+  },
+  async bulkRejectCandidacies(candidacyIds: string[], reason?: string): Promise<void> {
+    await apiClient.post("/api/candidacy/bulk-reject", { candidacyIds, reason });
+  },
+  async bulkTagCandidates(candidateIds: string[], tagIds: string[]): Promise<void> {
+    await apiClient.post("/api/candidate/bulk-tag", { candidateIds, tagIds });
+  },
+  async findDuplicateCandidates(candidateId: string): Promise<{
+    items: Array<{ candidateId: string; fullName: string; email: string; matchScore: number }>;
+  }> {
+    const { data } = await apiClient.get(`/api/candidate/${candidateId}/duplicates`);
+    return data;
+  },
 };
