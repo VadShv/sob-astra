@@ -11,3 +11,9 @@
 .cardMeta{font-size:13px;color:var(--ats-text-2,rgba(0,0,0,.65));display:flex;flex-direction:column;gap:4px}
 .cardMetaRow{display:flex;gap:8px}
 .cardMetaLabel{color:var(--ats-text-3,rgba(0,0,0,.45));min-width:120px}
+
+@media(max-width:767px){
+  .cards{grid-template-columns:1fr}
+  .card{padding:16px}
+  .cardMetaLabel{min-width:80px}
+}

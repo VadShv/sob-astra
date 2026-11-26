@@ -138,3 +138,31 @@
   font-size: 11px;
   color: rgba(0, 0, 0, 0.4);
 }
+
+@media (max-width: 767px) {
+  .board {
+    gap: 8px;
+    padding-bottom: 16px;
+  }
+
+  .column {
+    flex: 0 0 240px;
+  }
+
+  .columnBody {
+    max-height: calc(100vh - 280px);
+  }
+}
+
+@media (max-width: 480px) {
+  .column {
+    flex: 0 0 200px;
+  }
+
+  .avatar {
+    flex: 0 0 28px;
+    width: 28px;
+    height: 28px;
+    font-size: 12px;
+  }
+}
