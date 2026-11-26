@@ -1367,4 +1367,74 @@ export const appApi = {
     const { data } = await apiClient.get(`/api/candidate/${candidateId}/duplicates`);
     return data;
   },
+
+  async publishVacancy(vacancyId: string, channels: string[]): Promise<void> {
+    await apiClient.post(`/api/vacancy/${vacancyId}/publish`, { channels });
+  },
+  async unpublishVacancy(vacancyId: string, channel: string): Promise<void> {
+    await apiClient.post(`/api/vacancy/${vacancyId}/unpublish`, { channel });
+  },
+  async getPublicationStatus(vacancyId: string): Promise<{
+    items: Array<{
+      channel: string;
+      channelName: string;
+      published: boolean;
+      externalId?: string;
+      externalUrl?: string;
+      publishedAt?: string;
+      error?: string;
+    }>;
+  }> {
+    const { data } = await apiClient.get(`/api/vacancy/${vacancyId}/publications`);
+    return data;
+  },
+
+  async createScorecardTemplate(payload: {
+    name: string;
+    sections: Array<{ name: string; skills?: string[] }>;
+  }): Promise<{ id: string }> {
+    const { data } = await apiClient.post("/api/scorecard-templates", payload);
+    return data;
+  },
+  async deleteScorecardTemplate(id: string): Promise<void> {
+    await apiClient.delete(`/api/scorecard-templates/${id}`);
+  },
+
+  async getOfferTemplates(): Promise<{
+    items: Array<{
+      id: string;
+      name: string;
+      subject?: string;
+      body: string;
+      variables?: string[];
+      createdAt: string;
+    }>;
+  }> {
+    const { data } = await apiClient.get("/api/offer-templates");
+    return data;
+  },
+  async createOfferTemplate(payload: {
+    name: string;
+    subject?: string;
+    body: string;
+    variables?: string[];
+  }): Promise<{ id: string }> {
+    const { data } = await apiClient.post("/api/offer-templates", payload);
+    return data;
+  },
+  async deleteOfferTemplate(id: string): Promise<void> {
+    await apiClient.delete(`/api/offer-templates/${id}`);
+  },
+
+  async getVacancyAnalytics(vacancyId: string): Promise<{
+    conversion: Array<{ stage: string; count: number; conversionRate: number }>;
+    timeInStage: Array<{ stage: string; avgDays: number }>;
+    sources: Array<{ source: string; count: number }>;
+    totalCandidates: number;
+    hiredCount: number;
+    avgTimeToHire: number | null;
+  }> {
+    const { data } = await apiClient.get(`/api/vacancy/${vacancyId}/analytics`);
+    return data;
+  },
 };

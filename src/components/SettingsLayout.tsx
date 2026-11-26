@@ -31,6 +31,8 @@ const SECTIONS: SettingsSection[] = [
     group: "Процессы найма",
     items: [
       { label: "Воронки", desc: "Каталог этапов и шаблоны воронок" },
+      { label: "Шаблоны скоркарт", desc: "Шаблоны для оценки интервью" },
+      { label: "Шаблоны офферов", desc: "Шаблоны оффер-писем" },
       { label: "Справочники", desc: "Справочные значения: регионы, грейды, источники" },
       { label: "Кастомные поля", desc: "Дополнительные поля для вакансий и кандидатов" },
       { label: "Теги", desc: "Теги кандидатов: цвета, категории" },
@@ -82,6 +84,8 @@ export function SettingsLayout({
                       "Роли и права": "/settings/roles",
                       "Команды": "/settings/teams",
                       "Воронки": "/settings/funnels",
+                      "Шаблоны скоркарт": "/settings/scorecard-templates",
+                      "Шаблоны офферов": "/settings/offer-templates",
                       "Справочники": "/settings/dictionaries",
                       "Кастомные поля": "/settings/custom-fields",
                       "Теги": "/settings/tags",

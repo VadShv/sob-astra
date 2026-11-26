@@ -100,6 +100,8 @@ export default function VacancyPage({
             <Button href={`/vacancy/${id}/kanban`}>Канбан</Button>
             <Button href={`/vacancy/${id}/interviews`}>Интервью</Button>
             <Button href={`/vacancy/${id}/offers`}>Офферы</Button>
+            <Button href={`/vacancy/${id}/publish`}>Публикация</Button>
+            <Button href={`/vacancy/${id}/analytics`}>Аналитика</Button>
             <Button onClick={() => router.push("/search")}>Добавить кандидата</Button>
             {isActive && (
               <Popconfirm title="Поставить на паузу?" onConfirm={() => statusMut.mutate("paused")}>

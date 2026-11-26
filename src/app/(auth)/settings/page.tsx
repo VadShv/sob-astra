@@ -14,6 +14,8 @@ const HREFS: Record<string, string> = {
   "Роли и права": "/settings/roles",
   "Команды": "/settings/teams",
   "Воронки": "/settings/funnels",
+  "Шаблоны скоркарт": "/settings/scorecard-templates",
+  "Шаблоны офферов": "/settings/offer-templates",
   "Справочники": "/settings/dictionaries",
   "Кастомные поля": "/settings/custom-fields",
   "Теги": "/settings/tags",
