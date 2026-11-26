@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Dropdown, Badge } from "antd";
 import { authApi, appApi, type Vacancy } from "@/lib/api";
@@ -219,6 +219,7 @@ export function Sidebar() {
         </button>
       </div>
       <div className={s.scroll}>
+        <GlobalSearch />
         <nav className={s.nav}>
           {NAV_ITEMS.map((item) => {
             const isActive = pathname === item.href;
@@ -318,5 +319,79 @@ export function Sidebar() {
         </Dropdown>
       </div>
     </aside>
+  );
+}
+
+function GlobalSearch() {
+  const router = useRouter();
+  const [query, setQuery] = useState("");
+  const [debounced, setDebounced] = useState("");
+
+  useEffect(() => {
+    const t = setTimeout(() => setDebounced(query), 300);
+    return () => clearTimeout(t);
+  }, [query]);
+
+  const { data, isLoading } = useQuery({
+    queryKey: ["global-search", debounced],
+    queryFn: () => appApi.globalSearch(debounced),
+    enabled: debounced.length >= 2,
+  });
+
+  const results = data as { candidates?: Array<{ id: string; name: string; email: string }>; vacancies?: Array<{ id: string; title: string; status: string }>; companies?: Array<{ id: string; name: string }> } | undefined;
+  const hasResults = (results?.candidates?.length ?? 0) + (results?.vacancies?.length ?? 0) + (results?.companies?.length ?? 0) > 0;
+
+  return (
+    <div className={s.globalSearch}>
+      <input
+        type="text"
+        placeholder="Глобальный поиск…"
+        value={query}
+        onChange={(e) => setQuery(e.target.value)}
+        className={s.searchInput}
+      />
+      {query.length >= 2 && (
+        <div className={s.searchResults}>
+          {isLoading && <div className={s.searchHint}>Поиск…</div>}
+          {!isLoading && !hasResults && <div className={s.searchHint}>Ничего не найдено</div>}
+          {!isLoading && hasResults && (
+            <>
+              {(results?.vacancies?.length ?? 0) > 0 && (
+                <div className={s.searchGroup}>
+                  <div className={s.searchGroupTitle}>Вакансии</div>
+                  {results!.vacancies!.map((v) => (
+                    <button key={v.id} className={s.searchItem} onClick={() => { router.push(`/vacancy/${v.id}`); setQuery(""); }}>
+                      <span className={s.searchItemTitle}>{v.title}</span>
+                      <span className={s.searchItemSub}>{v.status}</span>
+                    </button>
+                  ))}
+                </div>
+              )}
+              {(results?.candidates?.length ?? 0) > 0 && (
+                <div className={s.searchGroup}>
+                  <div className={s.searchGroupTitle}>Кандидаты</div>
+                  {results!.candidates!.map((c) => (
+                    <button key={c.id} className={s.searchItem} onClick={() => { router.push(`/candidate/${c.id}`); setQuery(""); }}>
+                      <span className={s.searchItemTitle}>{c.name}</span>
+                      <span className={s.searchItemSub}>{c.email}</span>
+                    </button>
+                  ))}
+                </div>
+              )}
+              {(results?.companies?.length ?? 0) > 0 && (
+                <div className={s.searchGroup}>
+                  <div className={s.searchGroupTitle}>Компании</div>
+                  {results!.companies!.map((c) => (
+                    <button key={c.id} className={s.searchItem} onClick={() => { setQuery(""); }}>
+                      <span className={s.searchItemTitle}>{c.name}</span>
+                    </button>
+                  ))}
+                </div>
+              )}
+            </>
+          )}
+        </div>
+      )}
+    </div>
   );
 }

@@ -44,6 +44,24 @@ export default function VacancyPage({
     onError: () => message.error("Не удалось изменить статус"),
   });
 
+  const duplicateMut = useMutation({
+    mutationFn: () => appApi.duplicateVacancy(id),
+    onSuccess: (data) => {
+      message.success("Вакансия дублирована");
+      router.push(`/vacancy/${data.id}`);
+    },
+    onError: () => message.error("Не удалось дублировать"),
+  });
+
+  const archiveMut = useMutation({
+    mutationFn: () => appApi.archiveVacancy(id),
+    onSuccess: () => {
+      message.success("Вакансия архивирована");
+      router.push("/home");
+    },
+    onError: () => message.error("Не удалось архивировать"),
+  });
+
   const moveMut = useMutation({
     mutationFn: ({ candidacyId, stageId }: { candidacyId: string; stageId: string }) =>
       appApi.moveCandidacyStage(candidacyId, stageId),
@@ -103,6 +121,12 @@ export default function VacancyPage({
             <Button href={`/vacancy/${id}/publish`}>Публикация</Button>
             <Button href={`/vacancy/${id}/analytics`}>Аналитика</Button>
             <Button onClick={() => router.push("/search")}>Добавить кандидата</Button>
+            <Button loading={duplicateMut.isPending} onClick={() => duplicateMut.mutate()}>
+              Дублировать
+            </Button>
+            <Popconfirm title="Архивировать вакансию?" onConfirm={() => archiveMut.mutate()}>
+              <Button>Архив</Button>
+            </Popconfirm>
             {isActive && (
               <Popconfirm title="Поставить на паузу?" onConfirm={() => statusMut.mutate("paused")}>
                 <Button>Пауза</Button>

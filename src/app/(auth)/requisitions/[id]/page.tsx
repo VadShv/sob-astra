@@ -2,7 +2,7 @@
 
 import { use, useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { Skeleton, Tag, Button, Descriptions, Popconfirm, message, Space } from "antd";
+import { Skeleton, Tag, Button, Descriptions, Popconfirm, message, Space, Modal, Input } from "antd";
 import { PageHeader } from "@/components/PageHeader";
 import { ErrorState } from "@/components/ErrorState";
 import { appApi } from "@/lib/api";
@@ -62,6 +62,30 @@ export default function RequisitionDetailPage({
     onError: () => message.error("Не удалось отозвать"),
   });
 
+  const approveMut = useMutation({
+    mutationFn: (comment?: string) => appApi.approveRequisition(id, comment),
+    onSuccess: () => {
+      message.success("Заявка одобрена");
+      qc.invalidateQueries({ queryKey: qk.requisitions.detail(id) });
+      qc.invalidateQueries({ queryKey: qk.requisitions.approvals(id) });
+    },
+    onError: () => message.error("Не удалось одобрить"),
+  });
+
+  const rejectMut = useMutation({
+    mutationFn: (reason: string) => appApi.rejectRequisition(id, reason),
+    onSuccess: () => {
+      message.success("Заявка отклонена");
+      setRejectOpen(false);
+      qc.invalidateQueries({ queryKey: qk.requisitions.detail(id) });
+      qc.invalidateQueries({ queryKey: qk.requisitions.approvals(id) });
+    },
+    onError: () => message.error("Не удалось отклонить"),
+  });
+
+  const [rejectOpen, setRejectOpen] = useState(false);
+  const [rejectReason, setRejectReason] = useState("");
+
   if (isError) {
     return (
       <div>
@@ -104,6 +128,16 @@ export default function RequisitionDetailPage({
                 <Button danger loading={cancelMut.isPending}>Отменить</Button>
               </Popconfirm>
             )}
+            {req.status === "pending" && (
+              <>
+                <Popconfirm title="Одобрить заявку?" onConfirm={() => approveMut.mutate()}>
+                  <Button type="primary" loading={approveMut.isPending}>Одобрить</Button>
+                </Popconfirm>
+                <Button danger loading={rejectMut.isPending} onClick={() => setRejectOpen(true)}>
+                  Отклонить
+                </Button>
+              </>
+            )}
           </Space>
         }
       />
@@ -140,6 +174,26 @@ export default function RequisitionDetailPage({
           ))}
         </div>
       )}
+
+      <Modal
+        title="Отклонить заявку"
+        open={rejectOpen}
+        onCancel={() => setRejectOpen(false)}
+        onOk={() => {
+          if (rejectReason.trim()) rejectMut.mutate(rejectReason);
+          else message.warning("Укажите причину");
+        }}
+        okText="Отклонить"
+        cancelText="Отмена"
+        confirmLoading={rejectMut.isPending}
+      >
+        <Input.TextArea
+          rows={4}
+          placeholder="Причина отклонения…"
+          value={rejectReason}
+          onChange={(e) => setRejectReason(e.target.value)}
+        />
+      </Modal>
     </div>
   );
 }

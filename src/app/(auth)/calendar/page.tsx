@@ -30,6 +30,8 @@ export default function CalendarPage() {
   const qc = useQueryClient();
   usePageTitle("Календарь");
   const [filter, setFilter] = useState<StatusFilter>("all");
+  const [viewMode, setViewMode] = useState<"list" | "month">("month");
+  const [currentMonth, setCurrentMonth] = useState(() => new Date());
   const [resultOpen, setResultOpen] = useState(false);
   const [resultMeetingId, setResultMeetingId] = useState<string | null>(null);
   const [form] = Form.useForm();
@@ -129,6 +131,14 @@ export default function CalendarPage() {
         <div className={s.filters}>
           <Segmented
             options={[
+              { label: "Календарь", value: "month" },
+              { label: "Список", value: "list" },
+            ]}
+            value={viewMode}
+            onChange={(v) => setViewMode(v as "list" | "month")}
+          />
+          <Segmented
+            options={[
               { label: "Все", value: "all" },
               { label: "Предстоящие", value: "upcoming" },
               { label: "Завершённые", value: "completed" },
@@ -137,6 +147,20 @@ export default function CalendarPage() {
             value={filter}
             onChange={(v) => setFilter(v as StatusFilter)}
           />
+          {viewMode === "month" && (
+            <Space>
+              <Button onClick={() => setCurrentMonth(new Date(currentMonth.getFullYear(), currentMonth.getMonth() - 1, 1))}>
+                ‹
+              </Button>
+              <span style={{ fontWeight: 600, minWidth: 140, textAlign: "center" }}>
+                {currentMonth.toLocaleDateString("ru-RU", { month: "long", year: "numeric" })}
+              </span>
+              <Button onClick={() => setCurrentMonth(new Date(currentMonth.getFullYear(), currentMonth.getMonth() + 1, 1))}>
+                ›
+              </Button>
+              <Button size="small" onClick={() => setCurrentMonth(new Date())}>Сегодня</Button>
+            </Space>
+          )}
         </div>
       </div>
       <div className={s.panel}>
@@ -144,6 +168,8 @@ export default function CalendarPage() {
           <ErrorState onRetry={() => refetch()} />
         ) : isLoading ? (
           <Skeleton active />
+        ) : viewMode === "month" ? (
+          <MonthGrid meetings={items} currentMonth={currentMonth} />
         ) : items.length === 0 ? (
           <div style={{ textAlign: "center", padding: 48, color: "var(--ats-text-3, rgba(0,0,0,.45))" }}>
             Нет встреч
@@ -178,6 +204,58 @@ export default function CalendarPage() {
           </Form.Item>
         </Form>
       </Modal>
+    </div>
+  );
+}
+
+function MonthGrid({ meetings, currentMonth }: { meetings: Meeting[]; currentMonth: Date }) {
+  const year = currentMonth.getFullYear();
+  const month = currentMonth.getMonth();
+  const firstDay = new Date(year, month, 1);
+  const startOffset = (firstDay.getDay() + 6) % 7;
+  const daysInMonth = new Date(year, month + 1, 0).getDate();
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+
+  const cells: (Date | null)[] = [];
+  for (let i = 0; i < startOffset; i++) cells.push(null);
+  for (let d = 1; d <= daysInMonth; d++) cells.push(new Date(year, month, d));
+  while (cells.length % 7 !== 0) cells.push(null);
+
+  const weekDays = ["Пн", "Вт", "Ср", "Чт", "Пт", "Сб", "Вс"];
+
+  return (
+    <div className={s.monthGrid}>
+      <div className={s.weekHeader}>
+        {weekDays.map((wd) => (
+          <div key={wd} className={s.weekDay}>{wd}</div>
+        ))}
+      </div>
+      <div className={s.dayCells}>
+        {cells.map((date, i) => {
+          if (!date) return <div key={i} className={s.dayCell + " " + s.dayEmpty} />;
+          const dayMeetings = meetings.filter((m) => {
+            if (!m.startedAt) return false;
+            const md = new Date(m.startedAt);
+            return md.getFullYear() === date.getFullYear() && md.getMonth() === date.getMonth() && md.getDate() === date.getDate();
+          });
+          const isToday = date.getTime() === today.getTime();
+          return (
+            <div key={i} className={s.dayCell + (isToday ? " " + s.dayToday : "")}>
+              <div className={s.dayNum}>{date.getDate()}</div>
+              <div className={s.dayEvents}>
+                {dayMeetings.slice(0, 3).map((m) => (
+                  <div key={m.id} className={s.event + " " + s["event_" + (m.status ?? "upcoming")]}>
+                    <span className={s.eventTime}>{m.startedAt ? new Date(m.startedAt).toLocaleTimeString("ru-RU", { hour: "2-digit", minute: "2-digit" }) : ""}</span>
+                    <span className={s.eventTitle}>{m.title || m.candidateName || "Встреча"}</span>
+                  </div>
+                ))}
+                {dayMeetings.length > 3 && <div className={s.eventMore}>+{dayMeetings.length - 3} ещё</div>}
+              </div>
+            </div>
+          );
+        })}
+      </div>
     </div>
   );
 }

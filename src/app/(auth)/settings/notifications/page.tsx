@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { Form, Switch, Button, Divider, message, Skeleton } from "antd";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { SettingsLayout } from "@/components/SettingsLayout";
@@ -86,6 +86,78 @@ export default function NotificationsSettingsPage() {
           </Form.Item>
         </Form>
       )}
+
+      <Divider />
+
+      <NotificationTypeMatrix />
     </SettingsLayout>
+  );
+}
+
+function NotificationTypeMatrix() {
+  const qc = useQueryClient();
+  const { data, isLoading } = useQuery({
+    queryKey: ["notification-type-settings"],
+    queryFn: () => appApi.getNotificationTypeSettings(),
+  });
+
+  const [rows, setRows] = useState<Array<{ type: string; label: string; emailEnabled: boolean; pushEnabled: boolean }>>([]);
+
+  useEffect(() => {
+    if (data) setRows((data as { items: Array<{ type: string; label: string; emailEnabled: boolean; pushEnabled: boolean }> }).items);
+  }, [data]);
+
+  const saveMut = useMutation({
+    mutationFn: (payload: Array<{ type: string; emailEnabled: boolean; pushEnabled: boolean }>) =>
+      appApi.updateNotificationTypeSettings(payload),
+    onSuccess: () => {
+      message.success("Настройки каналов сохранены");
+      qc.invalidateQueries({ queryKey: ["notification-type-settings"] });
+    },
+    onError: () => message.error("Не удалось сохранить"),
+  });
+
+  if (isLoading) return <Skeleton active />;
+
+  return (
+    <div style={{ maxWidth: 600 }}>
+      <div style={{ fontSize: 16, fontWeight: 600, marginBottom: 16 }}>Каналы уведомлений по типам</div>
+      <table style={{ width: "100%", borderCollapse: "collapse" }}>
+        <thead>
+          <tr>
+            <th style={{ textAlign: "left", padding: "8px 0" }}>Тип</th>
+            <th style={{ textAlign: "center", padding: "8px 0" }}>Email</th>
+            <th style={{ textAlign: "center", padding: "8px 0" }}>Push</th>
+          </tr>
+        </thead>
+        <tbody>
+          {rows.map((r, i) => (
+            <tr key={r.type} style={{ borderTop: "1px solid #f0f0f0" }}>
+              <td style={{ padding: "8px 0" }}>{r.label}</td>
+              <td style={{ textAlign: "center", padding: "8px 0" }}>
+                <Switch
+                  checked={r.emailEnabled}
+                  onChange={(v) => setRows((prev) => prev.map((p, j) => j === i ? { ...p, emailEnabled: v } : p))}
+                />
+              </td>
+              <td style={{ textAlign: "center", padding: "8px 0" }}>
+                <Switch
+                  checked={r.pushEnabled}
+                  onChange={(v) => setRows((prev) => prev.map((p, j) => j === i ? { ...p, pushEnabled: v } : p))}
+                />
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+      <Button
+        type="primary"
+        style={{ marginTop: 16 }}
+        loading={saveMut.isPending}
+        onClick={() => saveMut.mutate(rows.map((r) => ({ type: r.type, emailEnabled: r.emailEnabled, pushEnabled: r.pushEnabled })))}
+      >
+        Сохранить каналы
+      </Button>
+    </div>
   );
 }

@@ -19,9 +19,22 @@
 .tableWrap{overflow-x:auto}
 .count{color:var(--ats-text-2,rgba(0,0,0,.65));font-size:14px}
 .filters{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.widgets{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.widget{padding:20px 24px;border-radius:18px;background:var(--ats-bg,#fff)}
+.widgetTitle{margin:0 0 12px;font-size:16px;font-weight:700;color:var(--ats-ink,#151716)}
+.widgetEmpty{text-align:center;padding:24px;color:var(--ats-text-3,rgba(0,0,0,.45))}
+.widgetList{display:flex;flex-direction:column;gap:8px}
+.widgetItem{display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--ats-border-2,#f0f0f0)}
+.widgetItem:last-child{border-bottom:none}
+.widgetTime{font-weight:600;font-size:14px;color:var(--ats-primary,#6b53d5);flex:none;min-width:44px}
+.widgetContent{display:flex;flex-direction:column;gap:2px;min-width:0}
+.widgetName{font-size:14px;font-weight:500;color:var(--ats-ink,#151716)}
+.widgetSub{font-size:12px;color:var(--ats-text-3,rgba(0,0,0,.45))}
 
 @media(max-width:767px){
   .panel{padding:16px}
   .blockTitle{font-size:18px}
   .tiles{gap:8px}
+  .widgets{grid-template-columns:1fr}
+  .widget{padding:16px}
 }

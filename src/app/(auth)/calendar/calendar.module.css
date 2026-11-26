@@ -2,3 +2,22 @@
 .panel{padding:20px 24px;border-radius:18px;background:var(--ats-bg,#fff)}
 .filters{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
 @media(max-width:767px){.panel{padding:16px}}
+
+.monthGrid{border:1px solid var(--ats-border,#f0f0f0);border-radius:12px;overflow:hidden}
+.weekHeader{display:grid;grid-template-columns:repeat(7,1fr);background:var(--ats-bg-2,#fafafa);border-bottom:1px solid var(--ats-border,#f0f0f0)}
+.weekDay{padding:8px 4px;text-align:center;font-weight:600;font-size:13px;color:var(--ats-text-2,rgba(0,0,0,.65))}
+.dayCells{display:grid;grid-template-columns:repeat(7,1fr)}
+.dayCell{min-height:96px;padding:4px 6px;border-right:1px solid var(--ats-border,#f0f0f0);border-bottom:1px solid var(--ats-border,#f0f0f0);display:flex;flex-direction:column;gap:4px}
+.dayCell:nth-child(7n){border-right:none}
+.dayEmpty{background:var(--ats-bg-2,#fafafa)}
+.dayToday{background:rgba(107,83,213,.06)}
+.dayNum{font-size:13px;font-weight:600;color:var(--ats-text-2,rgba(0,0,0,.65))}
+.dayEvents{display:flex;flex-direction:column;gap:2px;overflow:hidden}
+.event{display:flex;gap:4px;align-items:center;padding:2px 4px;border-radius:4px;font-size:11px;overflow:hidden;white-space:nowrap}
+.eventTime{font-weight:600;flex-shrink:0}
+.eventTitle{overflow:hidden;text-overflow:ellipsis}
+.event_upcoming{background:rgba(22,119,255,.1);color:#1677ff}
+.event_completed{background:rgba(82,196,26,.1);color:#52c41a}
+.event_cancelled{background:rgba(255,77,79,.1);color:#ff4d4f}
+.eventMore{font-size:11px;color:var(--ats-text-3,rgba(0,0,0,.45));padding:0 4px}
+@media(max-width:767px){.dayCell{min-height:64px}.event{font-size:10px}}

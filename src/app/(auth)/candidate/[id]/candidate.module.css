@@ -12,6 +12,14 @@
 .candidacyVacancy{flex:1;font-weight:600;font-size:14px;color:var(--ats-ink,#151716)}
 .candidacyStage{font-size:13px;color:var(--ats-text-2,rgba(0,0,0,.65))}
 .empty{text-align:center;padding:32px;color:var(--ats-text-3,rgba(0,0,0,.45))}
+.timeline{display:flex;flex-direction:column;gap:0;position:relative;padding-left:4px}
+.timelineItem{display:flex;gap:12px;padding-bottom:20px;position:relative}
+.timelineItem::before{content:"";position:absolute;left:5px;top:24px;bottom:0;width:2px;background:var(--ats-border-2,#f0f0f0)}
+.timelineItem:last-child::before{display:none}
+.timelineDot{width:12px;height:12px;border-radius:50%;background:var(--ats-primary,#6b53d5);flex:none;margin-top:4px;z-index:1}
+.timelineContent{flex:1}
+.timelineDesc{font-size:14px;color:var(--ats-ink,#151716);margin-bottom:4px}
+.timelineMeta{display:flex;align-items:center;gap:8px;font-size:12px;color:var(--ats-text-3,rgba(0,0,0,.45))}
 
 @media(max-width:767px){
   .profile{padding:16px;gap:16px}

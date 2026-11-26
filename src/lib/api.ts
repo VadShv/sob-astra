@@ -1817,4 +1817,101 @@ export const appApi = {
   async resetPassword(token: string, newPassword: string): Promise<void> {
     await apiClient.post(`/api/public/reset-password/${token}`, { newPassword });
   },
+
+  async getCandidateTimeline(candidateId: string): Promise<{
+    items: Array<{
+      id: string;
+      type: string;
+      description: string;
+      userName: string;
+      createdAt: string;
+      metadata?: Record<string, unknown>;
+    }>;
+  }> {
+    const { data } = await apiClient.get(`/api/candidate/${candidateId}/timeline`);
+    return data;
+  },
+
+  async getTodaysInterviews(): Promise<{
+    items: Array<{
+      id: string;
+      candidateFullName: string;
+      vacancyTitle: string;
+      type: string;
+      scheduledAt: string;
+      durationMin: number;
+      format: string;
+    }>;
+  }> {
+    const { data } = await apiClient.get("/api/interview/today");
+    return data;
+  },
+
+  async getTodaysTasks(): Promise<{
+    items: Array<{
+      id: string;
+      title: string;
+      deadline?: string;
+      priority?: string;
+      vacancyTitle?: string;
+    }>;
+  }> {
+    const { data } = await apiClient.get("/api/tasks/today");
+    return data;
+  },
+
+  async duplicateVacancy(vacancyId: string): Promise<{ id: string }> {
+    const { data } = await apiClient.post(`/api/vacancy/${vacancyId}/duplicate`);
+    return data;
+  },
+
+  async archiveVacancy(vacancyId: string): Promise<void> {
+    await apiClient.post(`/api/vacancy/${vacancyId}/archive`);
+  },
+  async restoreVacancy(vacancyId: string): Promise<void> {
+    await apiClient.post(`/api/vacancy/${vacancyId}/restore`);
+  },
+
+  async getNotificationTypeSettings(): Promise<{
+    items: Array<{
+      type: string;
+      label: string;
+      emailEnabled: boolean;
+      pushEnabled: boolean;
+    }>;
+  }> {
+    const { data } = await apiClient.get("/api/notification-settings/types");
+    return data;
+  },
+  async updateNotificationTypeSettings(payload: Array<{
+    type: string;
+    emailEnabled: boolean;
+    pushEnabled: boolean;
+  }>): Promise<void> {
+    await apiClient.put("/api/notification-settings/types", payload);
+  },
+
+  async globalSearch(query: string): Promise<{
+    candidates: Array<{ id: string; name: string; email: string }>;
+    vacancies: Array<{ id: string; title: string; status: string }>;
+    companies: Array<{ id: string; name: string }>;
+  }> {
+    const { data } = await apiClient.get("/api/search/global", { params: { q: query } });
+    return data;
+  },
+
+  async approveRequisition(id: string, comment?: string): Promise<void> {
+    await apiClient.post(`/api/requisitions/${id}/approve`, comment ? { comment } : undefined);
+  },
+  async rejectRequisition(id: string, reason: string): Promise<void> {
+    await apiClient.post(`/api/requisitions/${id}/reject`, { reason });
+  },
+
+  async updateCandidateProfileByToken(token: string, data: Record<string, string>): Promise<void> {
+    await apiClient.put(`/api/public/profile/${token}`, data);
+  },
+
+  async bulkSendMessage(candidacyIds: string[], body: string, templateId?: string): Promise<void> {
+    await apiClient.post("/api/conversations/bulk-send", { candidacyIds, body, templateId });
+  },
 };

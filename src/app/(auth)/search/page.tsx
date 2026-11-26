@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useQuery, useMutation, useQueryClient, keepPreviousData } from "@tanstack/react-query";
 import {
-  Input, Button, Table, Skeleton, Segmented, Tag, Drawer, Checkbox, Space, message,
+  Input, Button, Table, Skeleton, Segmented, Tag, Drawer, Checkbox, Space, message, Modal,
 } from "antd";
 import type { ColumnsType } from "antd/es/table";
 import { PageHeader } from "@/components/PageHeader";
@@ -86,6 +86,8 @@ export default function SearchPage() {
   const [aiLoading, setAiLoading] = useState(false);
   const [savedSearchOpen, setSavedSearchOpen] = useState(false);
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
+  const [bulkMsgOpen, setBulkMsgOpen] = useState(false);
+  const [bulkMsgBody, setBulkMsgBody] = useState("");
 
   useEffect(() => {
     const t = setTimeout(() => setDebouncedSearch(search), 400);
@@ -143,6 +145,16 @@ export default function SearchPage() {
     mutationFn: () => appApi.exportCandidates({ q: debouncedSearch }),
     onSuccess: (resp) => { if (resp.url) window.open(resp.url, "_blank"); },
     onError: () => message.error("Не удалось выгрузить"),
+  });
+
+  const bulkMsgMut = useMutation({
+    mutationFn: () => appApi.bulkSendMessage(selectedIds, bulkMsgBody),
+    onSuccess: () => {
+      message.success(`Сообщение отправлено ${selectedIds.length} кандидатам`);
+      setBulkMsgOpen(false);
+      setBulkMsgBody("");
+    },
+    onError: () => message.error("Не удалось отправить сообщения"),
   });
 
   const items = aiResults ?? data?.items ?? [];
@@ -217,6 +229,14 @@ export default function SearchPage() {
             onClick={() => router.push(`/candidate/compare?ids=${selectedIds.join(",")}`)}
           >
             Сравнить ({selectedIds.length})
+          </Button>
+        )}
+        {selectedIds.length >= 1 && (
+          <Button
+            size="large"
+            onClick={() => setBulkMsgOpen(true)}
+          >
+            Отправить сообщение ({selectedIds.length})
           </Button>
         )}
       </div>
@@ -374,6 +394,26 @@ export default function SearchPage() {
           )}
         </div>
       </Drawer>
+
+      <Modal
+        title={`Отправить сообщение ${selectedIds.length} кандидатам`}
+        open={bulkMsgOpen}
+        onCancel={() => setBulkMsgOpen(false)}
+        onOk={() => {
+          if (bulkMsgBody.trim()) bulkMsgMut.mutate();
+          else message.warning("Введите текст сообщения");
+        }}
+        okText="Отправить"
+        cancelText="Отмена"
+        confirmLoading={bulkMsgMut.isPending}
+      >
+        <Input.TextArea
+          rows={6}
+          placeholder="Текст сообщения…"
+          value={bulkMsgBody}
+          onChange={(e) => setBulkMsgBody(e.target.value)}
+        />
+      </Modal>
     </div>
   );
 }

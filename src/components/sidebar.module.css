@@ -35,3 +35,16 @@
   .collapsed{transform:translateX(-100%);--ats-sider-width:0px}
   .sidebar:not(.collapsed){transform:translateX(0)}
 }
+
+.globalSearch{position:relative;padding:0 16px 8px}
+.searchInput{width:100%;padding:8px 12px;border:1px solid rgba(255,255,255,.12);border-radius:8px;background:rgba(255,255,255,.06);color:#fff;font-size:13px;outline:none}
+.searchInput::placeholder{color:rgba(255,255,255,.35)}
+.searchInput:focus{border-color:var(--ats-primary,#6b53d5)}
+.searchResults{position:absolute;left:16px;right:16px;top:36px;max-height:360px;overflow-y:auto;background:#fff;border:1px solid #f0f0f0;border-radius:8px;box-shadow:0 4px 12px rgba(0,0,0,.12);z-index:100;padding:4px 0}
+.searchHint{padding:12px;text-align:center;color:rgba(0,0,0,.45);font-size:13px}
+.searchGroup{padding:4px 0}
+.searchGroupTitle{padding:4px 12px;font-size:11px;font-weight:600;color:rgba(0,0,0,.45);text-transform:uppercase}
+.searchItem{display:flex;flex-direction:column;gap:2px;width:100%;padding:6px 12px;border:none;background:none;cursor:pointer;text-align:left}
+.searchItem:hover{background:rgba(107,83,213,.06)}
+.searchItemTitle{font-size:13px;font-weight:500;color:#151716}
+.searchItemSub{font-size:11px;color:rgba(0,0,0,.45)}

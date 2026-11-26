@@ -128,6 +128,16 @@ export default function HomePage() {
       }),
   });
 
+  const { data: todaysInterviews } = useQuery({
+    queryKey: ["interviews", "today"],
+    queryFn: () => appApi.getTodaysInterviews(),
+  });
+
+  const { data: todaysTasks } = useQuery({
+    queryKey: ["tasks", "today"],
+    queryFn: () => appApi.getTodaysTasks(),
+  });
+
   const userName = userResp?.user?.first_name ?? "";
   const greeting = getGreeting();
   const dateStr = formatToday();
@@ -284,6 +294,51 @@ export default function HomePage() {
           </div>
         }
       />
+
+      <div className={s.widgets}>
+        <div className={s.widget}>
+          <h3 className={s.widgetTitle}>Интервью сегодня</h3>
+          {(() => {
+            const ivItems = (todaysInterviews as { items?: Array<{ id: string; candidateFullName: string; vacancyTitle: string; scheduledAt: string; format: string }> })?.items ?? [];
+            if (ivItems.length === 0) return <div className={s.widgetEmpty}>На сегодня интервью нет</div>;
+            return (
+              <div className={s.widgetList}>
+                {ivItems.map((iv) => (
+                  <div key={iv.id} className={s.widgetItem}>
+                    <span className={s.widgetTime}>{new Date(iv.scheduledAt).toLocaleTimeString("ru-RU", { hour: "2-digit", minute: "2-digit" })}</span>
+                    <div className={s.widgetContent}>
+                      <span className={s.widgetName}>{iv.candidateFullName}</span>
+                      <span className={s.widgetSub}>{iv.vacancyTitle} · {iv.format}</span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            );
+          })()}
+        </div>
+        <div className={s.widget}>
+          <h3 className={s.widgetTitle}>Задачи на сегодня</h3>
+          {(() => {
+            const tItems = (todaysTasks as { items?: Array<{ id: string; title: string; priority?: string; vacancyTitle?: string }> })?.items ?? [];
+            if (tItems.length === 0) return <div className={s.widgetEmpty}>Нет задач на сегодня</div>;
+            return (
+              <div className={s.widgetList}>
+                {tItems.map((t) => (
+                  <div key={t.id} className={s.widgetItem}>
+                    <Tag color={t.priority === "high" ? "red" : t.priority === "medium" ? "orange" : "blue"} style={{ margin: 0 }}>
+                      {t.priority ?? "normal"}
+                    </Tag>
+                    <div className={s.widgetContent}>
+                      <span className={s.widgetName}>{t.title}</span>
+                      {t.vacancyTitle && <span className={s.widgetSub}>{t.vacancyTitle}</span>}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            );
+          })()}
+        </div>
+      </div>
 
       <section className={s.portfolio}>
         <div className={s.panel}>

@@ -53,6 +53,11 @@ export default function CandidatePage({
     queryFn: () => appApi.getCandidateNotes(id),
   });
 
+  const { data: timelineData } = useQuery({
+    queryKey: [...qk.candidates.detail(id), "timeline"],
+    queryFn: () => appApi.getCandidateTimeline(id),
+  });
+
   const resumeMut = useMutation({
     mutationFn: (file: File) => appApi.uploadResume(id, file),
     onSuccess: () => {
@@ -288,6 +293,31 @@ export default function CandidatePage({
             Добавить
           </Button>
         </Space.Compact>
+      </div>
+
+      <div className={s.panel}>
+        <h3 className={s.panelTitle}>Хронология событий</h3>
+        {(() => {
+          const tlItems = (timelineData as { items?: Array<{ id: string; type: string; description: string; userName: string; createdAt: string }> })?.items ?? [];
+          if (tlItems.length === 0) return <div className={s.empty}>Нет событий</div>;
+          return (
+            <div className={s.timeline}>
+              {tlItems.map((item) => (
+                <div key={item.id} className={s.timelineItem}>
+                  <div className={s.timelineDot} />
+                  <div className={s.timelineContent}>
+                    <div className={s.timelineDesc}>{item.description}</div>
+                    <div className={s.timelineMeta}>
+                      <Tag>{item.type}</Tag>
+                      <span>{item.userName}</span>
+                      <span>· {new Date(item.createdAt).toLocaleString("ru-RU")}</span>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          );
+        })()}
       </div>
 
       <div className={s.panel}>
